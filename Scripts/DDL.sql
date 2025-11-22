@@ -1,0 +1,24 @@
+USE master;
+GO
+
+IF EXISTS (SELECT 1 FROM SYS.databases WHERE name = 'PetcareX')
+    DROP DATABASE PetcareX;
+go
+
+CREATE DATABASE PetcareX;
+GO
+USE PetcareX;
+GO
+
+--- KHACH HANG VA THU CUNG
+
+--- KHAM BENH VA TIEM PHONG
+
+--- KINH DOANH
+
+--- CHI NHANH VA NHAN SU
+
+------
+-- KHOA NGOAI
+------
+
