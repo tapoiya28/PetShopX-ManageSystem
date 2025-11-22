@@ -17,6 +17,71 @@ GO
 --- KINH DOANH
 
 --- CHI NHANH VA NHAN SU
+CREATE TABLE LOAIDICHVU (
+    MALOAIDV   VARCHAR(10) PRIMARY KEY,
+    TENDV      NVARCHAR(100),
+    MOTA       NVARCHAR(255)
+);
+
+--------------------------------------------------------------
+
+CREATE TABLE CHINHANH (
+    MACN       VARCHAR(10) PRIMARY KEY,
+    TENCN      NVARCHAR(50),
+    DIACHI     NVARCHAR(200),
+    SDT        VARCHAR(10),
+    GIODM      TIME,
+    GIODONGCUA TIME,
+);
+
+
+CREATE TABLE CUNGCAP (
+    MALOAIDV VARCHAR(10),
+    MACN     VARCHAR(10),
+    PRIMARY KEY (MALOAIDV, MACN),
+    FOREIGN KEY (MALOAIDV) REFERENCES LOAIDICHVU(MALOAIDV),
+    FOREIGN KEY (MACN) REFERENCES CHINHANH(MACN)
+);
+
+--------------------------------------------------------------
+
+CREATE TABLE NHANVIEN (
+    MANV   VARCHAR(8) PRIMARY KEY,
+    HOTEN        NVARCHAR(100),
+    NGAYSINH     DATE,
+    GIOITINH     NVARCHAR(5),
+    SODIENTHOAI  VARCHAR(10),
+    LUONGCOBAN   DECIMAL(12,2)
+);
+--------------------------------------------------------------
+
+CREATE TABLE LAMVIEC (
+    MACN       VARCHAR(10),
+    MANV       VARCHAR(8),
+    NGAYBATDAU DATE ,
+    NGAYKETTHUC DATE,
+    PRIMARY KEY (MACN, MANV, NGAYBATDAU),
+    FOREIGN KEY (MACN) REFERENCES CHINHANH(MACN),
+    FOREIGN KEY (MANV) REFERENCES NHANVIEN(MANV)
+);
+--------------------------------------------------------------
+
+CREATE TABLE QUANLY (
+    MANV        VARCHAR(8),
+    NGAYBONHIEM DATE,
+    MACN        VARCHAR(10),
+    PRIMARY KEY (MANV, MACN),
+    FOREIGN KEY (MANV) REFERENCES NHANVIEN(MANV),
+    FOREIGN KEY (MACN) REFERENCES CHINHANH(MACN)
+);
+--------------------------------------------------------------
+
+CREATE TABLE BACSI (
+    MANV VARCHAR(8) PRIMARY KEY,
+    BANGCAP    NVARCHAR(100),
+    KINHNGHIEM INT,
+    FOREIGN KEY (MANV) REFERENCES NHANVIEN(MANV)
+);
 
 ------
 -- KHOA NGOAI
