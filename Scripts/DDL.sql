@@ -13,47 +13,47 @@ GO
 --- KHACH HANG VA THU CUNG
 
 --- KHAM BENH VA TIEM PHONG
-create table catiem (
-    matiem integer IDENTITY(1,1),
-    matc integer,
-    ngaytiem date,
-    manv varchar(10),
-    constraint pk_matiem primary key (matiem)
+CREATE TABLE CATIEM (
+    MATIEM CHAR(5),
+    MATC CHAR(5),
+    NGAYTIEM DATE,
+    MANV CHAR(5),
+    CONSTRAINT PK_MATIEM PRIMARY KEY (MATIEM)
 )
-create table chitietcatiem (
-    matiem integer,
-    mavacxin char(5) check (mavacxin like 'VC%'),
-    soluong integer check (soluong > 0),
-    constraint pk_chitietcatiem primary key(matiem,mavacxin)
+CREATE TABLE CHITIETCATIEM (
+    MATIEM CHAR(5),
+    MAVACXIN CHAR(5) CHECK (MAVACXIN LIKE 'VC%'),
+    SOLUONG INTEGER CHECK (SOLUONG > 0),
+    CONSTRAINT PK_CHITIETCATIEM PRIMARY KEY(MATIEM,MAVACXIN)
 )
-create table cakhambenh (
-    makb integer IDENTITY(1,1),
-    matc integer,
-    manv integer,
-    ngaykham date,
-    constraint pk_cakhambenh primary key (makb)
+CREATE TABLE CAKHAMBENH (
+    MAKB CHAR(5),
+    MATC CHAR(5),
+    MANV CHAR(5),
+    NGAYKHAM DATE,
+    CONSTRAINT PK_CAKHAMBENH PRIMARY KEY (MAKB)
 )
-create table trieuchung (
-    makb integer,
-    tentrieuchung nvarchar (50),
-    constraint pk_trieuchung primary key (makb, tentrieuchung)
+CREATE TABLE TRIEUCHUNG (
+    MAKB CHAR(5),
+    TENTRIEUCHUNG NVARCHAR (50),
+    CONSTRAINT PK_TRIEUCHUNG PRIMARY KEY (MAKB, TENTRIEUCHUNG)
 )
-create table chandoan (
-    makb integer,
-    tenchandoan nvarchar (20),
-    constraint pk_chandoan primary key(makb, tenchandoan)
+CREATE TABLE CHANDOAN (
+    MAKB CHAR(5),
+    TENCHANDOAN NVARCHAR (20),
+    CONSTRAINT PK_CHANDOAN PRIMARY KEY(MAKB, TENCHANDOAN)
 )
-create table toathuoc (
-    matt integer IDENTITY(1,1),
-    makb integer,
-    ghichu nvarchar(50),
-    constraint pk_toathuoc primary key (matt)
+CREATE TABLE TOATHUOC (
+    MATT CHAR(5),
+    MAKB CHAR(5),
+    GHICHU NVARCHAR(50),
+    CONSTRAINT PK_TOATHUOC PRIMARY KEY (MATT)
 )
-create table chitiettoathuoc (
-    matt integer,
-    mathuoc char(5) check (mathuoc like 'TH%'),
-    soluong integer check(soluong > 0),
-    constraint pk_chitiettoathuoc primary key (matt,mathuoc)
+CREATE TABLE CHITIETTOATHUOC (
+    MATT CHAR(5),
+    MATHUOC CHAR(5) CHECK (MATHUOC LIKE 'TH%'),
+    SOLUONG INTEGER CHECK(SOLUONG > 0),
+    CONSTRAINT PK_CHITIETTOATHUOC PRIMARY KEY (MATT,MATHUOC)
 )
 
 --- KINH DOANH
@@ -63,34 +63,34 @@ create table chitiettoathuoc (
 ------
 -- KHOA NGOAI
 ------
-alter table catiem 
-add 
-constraint fk_catiem_nhanvien FOREIGN KEY(manv) REFERENCES nhanvien,
-constraint fk_catiem_thucung FOREIGN KEY (matc) REFERENCES thucung;
-go
-alter table cakhambenh
-ADD
-constraint fk_cakhambenh_nhanvien FOREIGN KEY(manv) REFERENCES nhanvien,
-constraint fk_cakhambenh_thucung FOREIGN KEY(matc) REFERENCES thucung;
-go
-alter table chitietcatiem 
-ADD
-constraint fk_chitietcatiem_catiem FOREIGN KEY (matiem) REFERENCES catiem,
-constraint fk_chitietcatiem_sanpham foreign key (mavacxin) REFERENCES sanpham;
+ALTER TABLE CATIEM 
+ADD 
+CONSTRAINT FK_CATIEM_NHANVIEN FOREIGN KEY(MANV) REFERENCES NHANVIEN,
+CONSTRAINT FK_CATIEM_THUCUNG FOREIGN KEY (MATC) REFERENCES THUCUNG;
 GO
-alter table trieuchung 
+ALTER TABLE CAKHAMBENH
 ADD
-constraint fk_trieuchung_cakhambenh foreign key (makb) REFERENCES cakhambenh;
+CONSTRAINT FK_CAKHAMBENH_NHANVIEN FOREIGN KEY(MANV) REFERENCES NHANVIEN,
+CONSTRAINT FK_CAKHAMBENH_THUCUNG FOREIGN KEY(MATC) REFERENCES THUCUNG;
 GO
-alter table chandoan 
+ALTER TABLE CHITIETCATIEM 
 ADD
-constraint fk_chandoan_cakhambenh FOREIGN KEY (makb) REFERENCES cakhambenh;
+CONSTRAINT FK_CHITIETCATIEM_CATIEM FOREIGN KEY (MATIEM) REFERENCES CATIEM,
+CONSTRAINT FK_CHITIETCATIEM_SANPHAM FOREIGN KEY (MAVACXIN) REFERENCES SANPHAM;
 GO
-alter table toathuoc
+ALTER TABLE TRIEUCHUNG 
 ADD
-constraint fk_toathuoc_cakhambenh FOREIGN KEY (makb) REFERENCES cakhambenh;
+CONSTRAINT FK_TRIEUCHUNG_CAKHAMBENH FOREIGN KEY (MAKB) REFERENCES CAKHAMBENH;
 GO
-alter table chitiettoathuoc
+ALTER TABLE CHANDOAN 
 ADD
-constraint fk_chitiettoathuoc_cakhambenh FOREIGN KEY (makb) REFERENCES cakhambenh,
-constraint fk_chitiettoathuoc_sanpham FOREIGN KEY (mathuoc) REFERENCES sanpham;
+CONSTRAINT FK_CHANDOAN_CAKHAMBENH FOREIGN KEY (MAKB) REFERENCES CAKHAMBENH;
+GO
+ALTER TABLE TOATHUOC
+ADD
+CONSTRAINT FK_TOATHUOC_CAKHAMBENH FOREIGN KEY (MAKB) REFERENCES CAKHAMBENH;
+GO
+ALTER TABLE CHITIETTOATHUOC
+ADD
+CONSTRAINT FK_CHITIETTOATHUOC_CAKHAMBENH FOREIGN KEY (MAKB) REFERENCES CAKHAMBENH,
+CONSTRAINT FK_CHITIETTOATHUOC_SANPHAM FOREIGN KEY (MATHUOC) REFERENCES SANPHAM;
