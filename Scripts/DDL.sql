@@ -26,7 +26,7 @@ CREATE TABLE LOAIDICHVU (
 --------------------------------------------------------------
 
 CREATE TABLE CHINHANH (
-    MACN       VARCHAR(5) PRIMARY KEY,
+    MACN       CHAR(5) PRIMARY KEY,
     TENCN      NVARCHAR(50),
     DIACHI     NVARCHAR(200),
     SDT        VARCHAR(10),
@@ -36,8 +36,8 @@ CREATE TABLE CHINHANH (
 
 
 CREATE TABLE CUNGCAP (
-    MALOAIDV VARCHAR(5),
-    MACN     VARCHAR(5),
+    MALOAIDV CHAR(5),
+    MACN     CHAR(5),
     PRIMARY KEY (MALOAIDV, MACN)
 );
 
@@ -45,18 +45,18 @@ CREATE TABLE CUNGCAP (
 --------------------------------------------------------------
 
 CREATE TABLE NHANVIEN (
-    MANV   VARCHAR(5) PRIMARY KEY,
+    MANV   CHAR(5) PRIMARY KEY,
     HOTEN        NVARCHAR(100),
     NGAYSINH     DATE,
     GIOITINH     NVARCHAR(5),
-    SODIENTHOAI  VARCHAR(10),
+    SODIENTHOAI  CHAR(10),
     LUONGCOBAN   DECIMAL(12,2)
 );
 --------------------------------------------------------------
 
 CREATE TABLE LAMVIEC (
-    MACN       VARCHAR(5),
-    MANV       VARCHAR(5),
+    MACN       CHAR(5),
+    MANV       CHAR(5),
     NGAYBATDAU DATE ,
     NGAYKETTHUC DATE,
     PRIMARY KEY (MACN, MANV, NGAYBATDAU)
@@ -64,15 +64,15 @@ CREATE TABLE LAMVIEC (
 --------------------------------------------------------------
 
 CREATE TABLE QUANLY (
-    MANV        VARCHAR(5),
+    MANV        CHAR(5),
     NGAYBONHIEM DATE,
-    MACN        VARCHAR(5),
+    MACN        CHAR(5),
     PRIMARY KEY (MANV, MACN),
 );
 --------------------------------------------------------------
 
 CREATE TABLE BACSI (
-    MANV VARCHAR(5) PRIMARY KEY,
+    MANV CHAR(5) PRIMARY KEY,
     BANGCAP    NVARCHAR(100),
     KINHNGHIEM INT,
 );
