@@ -10,47 +10,110 @@ GO
 USE PetcareX;
 GO
 
+-- PARTITION
+ALTER DATABASE PetcareX
+ADD FILEGROUP FG_2022;
+GO
+
+ALTER DATABASE PetcareX
+ADD FILEGROUP FG_2023;
+GO
+
+ALTER DATABASE PetcareX
+ADD FILEGROUP FG_2024;
+GO
+
+ALTER DATABASE PetcareX
+ADD FILEGROUP FG_2025;
+GO
+
+ALTER DATABASE PetcareX
+ADD FILE(
+    NAME = 'LichHen_2022',
+    FILENAME = 'C:\Program Files\Microsoft SQL Server\MSSQL16.MSSQLSERVER\MSSQL\DATA\LichHen_2022.mdf',
+    SIZE = 10MB,
+    FILEGROWTH = 10MB
+) TO FILEGROUP FG_2022;
+GO
+
+ALTER DATABASE PetcareX
+ADD FILE(
+    NAME = 'LichHen_2023',
+    FILENAME = 'C:\Program Files\Microsoft SQL Server\MSSQL16.MSSQLSERVER\MSSQL\DATA\LichHen_2023.mdf',
+    SIZE = 10MB,
+    FILEGROWTH = 10MB
+) TO FILEGROUP FG_2023;
+GO
+
+ALTER DATABASE PetcareX
+ADD FILE(
+    NAME = 'LichHen_2024',
+    FILENAME = 'C:\Program Files\Microsoft SQL Server\MSSQL16.MSSQLSERVER\MSSQL\DATA\LichHen_2024.mdf',
+    SIZE = 10MB,
+    FILEGROWTH = 10MB
+) TO FILEGROUP FG_2024;
+GO
+
+ALTER DATABASE PetcareX
+ADD FILE(
+    NAME = 'LichHen_2025',
+    FILENAME = 'C:\Program Files\Microsoft SQL Server\MSSQL16.MSSQLSERVER\MSSQL\DATA\LichHen_2025.mdf',
+    SIZE = 10MB,
+    FILEGROWTH = 10MB
+) TO FILEGROUP FG_2025;
+GO
+
+-- PARTITION FUNCTION
+CREATE PARTITION FUNCTION pf_LichHenByNgayHen (DATE)
+AS RANGE RIGHT
+FOR VALUES ('2023-01-01', '2024-01-01', '2025-01-01');
+GO
+
+CREATE PARTITION SCHEME ps_LichHenByNgayHen
+AS PARTITION pf_LichHenByNgayHen
+TO (FG_2022, FG_2023, FG_2024, FG_2025);
+GO
 --- KHACH HANG VA THU CUNG
 CREATE TABLE CAPBAC (
-    MaCapBac INT IDENTITY(1,1) CONSTRAINT PK_CAPBAC PRIMARY KEY,
-    TenCapBac NVARCHAR(15) NOT NULL CHECK (TenCapBac IN (N'??ng', N'B?c', N'V�ng', N'B?ch Kim', N'Kim C??ng')),
+    MaCapBac CHAR(5) PRIMARY KEY,
+    TenCapBac NVARCHAR(15) NOT NULL CHECK (TenCapBac IN (N'Đồng', N'Bạc', N'Vàng', N'Bạch Kim', N'Kim Cương')),
     MucChiTieu DECIMAL(18,2) NOT NULL CHECK (MucChiTieu >= 0)
 );
 GO
 
 CREATE TABLE KHACHHANG (
-    MaKH INT IDENTITY(1,1) CONSTRAINT PK_KHACHHANG PRIMARY KEY,
+    MaKH CHAR(5) PRIMARY KEY,
     TenKH NVARCHAR(100) NOT NULL,  
     SDT CHAR(10) NOT NULL, 
     DiaChi NVARCHAR(200) NULL,
-    MaCapBac INT NULL,
+    MaCapBac CHAR(5) NULL,
     CONSTRAINT FK_KHACHHANG_CAPBAC
         FOREIGN KEY (MaCapBac) REFERENCES CAPBAC(MaCapBac),
-    -- SDT ph?i l� duy nh?t
+    -- SDT phải là duy nhất
     CONSTRAINT UQ_KHACHHANG_SDT UNIQUE (SDT)
 );
 GO
 
 CREATE TABLE THUCUNG (
-    MaTC INT IDENTITY(1,1) CONSTRAINT PK_THUCUNG PRIMARY KEY,
+    MaTC CHAR(5) PRIMARY KEY,
     Loai NVARCHAR(30) NOT NULL,
     Giong NVARCHAR(50) NULL,
     Tuoi TINYINT NULL,
-    GioiTinh NVARCHAR(5) NOT NULL CHECK (GioiTinh IN (N'??c', N'C�i')),
-    TinhTrang NVARCHAR(20) NOT NULL CHECK (TinhTrang IN (N'B�nh th??ng', N'?ang ?i?u tr?')),
-    MaKH INT NOT NULL,
+    GioiTinh NVARCHAR(5) NOT NULL CHECK (GioiTinh IN (N'Đực', N'Cái')),
+    TinhTrang NVARCHAR(20) NOT NULL CHECK (TinhTrang IN (N'Bình thường', N'Đang điều trị')),
+    MaKH CHAR(5) NOT NULL,
     CONSTRAINT FK_THUCUNG_KHACHHANG
         FOREIGN KEY (MaKH) REFERENCES KHACHHANG(MaKH)
 );
 GO
 
 CREATE TABLE LICHHEN (
-    MaLichHen INT IDENTITY(1,1) CONSTRAINT PK_LICHEN PRIMARY KEY,
+    MaLichHen CHAR(5) PRIMARY KEY,
     NgayHen DATE NOT NULL,
     ThoiGian TIME NOT NULL,
     NoiDung NVARCHAR(200) NULL,
-    MaKH INT NOT NULL,
-    MaCN INT NOT NULL,    
+    MaKH CHAR(5) NOT NULL,
+    MaCN CHAR(5) NOT NULL,    
     MaLoaiDV INT NOT NULL,    
     CONSTRAINT FK_LICHEN_KHACHHANG
         FOREIGN KEY (MaKH) REFERENCES KHACHHANG(MaKH),
@@ -58,9 +121,32 @@ CREATE TABLE LICHHEN (
         UNIQUE (NgayHen, ThoiGian, MaCN, MaKH)
 );
 GO
+CREATE TABLE LICHHEN_partitioned (
+    MaLichHen CHAR(5) NOT NULL,
+    NgayHen   DATE          NOT NULL,
+    ThoiGian  TIME          NOT NULL,
+    NoiDung   NVARCHAR(200) NULL,
+    MaKH      CHAR(5)       NOT NULL,
+    MaCN      CHAR(5)       NOT NULL,
+    MaLoaiDV  INT           NOT NULL,
+
+    CONSTRAINT PK_LICHEN_partitioned
+        PRIMARY KEY CLUSTERED (NgayHen, MaLichHen)
+        ON ps_LichHenByNgayHen(NgayHen),
+
+    CONSTRAINT FK_LICHEN_partitioned_KHACHHANG
+        FOREIGN KEY (MaKH) REFERENCES KHACHHANG(MaKH),
+
+    CONSTRAINT UQ_LICHEN_partitioned_NgayHen_ThoiGian_MaCN_MaKH
+        UNIQUE (NgayHen, ThoiGian, MaCN, MaKH)
+        ON ps_LichHenByNgayHen(NgayHen)
+);
+GO
+
+
 
 CREATE TABLE CHITIEU (
-    MaKH INT NOT NULL,
+    MaKH CHAR(5) NOT NULL,
     Nam SMALLINT NOT NULL,
     Thang TINYINT NOT NULL CHECK (Thang BETWEEN 1 AND 12),
     ChiTieu DECIMAL(12,2) NOT NULL CHECK (ChiTieu >= 0),
@@ -71,47 +157,36 @@ CREATE TABLE CHITIEU (
 GO
 
 CREATE TABLE DANHGIA (
-    MaDanhGia INT IDENTITY(1,1) CONSTRAINT PK_DANHGIA PRIMARY KEY,
+    MaDanhGia CHAR(5) PRIMARY KEY,
     DiemDichVu TINYINT NOT NULL CHECK (DiemDichVu BETWEEN 1 AND 5),
     ThaiDoNhanVien TINYINT NOT NULL CHECK (ThaiDoNhanVien BETWEEN 1 AND 5),
     MucDoHaiLong TINYINT NOT NULL CHECK (MucDoHaiLong BETWEEN 1 AND 5),
     BinhLuan NVARCHAR(500) NULL,
-    MaKH INT NOT NULL,
+    MaKH CHAR(5) NOT NULL,
     MaHD INT NOT NULL,
     CONSTRAINT FK_DANHGIA_KHACHHANG
         FOREIGN KEY (MaKH) REFERENCES KHACHHANG(MaKH),
-    -- M?t h�a ??n ch? ???c ?�nh gi� m?t l?n
+    -- Một hóa đơn chỉ được đánh giá một lần
     CONSTRAINT UQ_DANHGIA_MaHD UNIQUE (MaHD)
 );
 GO
+
+
+
+--- KHAM BENH VA TIEM PHONG
+
+--- KINH DOANH
+
+--- CHI NHANH VA NHAN SU
+
+------
+-- KHOA NGOAI
+
 /*
 Khoa ngoai chua cai dat
 LichHen Chinhanh
 LichHen LoaiDichVu
 DanhGia Hoadon
 */
-
---- KHAM BENH VA TIEM PHONG
-
---- KINH DOANH
-
---- CHI NHANH VA NHAN SU
-
-------
--- KHOA NGOAI
-------
-
-
-
---- KHACH HANG VA THU CUNG
-
---- KHAM BENH VA TIEM PHONG
-
---- KINH DOANH
-
---- CHI NHANH VA NHAN SU
-
-------
--- KHOA NGOAI
 ------
 
