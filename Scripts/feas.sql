@@ -1,6 +1,76 @@
 USE PetcareX;
 GO
+
 -- QuanLyHeThong
+CREATE PROCEDURE sp_Sub_NhanVien_Xem
+    @MANV CHAR(5) = NULL,
+    @LOAINV NVARCHAR(20) = NULL
+AS
+BEGIN
+    IF @MANV IS NOT NULL
+    BEGIN
+        IF LEFT(@MANV, 2) = 'BS'
+             SELECT NV.MANV, NV.HOTEN, NV.SDT, NV.GIOITINH, NV.LUONGCOBAN, BS.BANGCAP, BS.KINHNGHIEM 
+             FROM NHANVIEN NV LEFT JOIN BACSI BS ON NV.MANV = BS.MANV WHERE NV.MANV = @MANV;
+        ELSE IF LEFT(@MANV, 2) = 'QL'
+             SELECT NV.MANV, NV.HOTEN, NV.SDT, NV.GIOITINH, NV.LUONGCOBAN, QL.NGAYBONHIEM, QL.MACN AS MaChiNhanhQuanLy
+             FROM NHANVIEN NV LEFT JOIN QUANLY QL ON NV.MANV = QL.MANV WHERE NV.MANV = @MANV;
+        ELSE 
+             SELECT * FROM NHANVIEN WHERE MANV = @MANV;
+    END
+    ELSE IF @LOAINV = N'Bác sĩ'
+        SELECT NV.MANV, NV.HOTEN, NV.SDT, NV.LUONGCOBAN, BS.BANGCAP, BS.KINHNGHIEM FROM NHANVIEN NV JOIN BACSI BS ON NV.MANV = BS.MANV;
+    ELSE IF @LOAINV = N'Quản lý'
+        SELECT NV.MANV, NV.HOTEN, NV.SDT, NV.LUONGCOBAN, QL.NGAYBONHIEM, QL.MACN FROM NHANVIEN NV JOIN QUANLY QL ON NV.MANV = QL.MANV;
+    ELSE
+        SELECT NV.MANV, NV.HOTEN, NV.SDT, NV.GIOITINH, NV.LUONGCOBAN, BS.BANGCAP, BS.KINHNGHIEM, QL.NGAYBONHIEM, QL.MACN
+        FROM NHANVIEN NV LEFT JOIN BACSI BS ON NV.MANV = BS.MANV LEFT JOIN QUANLY QL ON NV.MANV = QL.MANV;
+END;
+GO
+
+CREATE PROCEDURE sp_Sub_NhanVien_Them
+    @HOTEN NVARCHAR(50), @NGAYSINH DATE, @GIOITINH NVARCHAR(5), @SDT CHAR(10), @LUONGCOBAN DECIMAL(12,2),
+    @LOAINV NVARCHAR(20), @BANGCAP NVARCHAR(50), @KINHNGHIEM INT, @MACN_QUANLY CHAR(5)
+AS
+BEGIN
+    IF @LOAINV = N'Bác sĩ' AND @BANGCAP IS NULL THROW 50001, N'Thiếu bằng cấp bác sĩ.', 1;
+    IF @LOAINV = N'Quản lý' AND @MACN_QUANLY IS NULL THROW 50002, N'Thiếu mã chi nhánh quản lý.', 1;
+    IF EXISTS (SELECT 1 FROM NHANVIEN WHERE SDT = @SDT) THROW 50003, N'Trùng SĐT.', 1;
+
+    DECLARE @Prefix CHAR(2), @MaxMANV CHAR(5), @NextNumber INT, @NewMANV CHAR(5);
+    IF @LOAINV = N'Bác sĩ' SET @Prefix = 'BS'; ELSE IF @LOAINV = N'Quản lý' SET @Prefix = 'QL'; ELSE SET @Prefix = 'NV';
+    
+    SELECT @MaxMANV = MAX(MANV) FROM NHANVIEN WHERE MANV LIKE @Prefix + '%';
+    IF @MaxMANV IS NULL SET @NewMANV = @Prefix + '001';
+    ELSE BEGIN
+        SET @NextNumber = CAST(RIGHT(@MaxMANV, 3) AS INT) + 1;
+        IF @NextNumber > 999 THROW 50004, N'Hết số.', 1;
+        SET @NewMANV = @Prefix + RIGHT('000' + CAST(@NextNumber AS VARCHAR(3)), 3);
+    END
+
+    INSERT INTO NHANVIEN (MANV, HOTEN, NGAYSINH, GIOITINH, SDT, LUONGCOBAN) VALUES (@NewMANV, @HOTEN, @NGAYSINH, @GIOITINH, @SDT, @LUONGCOBAN);
+    IF @LOAINV = N'Bác sĩ' INSERT INTO BACSI VALUES (@NewMANV, @BANGCAP, @KINHNGHIEM);
+    ELSE IF @LOAINV = N'Quản lý' INSERT INTO QUANLY VALUES (@NewMANV, GETDATE(), @MACN_QUANLY);
+    PRINT N'Đã thêm thành công. Mã: ' + @NewMANV;
+END;
+GO
+
+CREATE PROCEDURE sp_Sub_NhanVien_Sua
+    @MANV CHAR(5), @HOTEN NVARCHAR(50), @NGAYSINH DATE, @GIOITINH NVARCHAR(5), @SDT CHAR(10), @LUONGCOBAN DECIMAL(12,2),
+    @BANGCAP NVARCHAR(50), @KINHNGHIEM INT, @MACN_QUANLY CHAR(5)
+AS
+BEGIN
+    IF @MANV IS NULL THROW 50005, N'Thiếu mã NV.', 1;
+    
+    UPDATE NHANVIEN SET HOTEN = @HOTEN, NGAYSINH = @NGAYSINH, GIOITINH = @GIOITINH, SDT = @SDT, LUONGCOBAN = @LUONGCOBAN WHERE MANV = @MANV;
+    
+    IF LEFT(@MANV, 2) = 'BS' UPDATE BACSI SET BANGCAP = @BANGCAP, KINHNGHIEM = @KINHNGHIEM WHERE MANV = @MANV;
+    ELSE IF LEFT(@MANV, 2) = 'QL' AND @MACN_QUANLY IS NOT NULL UPDATE QUANLY SET MACN = @MACN_QUANLY WHERE MANV = @MANV;
+    
+    PRINT N'Đã cập nhật thông tin.';
+END;
+GO
+
 CREATE PROCEDURE sp_QuanLyHoSoNhanVien
     @MANV CHAR(5) = NULL,           
     @HOTEN NVARCHAR(50) = NULL,
@@ -17,99 +87,19 @@ AS
 BEGIN
     SET NOCOUNT ON;
     BEGIN TRY
-        BEGIN TRANSACTION;
-        IF @LOAIHANHDONG = 'XEM'
-        BEGIN
-            IF @MANV IS NOT NULL
+        BEGIN TRANSACTION;            
+            IF @LOAIHANHDONG = 'XEM' OR @LOAIHANHDONG = 'XEM ALL'
             BEGIN
-                IF LEFT(@MANV, 2) = 'BS'
-                BEGIN
-                    SELECT NV.MANV, NV.HOTEN, NV.SDT, NV.GIOITINH, NV.LUONGCOBAN,
-                           BS.BANGCAP, BS.KINHNGHIEM 
-                    FROM NHANVIEN NV 
-                    LEFT JOIN BACSI BS ON NV.MANV = BS.MANV
-                    WHERE NV.MANV = @MANV;
-                END
-                ELSE IF LEFT(@MANV, 2) = 'QL'
-                BEGIN
-                    SELECT NV.MANV, NV.HOTEN, NV.SDT, NV.GIOITINH, NV.LUONGCOBAN,
-                           QL.NGAYBONHIEM, QL.MACN AS MaChiNhanhQuanLy
-                    FROM NHANVIEN NV 
-                    LEFT JOIN QUANLY QL ON NV.MANV = QL.MANV
-                    WHERE NV.MANV = @MANV;
-                END
-                ELSE 
-                BEGIN
-                    SELECT * FROM NHANVIEN WHERE MANV = @MANV;
-                END
+                EXEC sp_Sub_NhanVien_Xem @MANV, @LOAINV;
             END
-            ELSE 
+            ELSE IF @LOAIHANHDONG = 'THEM'
             BEGIN
-                IF @LOAINV = N'Bác sĩ'
-                    SELECT NV.*, BS.BANGCAP, BS.KINHNGHIEM FROM NHANVIEN NV JOIN BACSI BS ON NV.MANV = BS.MANV;
-                ELSE IF @LOAINV = N'Quản lý'
-                    SELECT NV.*, QL.NGAYBONHIEM, QL.MACN FROM NHANVIEN NV JOIN QUANLY QL ON NV.MANV = QL.MANV;
-                ELSE
-                    SELECT * FROM NHANVIEN;
-            END        
-            COMMIT TRANSACTION;
-            RETURN;
-        END
-        IF @LOAIHANHDONG = 'THEM'
-        BEGIN
-            IF @LOAINV = N'Bác sĩ' AND @BANGCAP IS NULL
-            BEGIN ROLLBACK TRANSACTION; PRINT N'Thiếu bằng cấp bác sĩ.'; RETURN; END
-            IF @LOAINV = N'Quản lý' AND @MACN_QUANLY IS NULL
-            BEGIN ROLLBACK TRANSACTION; PRINT N'Thiếu mã chi nhánh quản lý.'; RETURN; END
-            DECLARE @Prefix CHAR(2); DECLARE @MaxMANV CHAR(5); DECLARE @NextNumber INT; DECLARE @NewMANV CHAR(5);
-            IF @LOAINV = N'Bác sĩ' SET @Prefix = 'BS';
-            ELSE IF @LOAINV = N'Quản lý' SET @Prefix = 'QL';
-            ELSE SET @Prefix = 'NV';
-            SELECT @MaxMANV = MAX(MANV) FROM NHANVIEN WHERE MANV LIKE @Prefix + '%';
-            IF @MaxMANV IS NULL SET @NewMANV = @Prefix + '001';
-            ELSE
-            BEGIN
-                SET @NextNumber = CAST(RIGHT(@MaxMANV, 3) AS INT) + 1;
-                IF @NextNumber > 999 
-                BEGIN ROLLBACK TRANSACTION; PRINT N'Hết số.'; RETURN; END
-                SET @NewMANV = @Prefix + RIGHT('000' + CAST(@NextNumber AS VARCHAR(3)), 3);
+                EXEC sp_Sub_NhanVien_Them @HOTEN, @NGAYSINH, @GIOITINH, @SDT, @LUONGCOBAN, @LOAINV, @BANGCAP, @KINHNGHIEM, @MACN_QUANLY;
             END
-            IF EXISTS (SELECT 1 FROM NHANVIEN WHERE SDT = @SDT)
-            BEGIN ROLLBACK TRANSACTION; PRINT N'Trùng SĐT.'; RETURN; END
-            INSERT INTO NHANVIEN (MANV, HOTEN, NGAYSINH, GIOITINH, SDT, LUONGCOBAN)
-            VALUES (@NewMANV, @HOTEN, @NGAYSINH, @GIOITINH, @SDT, @LUONGCOBAN);
-            IF @LOAINV = N'Bác sĩ'
-                INSERT INTO BACSI (MANV, BANGCAP, KINHNGHIEM) VALUES (@NewMANV, @BANGCAP, @KINHNGHIEM);
-            ELSE IF @LOAINV = N'Quản lý'
-                INSERT INTO QUANLY (MANV, NGAYBONHIEM, MACN) VALUES (@NewMANV, GETDATE(), @MACN_QUANLY);
-            PRINT N'Đã thêm thành công. Mã: ' + @NewMANV;
-        END
-        ELSE IF @LOAIHANHDONG = 'SUA'
-        BEGIN
-            IF @MANV IS NULL BEGIN ROLLBACK TRANSACTION; PRINT N'Thiếu mã NV.'; RETURN; END    
-            UPDATE NHANVIEN
-            SET HOTEN = @HOTEN, NGAYSINH = @NGAYSINH, GIOITINH = @GIOITINH, SDT = @SDT, LUONGCOBAN = @LUONGCOBAN
-            WHERE MANV = @MANV;
-            IF LEFT(@MANV, 2) = 'BS'
+            ELSE IF @LOAIHANHDONG = 'SUA'
             BEGIN
-                UPDATE BACSI SET BANGCAP = @BANGCAP, KINHNGHIEM = @KINHNGHIEM WHERE MANV = @MANV;
+                EXEC sp_Sub_NhanVien_Sua @MANV, @HOTEN, @NGAYSINH, @GIOITINH, @SDT, @LUONGCOBAN, @BANGCAP, @KINHNGHIEM, @MACN_QUANLY;
             END
-            ELSE IF LEFT(@MANV, 2) = 'QL'
-            BEGIN
-                IF @MACN_QUANLY IS NOT NULL
-                    UPDATE QUANLY SET MACN = @MACN_QUANLY WHERE MANV = @MANV;
-            END      
-            PRINT N'Đã cập nhật thông tin.';
-        END
-        ELSE IF @LOAIHANHDONG = 'XEM ALL'
-        BEGIN
-            SELECT NV.MANV, NV.HOTEN, NV.SDT, NV.GIOITINH, NV.LUONGCOBAN,
-                   BS.BANGCAP, BS.KINHNGHIEM,
-                   QL.NGAYBONHIEM, QL.MACN AS MaChiNhanhQuanLy
-            FROM NHANVIEN NV
-            LEFT JOIN BACSI BS ON NV.MANV = BS.MANV
-            LEFT JOIN QUANLY QL ON NV.MANV = QL.MANV;
-        END
         COMMIT TRANSACTION;
     END TRY
     BEGIN CATCH
@@ -118,9 +108,47 @@ BEGIN
     END CATCH
 END;
 GO
+--- QuanLyChiNhanh
+CREATE PROCEDURE sp_Sub_ChiNhanh_Xem AS 
+BEGIN SELECT * FROM CHINHANH; END;
+GO
+
+CREATE PROCEDURE sp_Sub_ChiNhanh_Them
+    @TENCN NVARCHAR(50), @DIACHI NVARCHAR(100), @SDT CHAR(10), @GIODM TIME, @GIODONGCUA TIME
+AS
+BEGIN
+    IF EXISTS (SELECT 1 FROM CHINHANH WHERE SDT = @SDT) THROW 50006, N'SĐT CN đã tồn tại.', 1;
+
+    DECLARE @MaxMACN CHAR(5), @NextNumber INT, @NewMACN CHAR(5);
+    SELECT @MaxMACN = MAX(MACN) FROM CHINHANH WHERE MACN LIKE 'CN%';
+    
+    IF @MaxMACN IS NULL SET @NewMACN = 'CN001';
+    ELSE BEGIN
+        SET @NextNumber = CAST(RIGHT(@MaxMACN, 3) AS INT) + 1;
+        IF @NextNumber > 999 THROW 50007, N'Hết số CN.', 1;
+        SET @NewMACN = 'CN' + RIGHT('000' + CAST(@NextNumber AS VARCHAR(3)), 3);
+    END
+
+    INSERT INTO CHINHANH (MACN, TENCN, DIACHI, SDT, GIODM, GIODONGCUA) VALUES (@NewMACN, @TENCN, @DIACHI, @SDT, @GIODM, @GIODONGCUA);
+    PRINT N'Đã thêm CN: ' + @NewMACN;
+END;
+GO
+
+CREATE PROCEDURE sp_Sub_ChiNhanh_Sua
+    @MACN CHAR(5), @TENCN NVARCHAR(50), @DIACHI NVARCHAR(100), @SDT CHAR(10), @GIODM TIME, @GIODONGCUA TIME
+AS
+BEGIN
+    IF @MACN IS NULL THROW 50008, N'Thiếu mã CN.', 1;
+    IF NOT EXISTS (SELECT 1 FROM CHINHANH WHERE MACN = @MACN) THROW 50009, N'CN không tồn tại.', 1;
+    IF EXISTS (SELECT 1 FROM CHINHANH WHERE SDT = @SDT AND MACN <> @MACN) THROW 50010, N'SĐT trùng nơi khác.', 1;
+
+    UPDATE CHINHANH SET TENCN = @TENCN, DIACHI = @DIACHI, SDT = @SDT, GIODM = @GIODM, GIODONGCUA = @GIODONGCUA WHERE MACN = @MACN;
+    PRINT N'Đã cập nhật CN: ' + @MACN;
+END;
+GO
 
 CREATE PROCEDURE sp_QuanLyThongTinChiNhanh
-@MACN CHAR(5) = NULL, 
+    @MACN CHAR(5) = NULL, 
     @TENCN NVARCHAR(50) = NULL,   
     @DIACHI NVARCHAR(100) = NULL, 
     @SDT CHAR(10) = NULL,        
@@ -132,78 +160,80 @@ BEGIN
     SET NOCOUNT ON;
     BEGIN TRY
         BEGIN TRANSACTION;
-        IF @LOAIHANHDONG = 'XEM ALL'
-        BEGIN
-            SELECT * FROM CHINHANH;
-        END
-        ELSE IF @LOAIHANHDONG = 'THEM'
-        BEGIN
-            DECLARE @MaxMACN CHAR(5);
-            DECLARE @NextNumber INT;
-            DECLARE @NewMACN CHAR(5);
-            SELECT @MaxMACN = MAX(MACN) FROM CHINHANH WHERE MACN LIKE 'CN%';
-            IF @MaxMACN IS NULL
+            
+            IF @LOAIHANHDONG = 'XEM ALL'
             BEGIN
-                SET @NewMACN = 'CN001';
+                EXEC sp_Sub_ChiNhanh_Xem;
             END
-            ELSE
+            ELSE IF @LOAIHANHDONG = 'THEM'
             BEGIN
-                SET @NextNumber = CAST(RIGHT(@MaxMACN, 3) AS INT) + 1;
-                IF @NextNumber > 999
-                BEGIN
-                    ROLLBACK TRANSACTION;
-                    PRINT N'Hệ thống đã đầy mã chi nhánh (Max 999).';
-                    RETURN;
-                END
-                SET @NewMACN = 'CN' + RIGHT('000' + CAST(@NextNumber AS VARCHAR(3)), 3);
+                EXEC sp_Sub_ChiNhanh_Them @TENCN, @DIACHI, @SDT, @GIODM, @GIODONGCUA;
             END
-            IF EXISTS (SELECT 1 FROM CHINHANH WHERE SDT = @SDT)
+            ELSE IF @LOAIHANHDONG = 'SUA'
             BEGIN
-                ROLLBACK TRANSACTION;
-                PRINT N'Số điện thoại chi nhánh đã tồn tại.';
-                RETURN;
+                EXEC sp_Sub_ChiNhanh_Sua @MACN, @TENCN, @DIACHI, @SDT, @GIODM, @GIODONGCUA;
             END
 
-            INSERT INTO CHINHANH (MACN, TENCN, DIACHI, SDT, GIODM, GIODONGCUA)
-            VALUES (@NewMACN, @TENCN, @DIACHI, @SDT, @GIODM, @GIODONGCUA);
-
-            PRINT N'Đã thêm chi nhánh thành công. Mã mới: ' + @NewMACN;
-        END
-        ELSE IF @LOAIHANHDONG = 'SUA'
-        BEGIN
-            IF @MACN IS NULL
-            BEGIN
-                ROLLBACK TRANSACTION;
-                PRINT N'Vui lòng nhập Mã chi nhánh cần sửa.';
-                RETURN;
-            END
-            IF NOT EXISTS (SELECT 1 FROM CHINHANH WHERE MACN = @MACN)
-            BEGIN
-                ROLLBACK TRANSACTION;
-                PRINT N'Chi nhánh không tồn tại.';
-                RETURN;
-            END
-            IF EXISTS (SELECT 1 FROM CHINHANH WHERE SDT = @SDT AND MACN <> @MACN)
-            BEGIN
-                ROLLBACK TRANSACTION;
-                PRINT N'Số điện thoại đã được sử dụng bởi chi nhánh khác.';
-                RETURN;
-            END
-            UPDATE CHINHANH
-            SET TENCN = @TENCN,
-                DIACHI = @DIACHI,
-                SDT = @SDT,
-                GIODM = @GIODM,
-                GIODONGCUA = @GIODONGCUA
-            WHERE MACN = @MACN;
-            PRINT N'Đã cập nhật thông tin chi nhánh ' + @MACN;
-        END
         COMMIT TRANSACTION;
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION;
         PRINT N'Lỗi: ' + ERROR_MESSAGE();
     END CATCH
+END;
+GO
+
+-- QuanLyLichSuPhanCong
+CREATE PROCEDURE sp_Sub_LichSu_PhanCong
+    @MACN CHAR(5), @MANV CHAR(5), @NGAYBATDAU DATE, @NGAYKETTHUC DATE
+AS
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM CHINHANH WHERE MACN = @MACN) THROW 50011, N'CN không tồn tại.', 1;
+    IF NOT EXISTS (SELECT 1 FROM NHANVIEN WHERE MANV = @MANV) THROW 50012, N'NV không tồn tại.', 1;
+
+    IF @NGAYKETTHUC IS NOT NULL
+    BEGIN
+        DECLARE @LatestStartDate DATE;
+        SELECT TOP 1 @LatestStartDate = NGAYBATDAU FROM LAMVIEC WHERE MACN = @MACN AND MANV = @MANV ORDER BY NGAYBATDAU DESC;
+        IF @LatestStartDate IS NULL THROW 50013, N'Không tìm thấy lịch sử.', 1;
+        IF @NGAYKETTHUC < @LatestStartDate THROW 50014, N'Ngày kết thúc lỗi.', 1;
+        
+        UPDATE LAMVIEC SET NGAYKETTHUC = @NGAYKETTHUC WHERE MACN = @MACN AND MANV = @MANV AND NGAYBATDAU = @LatestStartDate;
+        PRINT N'Đã cập nhật ngày kết thúc.';
+    END
+    ELSE
+    BEGIN
+        IF @NGAYBATDAU IS NULL SET @NGAYBATDAU = GETDATE();
+        IF EXISTS (SELECT 1 FROM LAMVIEC WHERE MANV = @MANV AND NGAYKETTHUC IS NULL)
+        BEGIN
+            UPDATE LAMVIEC SET NGAYKETTHUC = @NGAYBATDAU WHERE MANV = @MANV AND NGAYKETTHUC IS NULL;
+            PRINT N'Đã đóng công việc cũ.';
+        END
+        INSERT INTO LAMVIEC (MACN, MANV, NGAYBATDAU, NGAYKETTHUC) VALUES (@MACN, @MANV, @NGAYBATDAU, NULL);
+        PRINT N'Đã phân công mới.';
+    END
+END;
+GO
+
+CREATE PROCEDURE sp_Sub_LichSu_XemNV @MANV CHAR(5) 
+AS
+BEGIN
+    SELECT LV.MANV, NV.HOTEN, LV.MACN, CN.TENCN, LV.NGAYBATDAU,
+           CASE WHEN LV.NGAYKETTHUC IS NULL OR LV.NGAYKETTHUC >= GETDATE() THEN N'Đang làm việc' ELSE N'Đã nghỉ' END AS TRANGTHAI,
+           LV.NGAYKETTHUC
+    FROM LAMVIEC LV JOIN NHANVIEN NV ON LV.MANV = NV.MANV JOIN CHINHANH CN ON LV.MACN = CN.MACN
+    WHERE LV.MANV = @MANV ORDER BY LV.NGAYBATDAU DESC;
+END;
+GO
+
+CREATE PROCEDURE sp_Sub_LichSu_XemCN @MACN CHAR(5) 
+AS
+BEGIN
+    SELECT LV.MACN, CN.TENCN, LV.MANV, NV.HOTEN, NV.SDT, NV.LUONGCOBAN, LV.NGAYBATDAU,
+           CASE WHEN LV.NGAYKETTHUC IS NULL OR LV.NGAYKETTHUC >= GETDATE() THEN N'Đang làm việc' ELSE N'Đã nghỉ việc' END AS TRANGTHAI
+    FROM LAMVIEC LV JOIN CHINHANH CN ON LV.MACN = CN.MACN JOIN NHANVIEN NV ON LV.MANV = NV.MANV
+    WHERE LV.MACN = @MACN AND (LV.NGAYKETTHUC IS NULL OR LV.NGAYKETTHUC >= GETDATE())
+    ORDER BY LV.NGAYBATDAU DESC;
 END;
 GO
 
@@ -217,92 +247,152 @@ BEGIN
     SET NOCOUNT ON;
     BEGIN TRY
         BEGIN TRANSACTION;
-        IF @MACN IS NOT NULL AND @MANV IS NOT NULL
-        BEGIN
-            IF NOT EXISTS (SELECT 1 FROM CHINHANH WHERE MACN = @MACN)
-            BEGIN ROLLBACK TRANSACTION; PRINT N'Chi nhánh không tồn tại.'; RETURN; END
-            IF NOT EXISTS (SELECT 1 FROM NHANVIEN WHERE MANV = @MANV)
-            BEGIN ROLLBACK TRANSACTION; PRINT N'Nhân viên không tồn tại.'; RETURN; END
-
-            IF @NGAYKETTHUC IS NOT NULL
+            IF @MACN IS NOT NULL AND @MANV IS NOT NULL
             BEGIN
-                DECLARE @LatestStartDate DATE;
-                SELECT TOP 1 @LatestStartDate = NGAYBATDAU FROM LAMVIEC
-                WHERE MACN = @MACN AND MANV = @MANV ORDER BY NGAYBATDAU DESC;
-
-                IF @LatestStartDate IS NULL
-                BEGIN ROLLBACK TRANSACTION; PRINT N'Không tìm thấy lịch sử để cập nhật.'; RETURN; END
-
-                IF @NGAYKETTHUC < @LatestStartDate
-                BEGIN ROLLBACK TRANSACTION; PRINT N'Ngày kết thúc không hợp lệ.'; RETURN; END
-                UPDATE LAMVIEC SET NGAYKETTHUC = @NGAYKETTHUC
-                WHERE MACN = @MACN AND MANV = @MANV AND NGAYBATDAU = @LatestStartDate;
-                PRINT N'Đã cập nhật ngày kết thúc thủ công.';
+                EXEC sp_Sub_LichSu_PhanCong @MACN, @MANV, @NGAYBATDAU, @NGAYKETTHUC;
+            END
+            ELSE IF @MANV IS NOT NULL AND @MACN IS NULL
+            BEGIN
+                EXEC sp_Sub_LichSu_XemNV @MANV;
+            END
+            ELSE IF @MACN IS NOT NULL AND @MANV IS NULL 
+            BEGIN
+                EXEC sp_Sub_LichSu_XemCN @MACN;
             END
             ELSE 
-            BEGIN
-                IF @NGAYBATDAU IS NULL SET @NGAYBATDAU = GETDATE();
-                IF EXISTS (SELECT 1 FROM LAMVIEC WHERE MANV = @MANV AND NGAYKETTHUC IS NULL)
-                BEGIN
-                    UPDATE LAMVIEC
-                    SET NGAYKETTHUC = @NGAYBATDAU 
-                    WHERE MANV = @MANV AND NGAYKETTHUC IS NULL;
-
-                    PRINT N'Lưu ý: Đã tự động kết thúc công việc tại chi nhánh cũ.';
-                END
-                INSERT INTO LAMVIEC (MACN, MANV, NGAYBATDAU, NGAYKETTHUC)
-                VALUES (@MACN, @MANV, @NGAYBATDAU, NULL);
-
-                PRINT N'Đã phân công nhân viên sang chi nhánh mới thành công.';
+            BEGIN 
+                THROW 50015, N'Thiếu thông tin đầu vào.', 1; 
             END
-        END
-        ELSE IF @MANV IS NOT NULL AND @MACN IS NULL
-        BEGIN
-            SELECT LV.MANV, NV.HOTEN, LV.MACN, CN.TENCN, LV.NGAYBATDAU,
-                CASE WHEN LV.NGAYKETTHUC IS NULL OR LV.NGAYKETTHUC >= GETDATE() THEN N'Đang làm việc' ELSE N'Đã nghỉ' END AS TRANGTHAI,
-                LV.NGAYKETTHUC
-            FROM LAMVIEC LV JOIN NHANVIEN NV ON LV.MANV = NV.MANV JOIN CHINHANH CN ON LV.MACN = CN.MACN
-            WHERE LV.MANV = @MANV ORDER BY LV.NGAYBATDAU DESC;
-        END
-        ELSE IF @MACN IS NOT NULL AND @MANV IS NULL 
-        BEGIN
-            SELECT LV.MACN, CN.TENCN, LV.MANV, NV.HOTEN, NV.SDT, NV.LUONGCOBAN, LV.NGAYBATDAU,
-                CASE WHEN LV.NGAYKETTHUC IS NULL OR LV.NGAYKETTHUC >= GETDATE() THEN N'Đang làm việc' ELSE N'Đã nghỉ việc' END AS TRANGTHAI
-            FROM LAMVIEC LV JOIN CHINHANH CN ON LV.MACN = CN.MACN JOIN NHANVIEN NV ON LV.MANV = NV.MANV
-            WHERE LV.MACN = @MACN AND (LV.NGAYKETTHUC IS NULL OR LV.NGAYKETTHUC >= GETDATE())
-            ORDER BY LV.NGAYBATDAU DESC;
-        END
-        ELSE BEGIN ROLLBACK TRANSACTION; PRINT N'Thiếu thông tin.'; RETURN; END
-
         COMMIT TRANSACTION;
     END TRY
     BEGIN CATCH
-        ROLLBACK TRANSACTION; PRINT N'Lỗi: ' + ERROR_MESSAGE();
+        ROLLBACK TRANSACTION;
+        PRINT N'Lỗi: ' + ERROR_MESSAGE();
     END CATCH
 END;
 GO
 
-CREATE PROCEDURE sp_ThongKeLuongChiNhanh
+--- QuanLyLuongChiNhanh
+CREATE PROCEDURE sp_Sub_TinhLuong @MACN CHAR(5) = NULL
+AS
+BEGIN
+    SELECT CN.MACN, CN.TENCN, COUNT(NV.MANV) AS SoLuongNhanVien, ISNULL(SUM(NV.LUONGCOBAN), 0) AS TongLuongPhaiTra
+    FROM CHINHANH CN
+    LEFT JOIN LAMVIEC LV ON CN.MACN = LV.MACN
+    LEFT JOIN NHANVIEN NV ON LV.MANV = NV.MANV
+    WHERE (LV.NGAYKETTHUC IS NULL OR LV.NGAYKETTHUC >= GETDATE()) AND (@MACN IS NULL OR CN.MACN = @MACN)
+    GROUP BY CN.MACN, CN.TENCN ORDER BY TongLuongPhaiTra DESC;
+END;
+GO
+
+CREATE OR ALTER PROCEDURE sp_ThongKeLuongChiNhanh
     @MACN CHAR(5) = NULL 
 AS
 BEGIN
-    SELECT 
-        CN.MACN,
-        CN.TENCN,
-        COUNT(NV.MANV) AS SoLuongNhanVien,
-        ISNULL(SUM(NV.LUONGCOBAN), 0) AS TongLuongPhaiTra
-    FROM 
-        CHINHANH CN
-    LEFT JOIN 
-        LAMVIEC LV ON CN.MACN = LV.MACN
-    LEFT JOIN 
-        NHANVIEN NV ON LV.MANV = NV.MANV
-    WHERE 
-        (LV.NGAYKETTHUC IS NULL OR LV.NGAYKETTHUC >= GETDATE())
-        AND (@MACN IS NULL OR CN.MACN = @MACN)
-    GROUP BY 
-        CN.MACN, CN.TENCN
-    ORDER BY 
-        TongLuongPhaiTra DESC;
+    EXEC sp_Sub_TinhLuong @MACN;
 END;
 GO
+
+EXEC sp_QuanLyThongTinChiNhanh 
+    @TENCN = N'Petcare Sài Gòn Center', 
+    @DIACHI = N'123 Nguyễn Huệ, Q1, TP.HCM', 
+    @SDT = '0281111222', 
+    @GIODM = '08:00', @GIODONGCUA = '22:00',
+    @LOAIHANHDONG = 'THEM';
+
+-- Thêm Chi nhánh Hà Nội (CN002)
+EXEC sp_QuanLyThongTinChiNhanh 
+    @TENCN = N'Petcare Hà Nội Station', 
+    @DIACHI = N'456 Cầu Giấy, Hà Nội', 
+    @SDT = '0243333444', 
+    @GIODM = '08:30', @GIODONGCUA = '21:30',
+    @LOAIHANHDONG = 'THEM';
+
+PRINT N'   -> Kiểm tra danh sách chi nhánh:';
+EXEC sp_QuanLyThongTinChiNhanh @LOAIHANHDONG = 'XEM ALL';
+GO
+
+
+-- ==========================================================
+PRINT N'';
+PRINT N'>>> 2. TEST: THÊM NHÂN SỰ (BÁC SĨ, QUẢN LÝ, NHÂN VIÊN)';
+
+EXEC sp_QuanLyHoSoNhanVien 
+    @HOTEN = N'Dr. Nguyễn Văn A', 
+    @NGAYSINH = '1985-05-10', @GIOITINH = N'Nam', @SDT = '0909000001', @LUONGCOBAN = 20000000, 
+    @LOAINV = N'Bác sĩ', 
+    @BANGCAP = N'Tiến sĩ Thú Y', @KINHNGHIEM = 10,
+    @LOAIHANHDONG = 'THEM';
+
+
+EXEC sp_QuanLyHoSoNhanVien 
+    @HOTEN = N'Ms. Lê Thị B', 
+    @NGAYSINH = '1990-08-20', @GIOITINH = N'Nữ', @SDT = '0909000002', @LUONGCOBAN = 25000000, 
+    @LOAINV = N'Quản lý', 
+    @MACN_QUANLY = 'CN001',
+    @LOAIHANHDONG = 'THEM';
+
+EXEC sp_QuanLyHoSoNhanVien 
+    @HOTEN = N'Trần Văn C', 
+    @NGAYSINH = '1998-12-01', @GIOITINH = N'Nam', @SDT = '0909000003', @LUONGCOBAN = 8000000, 
+    @LOAINV = N'Lễ tân',
+    @LOAIHANHDONG = 'THEM';
+
+PRINT N'   -> Kiểm tra xem Bác sĩ BS001 (Phải hiện bằng cấp):';
+EXEC sp_QuanLyHoSoNhanVien @LOAIHANHDONG = 'XEM ALL';
+
+PRINT N'   -> Kiểm tra sửa lương NV001:';
+EXEC sp_QuanLyHoSoNhanVien 
+    @MANV = 'NV001', @HOTEN = N'Trần Văn C', @NGAYSINH = '1998-12-01', @GIOITINH = N'Nam', @SDT = '0909000003', 
+    @LUONGCOBAN = 9500000, 
+    @LOAIHANHDONG = 'SUA';
+GO
+
+
+
+PRINT N'';
+PRINT N'>>> 3. TEST: PHÂN CÔNG VÀ CHUYỂN CÔNG TÁC';
+
+PRINT N'   -> Phân công BS001 vào CN001 (01/01/2023):';
+EXEC sp_GhiNhanLichSuLamViec @MACN = 'CN001', @MANV = 'BS001', @NGAYBATDAU = '2023-01-01';
+
+PRINT N'   -> Phân công NV001 vào CN001 (01/01/2024):';
+EXEC sp_GhiNhanLichSuLamViec @MACN = 'CN001', @MANV = 'NV001', @NGAYBATDAU = '2024-01-01';
+
+PRINT N'   -> [CHECK] Danh sách nhân viên đang làm tại CN001:';
+EXEC sp_GhiNhanLichSuLamViec @MACN = 'CN001';
+
+
+PRINT N'   -> Chuyển BS001 sang CN002 (Hôm nay):';
+EXEC sp_GhiNhanLichSuLamViec @MACN = 'CN002', @MANV = 'BS001'; 
+
+PRINT N'   -> NV001 Xin nghỉ việc (Chốt ngày kết thúc):';
+EXEC sp_GhiNhanLichSuLamViec @MACN = 'CN001', @MANV = 'NV001', @NGAYKETTHUC = '2025-12-31';
+
+GO
+
+
+PRINT N'';
+PRINT N'>>> 4. TEST: KIỂM TRA KẾT QUẢ CUỐI CÙNG';
+
+PRINT N'   A. Lịch sử làm việc của BS001 (Phải có 2 dòng: 1 dòng cũ đã nghỉ, 1 dòng mới đang làm)';
+EXEC sp_GhiNhanLichSuLamViec @MANV = 'BS001';
+
+PRINT N'   B. Nhân sự hiện tại của CN001 (Sài Gòn) - Lúc này BS001 đã đi, NV001 còn làm tới cuối năm';
+EXEC sp_GhiNhanLichSuLamViec @MACN = 'CN001';
+
+PRINT N'   C. Nhân sự hiện tại của CN002 (Hà Nội) - Phải có BS001';
+EXEC sp_GhiNhanLichSuLamViec @MACN = 'CN002';
+
+GO
+
+
+PRINT N'';
+PRINT N'>>> 5. TEST: THỐNG KÊ LƯƠNG';
+
+PRINT N'   -> Thống kê lương CN002 (Phải bao gồm lương của BS001)';
+EXEC sp_ThongKeLuongChiNhanh @MACN = 'CN002';
+
+PRINT N'   -> Thống kê lương CN001 (Bao gồm Quản lý QL001 + NV001)';
+
+EXEC sp_ThongKeLuongChiNhanh @MACN = 'CN001';
