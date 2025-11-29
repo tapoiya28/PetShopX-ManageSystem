@@ -32,10 +32,10 @@ BEGIN
             MACN,
             @Nam AS N'Năm',
             @Thang AS N'Tháng',
-            COUNT(DISTINCT hd.MAHD) AS N'Số lượng đơn',
-            SUM(HD.TONGTIEN) AS N'Tổng Doanh thu',
-            SUM((HD.KHUYENMAI / 100) * HD.TONGTIEN) AS N'Tổng tiền chiết khấu'
-        FROM HOADON 
+            COUNT(DISTINCT MAHD) AS N'Số lượng đơn',
+            SUM(TONGTIEN) AS N'Tổng Doanh thu',
+            SUM((KHUYENMAI / 100) * TONGTIEN) AS N'Tổng tiền chiết khấu'
+        FROM HOADON
         WHERE @Nam = YEAR(NGAYLAP) AND @Thang = MONTH(NGAYLAP)
         GROUP BY MACN
     END
@@ -46,8 +46,8 @@ BEGIN
             @Nam AS N'Năm',
             COUNT(*) AS N'Số lượng đơn',
             SUM(TONGTIEN) AS N'Tổng Doanh thu',
-            SUM((HD.KHUYENMAI / 100) * HD.TONGTIEN) AS N'Tổng tiền chiết khấu'
-        FROM HOADON
+            SUM((KHUYENMAI / 100) * TONGTIEN) AS N'Tổng tiền chiết khấu'
+        FROM HOADON 
         WHERE @Nam = YEAR(NGAYLAP)
         GROUP BY MACN
     END
@@ -57,34 +57,41 @@ GO
 -- thống kê lượng sản phẩm bán được trong tháng/năm theo từng loại hàng
 GO
 CREATE OR ALTER PROCEDURE sp_ThongKeSanPham
-    @Thang INTEGER, 
-    @Nam INTEGER
+    @Thang INTEGER NULL, 
+    @Nam INTEGER NULL
 AS
 BEGIN
-    IF @Thang IS NOT NULL
+    IF @Thang IS NOT NULL AND (@Thang < 1 OR @Thang > 12)
+    RETURN 0;
+
+    DECLARE @NGAYBD DATE
+    DECLARE @NGAYKT DATE
+
+    IF @Nam IS NULL SET @Nam = YEAR(GETDATE());
+
+    IF @Thang IS NULL
     BEGIN
-        SELECT 
-            @Nam,
-            @Thang,
-            SP.LOAI,
-            SUM(CT.SOLUONG) AS N'Tổng số lượng'
-        FROM CHITIETHOADON CT
-        JOIN SANPHAM SP ON SP.MASP = CT.MASP
-        WHERE YEAR(NGAYLAP) = @Nam AND MONTH(NGAYLAP) = @Thang
-        GROUP BY SP.LOAI
+        SET @NGAYBD = DATEFROMPARTS(@Nam, 1, 1)
+        SET @NGAYKT = DATEFROMPARTS(@Nam, 12, 31)
     END
-    ELSE IF @Thang IS NULL
+    ELSE IF @Thang IS NOT NULL
     BEGIN
-        SELECT 
-            @Nam,
-            @Thang,
-            SP.LOAI,
-            SUM(CT.SOLUONG) AS N'Tổng số lượng'
-        FROM CHITIETHOADON CT
-        JOIN SANPHAM SP ON SP.MASP = CT.MASP
-        WHERE YEAR(NGAYLAP) = @Nam
-        GROUP BY SP.LOAI
+        SET @NGAYBD = DATEFROMPARTS(@Nam, @Thang, 1)
+        SET @NGAYKT = EOMONTH(@NGAYBD)
     END
+
+    SELECT 
+        @Nam AS N'Năm',
+        @Thang AS N'Tháng',
+        SP.LOAI AS N'Loại',
+        SUM(CT.SOLUONG) AS N'Tổng số lượng'
+    FROM HOADON HD
+    JOIN CHITIETHOADON CT ON HD.MAHD = CT.MAHD
+    JOIN SANPHAM SP ON CT.MASP = SP.MASP
+    WHERE HD.NGAYLAP BETWEEN @NGAYBD AND @NGAYKT
+    GROUP BY SP.LOAI
+
+    RETURN 1;
 END
 GO
 
@@ -116,10 +123,10 @@ BEGIN
     RFM_Diem AS (
         SELECT 
             MAKH, 
-            DATEDIFF(GETDATE(), NgayMuaHangGanNhat) AS 'SoNgay_NgayMuaHangGanNhat',
+            DATEDIFF(DAY, NgayMuaHangGanNhat, GETDATE()) AS 'SoNgay_NgayMuaHangGanNhat',
             TanSuat,
             TongChi,
-            NTILE(5) OVER (ORDER BY DATEDIFF(GETDATE(), NgayMuaHangGanNhat) DESC) AS R_DIEM,
+            NTILE(5) OVER (ORDER BY DATEDIFF(DAY, GETDATE(), NgayMuaHangGanNhat) DESC) AS R_DIEM,
             NTILE(5) OVER (ORDER BY TanSuat ASC) AS F_Diem,
             NTILE(5) OVER (ORDER BY TongChi ASC) AS M_Diem
         FROM RFM_khachHang
@@ -130,11 +137,12 @@ BEGIN
         TanSuat,
         TongChi,
         CASE 
-            WHEN rfm.R_Diem >= 4 AND rfm.F_Diem >= 4 AND rfm.M_Diem >= 4 THEN N'Khách hàng gần đây',
-            WHEN rfm.R_Diem >= 3 AND rfm.F_Diem >= 3 AND rfm.M_Diem >= 3 THEN N'Khách hàng trung thành',
-            WHEN rfm.R_Diem >= 3 AND rfm.F_Diem >= 2 AND rfm.M_Diem >= 2 THEN N'Tiềm năng',
-            WHEN rfm.R_Diem < 2 AND rfm.F_Diem >= 2 AND rfm.M_Diem >= 2 THEN N'Mua lâu, từng thường xuyên đến',
-            WHEN rfm.R_Diem < 2 AND rfm.F_Diem < 2 AND rfm.M_Diem < 2 THEN N'Mua lâu, ít khi mua, chi ít',
+            WHEN rfm.R_Diem >= 4 AND rfm.F_Diem >= 4 AND rfm.M_Diem >= 4 THEN N'Khách hàng gần đây'
+            WHEN rfm.R_Diem >= 3 AND rfm.F_Diem >= 3 AND rfm.M_Diem >= 3 THEN N'Khách hàng trung thành'
+            WHEN rfm.R_Diem >= 3 AND rfm.F_Diem >= 2 AND rfm.M_Diem >= 2 THEN N'Tiềm năng'
+            WHEN rfm.R_Diem < 2 AND rfm.F_Diem >= 2 AND rfm.M_Diem >= 2 THEN N'Mua lâu, từng thường xuyên đến'
+            WHEN rfm.R_Diem < 2 AND rfm.F_Diem < 2 AND rfm.M_Diem < 2 THEN N'Mua lâu, ít khi mua, chi ít'
+        END
     FROM RFM_Diem rfm
     ORDER BY MAKH
 END
@@ -151,7 +159,7 @@ BEGIN
     IF @Thang IS NULL SET @Thang = MONTH(GETDATE())
     IF @Nam IS NULL SET @Nam = YEAR(GETDATE())
 
-    DECLARE @DauThangHienTai DATE = DATEFROMPARTS(@Nam, @Thang, 1)
+    DECLARE @DauThangHienTai DATE = DATEFROMPARTS(@Nam, @Thang, 1);
 
     WITH MuaHangTrongThang AS (
         SELECT 
@@ -159,7 +167,6 @@ BEGIN
         FROM HOADON HD 
         WHERE HD.NGAYLAP >= @DauThangHienTai
             AND HD.NGAYLAP <= EOMONTH(@DauThangHienTai)
-       
     ), KhachHangCTE AS (
         SELECT 
             MAKH, 
@@ -196,7 +203,7 @@ BEGIN
             COUNT((DG.DIEMDICHVU)) 'SOLUONG'
         FROM HOADON HD
         JOIN DANHGIA DG ON HD.MAHD = DG.MAHD -- chỉ quan tâm những hoá đơn có đánh giá => không dùng left join
-        WHERE HD.MADANHGIA IS NOT NULL AND DG.DIEMDICHVU IS NOT NULL
+        WHERE DG.DIEMDICHVU IS NOT NULL
         GROUP BY HD.MACN, DG.DIEMDICHVU
     ), DiemHaiLong AS (
         SELECT 
@@ -205,18 +212,18 @@ BEGIN
             COUNT(DG.MUCDOHAILONG) 'SOLUONG'
         FROM HOADON HD
         JOIN DANHGIA DG ON HD.MAHD = DG.MAHD
-        WHERE HD.MADANHGIA IS NOT NULL AND DG.MUCDOHAILONG IS NOT NULL
+        WHERE DG.MUCDOHAILONG IS NOT NULL
         GROUP BY HD.MACN, DG.MUCDOHAILONG
     )
 
     SELECT
-        COALESCE(DV.MACN, HL.MACN) AS N'Mã chi nhánh'
+        COALESCE(DV.MACN, HL.MACN) AS N'Mã chi nhánh',
         DV.DIEM AS N'Điểm dịch vụ',
         DV.SOLUONG AS N'Số lượng',
         HL.DIEM AS N'Điểm hài lòng',
         HL.SOLUONG AS N'Số lượng'
-    FROM DiemDichVu DV
-    FULL OUTER JOIN DiemHaiLong HL ON DV.MACN = HL.MACN
+    FROM DiemDichVu AS DV
+    FULL OUTER JOIN DiemHaiLong AS HL ON DV.MACN = HL.MACN
                                 AND DV.DIEM = HL.DIEM
 
 END
@@ -226,10 +233,12 @@ GO
 GO
 CREATE OR ALTER PROCEDURE sp_SanPhamBanChay
     @Thang INTEGER = NULL,
-    @Nam INTEGER = YEAR(GETDATE())
+    @Nam INTEGER = NULL
 AS
 BEGIN
-    SET NOCOUNT ON
+    SET NOCOUNT ON;
+
+    IF @Nam IS NULL SET @Nam = YEAR(GETDATE());
 
     DECLARE @NGAYBD DATE
     DECLARE @NGAYKT DATE
@@ -257,5 +266,104 @@ BEGIN
     GROUP BY SP.MASP, SP.TENSP, SP.LOAI
     HAVING SUM(CT.SOLUONG) > 500
     ORDER BY SOLUONG DESC
+END
+GO
+
+-- tra cứu thông tin sản phẩm
+CREATE OR ALTER PROCEDURE sp_TraCuuThongTinSanPham
+    @MASP CHAR(5)
+AS
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 
+        FROM SANPHAM
+        WHERE MASP = @MASP
+    )
+    RETURN 0;
+
+    DECLARE @LOAISP NVARCHAR(10);
+    
+    SELECT 
+        @LOAISP = LOAI
+    FROM SANPHAM
+    WHERE MASP = @MASP;
+    
+    IF @LOAISP = N'Sản phẩm'
+    BEGIN
+        SELECT 
+            MASP AS N'Mã sản phẩm',
+            TENSP AS N'Tên sản phẩm',
+            DONGIA AS N'Đơn giá hiện tại',
+            TONKHO AS N'Số lượng còn lại'
+        FROM SANPHAM 
+        WHERE MASP = @MASP;
+
+        RETURN 1;
+    END
+
+    IF @LOAISP = N'Dịch vụ'
+    BEGIN
+        SELECT 
+            SP.MASP AS N'Mã dịch vụ',
+            SP.TENSP AS N'Tên dịch vụ',
+            SP.DONGIA AS N'Đơn giá hiện tại',
+            DV.THOIGIANTHUCHIEN AS N'Thời gian thực hiện',
+            LDV.TENLOAIDV AS N'Loại dịch vụ'
+        FROM SANPHAM SP
+        JOIN DICHVU DV ON SP.MASP = DV.MADV
+        JOIN LOAIDICHVU LDV ON DV.MALOAIDV = LDV.MALOAIDV
+        WHERE MASP = @MASP;
+
+        RETURN 1;
+    END
+     
+    IF @LOAISP = 'Thuốc'
+    BEGIN
+        SELECT 
+            SP.MASP AS N'Mã thuốc',
+            SP.TENSP AS N'Tên thuốc',
+            SP.DONGIA AS N'Đơn giá hiện tại',
+            TH.DONVI AS N'Đơn vị tính',
+            TH.NGAYSX AS N'Ngày sản xuất',
+            TH.HSD AS N'Hạn sử dụng'
+        FROM SANPHAM SP
+        JOIN THUOC TH ON SP.MASP = TH.MATHUOC
+        WHERE MASP = @MASP;
+
+        RETURN 1;
+    END
+    IF @LOAISP = 'Vacxin'
+    BEGIN
+        SELECT 
+            SP.MASP AS N'Mã vacxin',
+            SP.TENSP AS N'Tên vacxin',
+            SP.DONGIA AS N'Đơn giá hiện tại',
+            VC.DOTUOIAPDUNG AS N'Độ tuổi áp dụng',
+            VC.NGAYSX AS N'Ngày sản xuất',
+            VC.HSD AS N'Hạn sử dụng'
+        FROM SANPHAM SP
+        JOIN VACXIN VC ON SP.MASP = VC.MAVACXIN
+        WHERE MASP = @MASP;
+
+        RETURN 1;
+    END
+    
+    IF @LOAISP = 'Gói tiêm'
+    BEGIN
+        SELECT 
+            SP.MASP AS N'Mã gói tiêm',
+            SP.TENSP AS N'Tên gói tiêm',
+            SP.DONGIA AS N'Đơn giá hiện tại',
+            GT.THOIGIAN AS N'Thời gian',
+            GT.KHUYENMAI AS N'Khuyến mãi',
+            COUNT(CT.SOLUONG) AS N'Tổng mũi tiêm' 
+        FROM SANPHAM SP
+        JOIN GOITIEM GT ON SP.MASP = GT.MAGOITIEM
+        JOIN CHITIETGOITIEM CT ON GT.MAGOITIEM = CT.MAGOITIEM
+        WHERE MASP = @MASP
+        GROUP BY SP.MASP, SP.TENSP, SP.DONGIA, GT.THOIGIAN, GT.KHUYENMAI;
+
+        RETURN 1;
+    END
 END
 GO
