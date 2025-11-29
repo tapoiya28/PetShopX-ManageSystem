@@ -396,3 +396,67 @@ EXEC sp_ThongKeLuongChiNhanh @MACN = 'CN002';
 PRINT N'   -> Thống kê lương CN001 (Bao gồm Quản lý QL001 + NV001)';
 
 EXEC sp_ThongKeLuongChiNhanh @MACN = 'CN001';
+GO
+
+CREATE OR ALTER PROCEDURE sp_ThongKeHieuSuatNhanVien
+    @THANG INT,
+    @NAM INT,
+    @MACN CHAR(5) = NULL 
+AS
+BEGIN
+    SET NOCOUNT ON;
+    BEGIN TRY
+        IF @THANG < 1 OR @THANG > 12
+        BEGIN
+            PRINT N'Tháng không hợp lệ (1-12).';
+            RETURN;
+        END
+        ;WITH CountHoaDon AS (
+            SELECT MANV, COUNT(MAHD) AS SL_HoaDon
+            FROM HOADON
+            WHERE MONTH(NGAYLAP) = @THANG AND YEAR(NGAYLAP) = @NAM
+            GROUP BY MANV
+        ),
+        CountCaKham AS (
+            SELECT MANV, COUNT(MAKB) AS SL_CaKham
+            FROM CAKHAMBENH
+            WHERE MONTH(NGAYKHAM) = @THANG AND YEAR(NGAYKHAM) = @NAM
+            GROUP BY MANV
+        ),
+        CountCaTiem AS (
+            SELECT MANV, COUNT(MATIEM) AS SL_CaTiem
+            FROM CATIEM
+            WHERE MONTH(NGAYTIEM) = @THANG AND YEAR(NGAYTIEM) = @NAM
+            GROUP BY MANV
+        )
+        SELECT 
+            NV.MANV,
+            NV.HOTEN,
+            CASE 
+                WHEN BS.MANV IS NOT NULL THEN N'Bác sĩ'
+                WHEN QL.MANV IS NOT NULL THEN N'Quản lý'
+                ELSE N'Nhân viên'
+            END AS ChucVu,
+            ISNULL(CN.TENCN, N'Chưa phân công') AS ChiNhanhHienTai,
+            ISNULL(HD.SL_HoaDon, 0) AS [Số Đơn Hàng],
+            ISNULL(CK.SL_CaKham, 0) AS [Số Ca Khám],
+            ISNULL(CT.SL_CaTiem, 0) AS [Số Ca Tiêm],    
+            (ISNULL(HD.SL_HoaDon, 0) + ISNULL(CK.SL_CaKham, 0) + ISNULL(CT.SL_CaTiem, 0)) AS [Tổng Lượt Phục Vụ]
+        FROM NHANVIEN NV
+        LEFT JOIN LAMVIEC LV ON NV.MANV = LV.MANV AND (LV.NGAYKETTHUC IS NULL OR LV.NGAYKETTHUC >= GETDATE())
+        LEFT JOIN CHINHANH CN ON LV.MACN = CN.MACN
+        LEFT JOIN BACSI BS ON NV.MANV = BS.MANV
+        LEFT JOIN QUANLY QL ON NV.MANV = QL.MANV
+        LEFT JOIN CountHoaDon HD ON NV.MANV = HD.MANV
+        LEFT JOIN CountCaKham CK ON NV.MANV = CK.MANV
+        LEFT JOIN CountCaTiem CT ON NV.MANV = CT.MANV
+        WHERE 
+            (@MACN IS NULL OR LV.MACN = @MACN)
+        ORDER BY [Tổng Lượt Phục Vụ] DESC;
+    END TRY
+    BEGIN CATCH
+        PRINT N'Lỗi: ' + ERROR_MESSAGE();
+    END CATCH
+END;
+GO
+
