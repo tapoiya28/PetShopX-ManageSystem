@@ -3,21 +3,19 @@ GO
 -- Tạo kiểu bảng cho chi tiết hoá đơn(khi thêm tham số bảng)
 CREATE TYPE dbo.HoaDonChiTietType AS TABLE
 (
-    MASP    CHAR(5) NOT NULL,
-    SOLUONG INT     NOT NULL
+    MASP    INTEGER NOT NULL,
+    SOLUONG INTEGER NOT NULL
 );
 GO
 --- Procedure đặt lịch hẹn
 CREATE OR ALTER PROCEDURE sp_DatLichHen
 (
-    @MaLichHen CHAR(12),
     @NgayHen   DATE,
     @ThoiGian  TIME,
     @NoiDung   NVARCHAR(200) = NULL,
-    @MaKH      CHAR(12),
-    @MaCN      CHAR(5),
-    @MaLoaiDV  CHAR(5),
-    @KQ        INT OUTPUT  -- 1 = ok, 0 = fail
+    @MaKH      INTEGER,
+    @MaCN      INTEGER,
+    @MaLoaiDV  INTEGER
 )
 AS
 BEGIN
@@ -26,7 +24,6 @@ BEGIN
 
     BEGIN TRY
         BEGIN TRAN;
-        SET @KQ = 0;
 
         -- Kiểm tra tồn tại
         IF NOT EXISTS (SELECT 1 FROM KHACHHANG WHERE MAKH = @MaKH)
@@ -44,10 +41,6 @@ BEGIN
             WHERE MACN = @MaCN AND MALOAIDV = @MaLoaiDV
         )
             RAISERROR(N'Dịch vụ không được cung cấp tại chi nhánh này', 16, 1);
-
-        -- Kiểm tra trùng mã lịch
-        IF EXISTS (SELECT 1 FROM LICHHEN WHERE MALICHHEN = @MaLichHen)
-            RAISERROR(N'Mã lịch hẹn đã tồn tại', 16, 1);
 
         -- Kiểm tra trùng slot (ngày, giờ, chi nhánh, khách hàng)
         IF EXISTS (
@@ -71,16 +64,16 @@ BEGIN
             RAISERROR(N'Đã tồn tại lịch hẹn trùng thời gian với khách hàng tại chi nhánh này', 16, 1);
         */
         -- Insert LICHHEN
-        INSERT INTO LICHHEN (MALICHHEN, NGAYHEN, THOIGIAN, NOIDUNG, MAKH, MACN, MALOAIDV)
-        VALUES (@MaLichHen, @NgayHen, @ThoiGian, @NoiDung, @MaKH, @MaCN, @MaLoaiDV);
+        INSERT INTO LICHHEN (NGAYHEN, THOIGIAN, NOIDUNG, MAKH, MACN, MALOAIDV)
+        VALUES (@NgayHen, @ThoiGian, @NoiDung, @MaKH, @MaCN, @MaLoaiDV);
 
         /* comment vì code trên mac chưa sửa lại địa chỉ partition 
         -- Insert LICHHEN_partitioned (trên partition scheme)
         INSERT INTO LICHHEN_partitioned (MALICHHEN, NGAYHEN, THOIGIAN, NOIDUNG, MAKH, MACN, MALOAIDV)
         VALUES (@MaLichHen, @NgayHen, @ThoiGian, @NoiDung, @MaKH, @MaCN, @MaLoaiDV);
         */
-        SET @KQ = 1;
         COMMIT TRAN;
+        RETURN 0;
     END TRY
     -- Check các lỗi phát sinh
     BEGIN CATCH
@@ -89,30 +82,40 @@ BEGIN
         DECLARE @ErrMsg NVARCHAR(4000), @ErrSeverity INT;
         SELECT @ErrMsg = ERROR_MESSAGE(), @ErrSeverity = ERROR_SEVERITY();
         RAISERROR(@ErrMsg, @ErrSeverity, 1);
+
+        RETURN 1;
     END CATCH
 END;
 GO
 --- Procedure cập nhật lịch hẹn
 CREATE PROCEDURE sp_CapNhatLichHen
 (
-    @MaLichHen   CHAR(12),
-    @NgayHenMoi  DATE,
-    @ThoiGianMoi TIME,
+    @MaLichHen   INTEGER,
+    @NgayHenMoi  DATE = NULL,
+    @ThoiGianMoi TIME = NULL,
     @NoiDungMoi  NVARCHAR(200) = NULL,
-    @MaCNMoi     CHAR(5),
-    @MaLoaiDVMoi CHAR(5),
-    @KQ          INT OUTPUT
+    @MaCNMoi     INTEGER = NULL,
+    @MaLoaiDVMoi INTEGER = NULL
 )
 AS
 BEGIN
     SET NOCOUNT ON;
     SET XACT_ABORT ON;
 
-    DECLARE @MaKH CHAR(12);
+    IF @NgayHenMoi IS NULL AND
+       @ThoiGianMoi IS NULL AND
+       @NoiDungMoi IS NULL AND
+       @MaCNMoi IS NULL AND
+       @MaLoaiDVMoi IS NULL
+    BEGIN
+        PRINT N'Không có thay đổi nào được cung cấp.';
+        RETURN 0;
+    END;
+
+    DECLARE @MaKH INTEGER;
 
     BEGIN TRY
         BEGIN TRAN;
-        SET @KQ = 0;
         
         -- Lấy thông tin hiện tại
         SELECT TOP 1
@@ -125,7 +128,7 @@ BEGIN
 
         -- Kiểm tra các tham số đầu vào
         IF NOT EXISTS (SELECT 1 FROM CHINHANH WHERE MACN = @MaCNMoi)
-            RAISERROR(N'Chi nhánh mới không tồn tại', 16, 1);
+            RAISERROR(N'Chi nhánh không tồn tại', 16, 1);
 
         IF NOT EXISTS (SELECT 1 FROM LOAIDICHVU WHERE MALOAIDV = @MaLoaiDVMoi)
             RAISERROR(N'Loại dịch vụ mới không tồn tại', 16, 1);
@@ -162,11 +165,11 @@ BEGIN
 
         -- Cập nhật LICHHEN
         UPDATE LICHHEN
-        SET NGAYHEN  = @NgayHenMoi,
-            THOIGIAN = @ThoiGianMoi,
-            NOIDUNG  = @NoiDungMoi,
-            MACN     = @MaCNMoi,
-            MALOAIDV = @MaLoaiDVMoi
+        SET NGAYHEN  = ISNULL(@NgayHenMoi, NGAYHEN),
+            THOIGIAN = ISNULL(@ThoiGianMoi, THOIGIAN),
+            NOIDUNG  = ISNULL(@NoiDungMoi, NOIDUNG),
+            MACN     = ISNULL(@MaCNMoi, MACN),
+            MALOAIDV = ISNULL(@MaLoaiDVMoi, MALOAIDV)
         WHERE MALICHHEN = @MaLichHen;
 
         /* comment vì code trên mac chưa sửa lại địa chỉ partition
@@ -179,9 +182,8 @@ BEGIN
             MALOAIDV = @MaLoaiDVMoi
         WHERE MALICHHEN = @MaLichHen;
         */
-
-        SET @KQ = 1;
         COMMIT TRAN;
+        RETURN 0;
     END TRY
     -- Check các lỗi phát sinh
     BEGIN CATCH
@@ -190,20 +192,21 @@ BEGIN
         DECLARE @ErrMsg NVARCHAR(4000), @ErrSeverity INT;
         SELECT @ErrMsg = ERROR_MESSAGE(), @ErrSeverity = ERROR_SEVERITY();
         RAISERROR(@ErrMsg, @ErrSeverity, 1);
+
+        RETURN 1
     END CATCH
 END;
 GO
 --- Procedure lập hoá đơn và thanh toán
 CREATE PROCEDURE sp_LapHoaDonVaThanhToan
 (
-    @MaHD      CHAR(12),
+    @MaHD      INTEGER,
     @NgayLap   DATETIME,
-    @MaKH      CHAR(12),
-    @MaCN      CHAR(5),
-    @MaNV      CHAR(5),
+    @MaKH      INTEGER,
+    @MaCN      INTEGER,
+    @MaNV      INTEGER,
     @KhuyenMai INT = 0,
-    @ChiTiet   dbo.HoaDonChiTietType READONLY, -- Bảng chi tiết hoá đơn
-    @KQ        INT OUTPUT
+    @ChiTiet   dbo.HoaDonChiTietType READONLY -- Bảng chi tiết hoá đơn
 )
 AS
 BEGIN
@@ -311,8 +314,8 @@ BEGIN
             VALUES (@MaKH, @Nam, @Thang, @TongTien);
         END
 
-        SET @KQ = 1;
         COMMIT TRAN;
+        RETURN 0;
     END TRY
     BEGIN CATCH
         IF @@TRANCOUNT > 0 ROLLBACK TRAN;
@@ -320,20 +323,22 @@ BEGIN
         DECLARE @ErrMsg NVARCHAR(4000), @ErrSeverity INT;
         SELECT @ErrMsg = ERROR_MESSAGE(), @ErrSeverity = ERROR_SEVERITY();
         RAISERROR(@ErrMsg, @ErrSeverity, 1);
+
+        RETURN 1;
     END CATCH
 END;
 GO
 
+CREATE OR ALTER PROCEDURE sp_ThanhToan
+
 --- Procedure thêm đánh giá hoá đơn
 CREATE PROCEDURE sp_ThemDanhGiaHoaDon
 (
-    @MaDanhGia     CHAR(12),
-    @MaHD          CHAR(12),
-    @MaKH          CHAR(12),
+    @MaHD          INTEGER,
+    @MaKH          INTEGER,
     @DiemDichVu    TINYINT,
     @MucDoHaiLong  TINYINT,
-    @BinhLuan      NVARCHAR(200) = NULL,
-    @KQ            INT OUTPUT
+    @BinhLuan      NVARCHAR(100) = NULL
 )
 AS
 BEGIN
@@ -342,7 +347,6 @@ BEGIN
 
     BEGIN TRY
         BEGIN TRAN;
-        SET @KQ = 0;
 
         -- Kiểm tra các tham số đầu vào
         IF NOT EXISTS (SELECT 1 FROM KHACHHANG WHERE MAKH = @MaKH)
@@ -366,11 +370,11 @@ BEGIN
         IF @MucDoHaiLong NOT BETWEEN 1 AND 5
             RAISERROR(N'Mức độ hài lòng phải từ 1 đến 5', 16, 1);
 
-        INSERT INTO DANHGIA (MADANHGIA, DIEMDICHVU, MUCDOHAILONG, BINHLUAN, MAKH, MAHD)
-        VALUES (@MaDanhGia, @DiemDichVu, @MucDoHaiLong, @BinhLuan, @MaKH, @MaHD);
+        INSERT INTO DANHGIA (DIEMDICHVU, MUCDOHAILONG, BINHLUAN, MAKH, MAHD)
+        VALUES (@DiemDichVu, @MucDoHaiLong, @BinhLuan, @MaKH, @MaHD);
 
-        SET @KQ = 1;
         COMMIT TRAN;
+        RETURN 0;
     END TRY
     BEGIN CATCH
         IF @@TRANCOUNT > 0 ROLLBACK TRAN;
@@ -378,6 +382,8 @@ BEGIN
         DECLARE @ErrMsg NVARCHAR(4000), @ErrSeverity INT;
         SELECT @ErrMsg = ERROR_MESSAGE(), @ErrSeverity = ERROR_SEVERITY();
         RAISERROR(@ErrMsg, @ErrSeverity, 1);
+
+        RETURN 1;
     END CATCH
 END;
 GO
