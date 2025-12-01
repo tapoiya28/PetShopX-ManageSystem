@@ -1,31 +1,33 @@
 USE PetcareX;
 GO
--- Tạo kiểu bảng cho chi tiết hoá đơn(khi thêm tham số bảng)
+
+/* Bảng cho chi tiết hoá đơn (khi dùng tham số bảng)
 CREATE TYPE dbo.HoaDonChiTietType AS TABLE
 (
-    MASP    INTEGER NOT NULL,
-    SOLUONG INTEGER NOT NULL
+    MASP    CHAR(5) NOT NULL,
+    SOLUONG INT     NOT NULL
 );
 GO
---- Procedure đặt lịch hẹn
+*/
+
+-- Procedure đặt lịch hẹn mới
 CREATE OR ALTER PROCEDURE sp_DatLichHen
 (
-    @NgayHen   DATE,
-    @ThoiGian  TIME,
-    @NoiDung   NVARCHAR(200) = NULL,
-    @MaKH      INTEGER,
-    @MaCN      INTEGER,
-    @MaLoaiDV  INTEGER
+    @NgayHen    DATE,
+    @ThoiGian   TIME,
+    @NoiDung    NVARCHAR(200) = NULL,
+    @MaKH       INT,
+    @MaCN       INT,
+    @MaLoaiDV   INT,
+    @MaLichHen  INT OUTPUT     
 )
 AS
 BEGIN
     SET NOCOUNT ON;
-    SET XACT_ABORT ON; -- Auto rollback nếu có lỗi
+    SET XACT_ABORT ON;
 
     BEGIN TRY
-        BEGIN TRAN;
-
-        -- Kiểm tra tồn tại
+        -- Kiểm tra các tham số đầu vào
         IF NOT EXISTS (SELECT 1 FROM KHACHHANG WHERE MAKH = @MaKH)
             RAISERROR(N'Khách hàng không tồn tại', 16, 1);
 
@@ -36,191 +38,52 @@ BEGIN
             RAISERROR(N'Loại dịch vụ không tồn tại', 16, 1);
 
         IF NOT EXISTS (
-            SELECT 1
-            FROM CUNGCAP
+            SELECT 1 FROM CUNGCAP
             WHERE MACN = @MaCN AND MALOAIDV = @MaLoaiDV
         )
             RAISERROR(N'Dịch vụ không được cung cấp tại chi nhánh này', 16, 1);
 
-        -- Kiểm tra trùng slot (ngày, giờ, chi nhánh, khách hàng)
+        -- Kiểm tra trùng slot
         IF EXISTS (
             SELECT 1
             FROM LICHHEN
-            WHERE NGAYHEN  = @NgayHen
+            WHERE NGAYHEN = @NgayHen
               AND THOIGIAN = @ThoiGian
-              AND MACN     = @MaCN
-              AND MAKH     = @MaKH
+              AND MACN = @MaCN
+              AND MAKH = @MaKH
         )
             RAISERROR(N'Đã tồn tại lịch hẹn trùng thời gian với khách hàng tại chi nhánh này', 16, 1);
-        /* comment vì code trên mac chưa sửa lại địa chỉ partition
-        IF EXISTS (
-            SELECT 1
-            FROM LICHHEN_partitioned
-            WHERE NGAYHEN  = @NgayHen
-              AND THOIGIAN = @ThoiGian
-              AND MACN     = @MaCN
-              AND MAKH     = @MaKH
-        )
-            RAISERROR(N'Đã tồn tại lịch hẹn trùng thời gian với khách hàng tại chi nhánh này', 16, 1);
-        */
-        -- Insert LICHHEN
+
         INSERT INTO LICHHEN (NGAYHEN, THOIGIAN, NOIDUNG, MAKH, MACN, MALOAIDV)
         VALUES (@NgayHen, @ThoiGian, @NoiDung, @MaKH, @MaCN, @MaLoaiDV);
 
-        /* comment vì code trên mac chưa sửa lại địa chỉ partition 
-        -- Insert LICHHEN_partitioned (trên partition scheme)
-        INSERT INTO LICHHEN_partitioned (MALICHHEN, NGAYHEN, THOIGIAN, NOIDUNG, MAKH, MACN, MALOAIDV)
-        VALUES (@MaLichHen, @NgayHen, @ThoiGian, @NoiDung, @MaKH, @MaCN, @MaLoaiDV);
-        */
-        COMMIT TRAN;
-        RETURN 0;
+        SET @MaLichHen = SCOPE_IDENTITY();
     END TRY
-    -- Check các lỗi phát sinh
     BEGIN CATCH
-        IF @@TRANCOUNT > 0 ROLLBACK TRAN;
+        DECLARE @ErrMsg NVARCHAR(4000) = ERROR_MESSAGE(),
+                @ErrSeverity INT = ERROR_SEVERITY();
 
-        DECLARE @ErrMsg NVARCHAR(4000), @ErrSeverity INT;
-        SELECT @ErrMsg = ERROR_MESSAGE(), @ErrSeverity = ERROR_SEVERITY();
         RAISERROR(@ErrMsg, @ErrSeverity, 1);
-
-        RETURN 1;
     END CATCH
 END;
 GO
---- Procedure cập nhật lịch hẹn
-CREATE PROCEDURE sp_CapNhatLichHen
+-- Processure tạo hóa đơn mới
+CREATE OR ALTER PROCEDURE sp_TaoHoaDonMoi
 (
-    @MaLichHen   INTEGER,
-    @NgayHenMoi  DATE = NULL,
-    @ThoiGianMoi TIME = NULL,
-    @NoiDungMoi  NVARCHAR(200) = NULL,
-    @MaCNMoi     INTEGER = NULL,
-    @MaLoaiDVMoi INTEGER = NULL
-)
-AS
-BEGIN
-    SET NOCOUNT ON;
-    SET XACT_ABORT ON;
-
-    IF @NgayHenMoi IS NULL AND
-       @ThoiGianMoi IS NULL AND
-       @NoiDungMoi IS NULL AND
-       @MaCNMoi IS NULL AND
-       @MaLoaiDVMoi IS NULL
-    BEGIN
-        PRINT N'Không có thay đổi nào được cung cấp.';
-        RETURN 0;
-    END;
-
-    DECLARE @MaKH INTEGER;
-
-    BEGIN TRY
-        BEGIN TRAN;
-        
-        -- Lấy thông tin hiện tại
-        SELECT TOP 1
-            @MaKH = MAKH
-        FROM LICHHEN
-        WHERE MALICHHEN = @MaLichHen;
-
-        IF @MaKH IS NULL
-            RAISERROR(N'Không tìm thấy lịch hẹn', 16, 1);
-
-        -- Kiểm tra các tham số đầu vào
-        IF NOT EXISTS (SELECT 1 FROM CHINHANH WHERE MACN = @MaCNMoi)
-            RAISERROR(N'Chi nhánh không tồn tại', 16, 1);
-
-        IF NOT EXISTS (SELECT 1 FROM LOAIDICHVU WHERE MALOAIDV = @MaLoaiDVMoi)
-            RAISERROR(N'Loại dịch vụ mới không tồn tại', 16, 1);
-
-        IF NOT EXISTS (
-            SELECT 1 FROM CUNGCAP
-            WHERE MACN = @MaCNMoi AND MALOAIDV = @MaLoaiDVMoi
-        )
-            RAISERROR(N'Dịch vụ mới không được cung cấp tại chi nhánh', 16, 1);
-
-        -- Kiểm tra trùng slot với lịch khác
-        IF EXISTS (
-            SELECT 1
-            FROM LICHHEN
-            WHERE NGAYHEN  = @NgayHenMoi
-              AND THOIGIAN = @ThoiGianMoi
-              AND MACN     = @MaCNMoi
-              AND MAKH     = @MaKH
-              AND MALICHHEN <> @MaLichHen
-        )
-            RAISERROR(N'Đã có lịch hẹn khác trùng slot', 16, 1);
-        /* comment vì code trên mac chưa sửa lại địa chỉ partition
-        IF EXISTS (
-            SELECT 1
-            FROM LICHHEN_partitioned
-            WHERE NGAYHEN  = @NgayHenMoi
-              AND THOIGIAN = @ThoiGianMoi
-              AND MACN     = @MaCNMoi
-              AND MAKH     = @MaKH
-              AND MALICHHEN <> @MaLichHen
-        )
-            RAISERROR(N'Đã có lịch hẹn khác trùng slot', 16, 1);
-        */
-
-        -- Cập nhật LICHHEN
-        UPDATE LICHHEN
-        SET NGAYHEN  = ISNULL(@NgayHenMoi, NGAYHEN),
-            THOIGIAN = ISNULL(@ThoiGianMoi, THOIGIAN),
-            NOIDUNG  = ISNULL(@NoiDungMoi, NOIDUNG),
-            MACN     = ISNULL(@MaCNMoi, MACN),
-            MALOAIDV = ISNULL(@MaLoaiDVMoi, MALOAIDV)
-        WHERE MALICHHEN = @MaLichHen;
-
-        /* comment vì code trên mac chưa sửa lại địa chỉ partition
-        -- Cập nhật LICHHEN_partitioned
-        UPDATE LICHHEN_partitioned
-        SET NGAYHEN  = @NgayHenMoi,
-            THOIGIAN = @ThoiGianMoi,
-            NOIDUNG  = @NoiDungMoi,
-            MACN     = @MaCNMoi,
-            MALOAIDV = @MaLoaiDVMoi
-        WHERE MALICHHEN = @MaLichHen;
-        */
-        COMMIT TRAN;
-        RETURN 0;
-    END TRY
-    -- Check các lỗi phát sinh
-    BEGIN CATCH
-        IF @@TRANCOUNT > 0 ROLLBACK TRAN;
-
-        DECLARE @ErrMsg NVARCHAR(4000), @ErrSeverity INT;
-        SELECT @ErrMsg = ERROR_MESSAGE(), @ErrSeverity = ERROR_SEVERITY();
-        RAISERROR(@ErrMsg, @ErrSeverity, 1);
-
-        RETURN 1
-    END CATCH
-END;
-GO
---- Procedure lập hoá đơn và thanh toán
-CREATE PROCEDURE sp_LapHoaDonVaThanhToan
-(
-    @MaHD      INTEGER,
     @NgayLap   DATETIME,
-    @MaKH      INTEGER,
-    @MaCN      INTEGER,
-    @MaNV      INTEGER,
+    @MaKH      INT,
+    @MaCN      INT,
+    @MaNV      INT,
     @KhuyenMai INT = 0,
-    @ChiTiet   dbo.HoaDonChiTietType READONLY -- Bảng chi tiết hoá đơn
+    @MaHD      INT OUTPUT
 )
 AS
 BEGIN
     SET NOCOUNT ON;
     SET XACT_ABORT ON;
 
-    DECLARE @TongTien DECIMAL(12,2);
-    DECLARE @Nam SMALLINT, @Thang TINYINT;
-
     BEGIN TRY
-        BEGIN TRAN;
-        SET @KQ = 0;
-
-        -- Kiểm tra các tham số đầu vào
+        -- Kiểm tra input
         IF NOT EXISTS (SELECT 1 FROM KHACHHANG WHERE MAKH = @MaKH)
             RAISERROR(N'Khách hàng không tồn tại', 16, 1);
 
@@ -230,9 +93,10 @@ BEGIN
         IF NOT EXISTS (SELECT 1 FROM NHANVIEN WHERE MANV = @MaNV)
             RAISERROR(N'Nhân viên không tồn tại', 16, 1);
 
-        -- Kiểm tra nhân viên có làm ở chi nhánh vào ngày lập không
+        -- Nhân viên phải làm tại chi nhánh vào ngày lập hóa đơn
         IF NOT EXISTS (
-            SELECT 1 FROM LAMVIEC
+            SELECT 1
+            FROM LAMVIEC
             WHERE MANV = @MaNV
               AND MACN = @MaCN
               AND NGAYBATDAU <= CONVERT(DATE, @NgayLap)
@@ -240,105 +104,163 @@ BEGIN
         )
             RAISERROR(N'Nhân viên không làm tại chi nhánh này vào ngày lập hóa đơn', 16, 1);
 
-        -- Hoá đơn phải có ít nhất 1 dòng
-        IF NOT EXISTS (SELECT 1 FROM @ChiTiet)
-            RAISERROR(N'Hoá đơn phải có ít nhất một sản phẩm', 16, 1);
+        -- Insert HOADON, trạng thái mặc định 'Chưa hoàn thành'
+        INSERT INTO HOADON (NGAYLAP, KHUYENMAI, TONGTIEN, MACN, MAKH, TRANGTHAI, MANV)
+        VALUES (@NgayLap, @KhuyenMai, NULL, @MaCN, @MaKH, N'Chưa hoàn thành', @MaNV);
 
-        -- Kiểm tra sản phẩm hợp lệ
-        IF EXISTS (
-            SELECT 1
-            FROM @ChiTiet ct
-            LEFT JOIN SANPHAM sp ON sp.MASP = ct.MASP
-            WHERE sp.MASP IS NULL
-        )
-            RAISERROR(N'Tồn tại sản phẩm không hợp lệ trong hoá đơn', 16, 1);
-
-        -- Kiểm tra tồn kho
-        IF EXISTS (
-            SELECT 1
-            FROM @ChiTiet ct
-            JOIN SANPHAM sp ON sp.MASP = ct.MASP
-            GROUP BY ct.MASP, sp.TONKHO
-            HAVING SUM(ct.SOLUONG) > sp.TONKHO
-        )
-            RAISERROR(N'Số lượng mua vượt quá tồn kho cho một số sản phẩm', 16, 1);
-
-        -- Tính tổng tiền
-        SELECT @TongTien = SUM(ct.SOLUONG * sp.DONGIA)
-        FROM @ChiTiet ct
-        JOIN SANPHAM sp ON sp.MASP = ct.MASP;
-
-        SET @TongTien = @TongTien - ISNULL(@KhuyenMai, 0);
-
-        IF @TongTien <= 0
-            RAISERROR(N'Tổng tiền sau khuyến mãi phải > 0', 16, 1);
-
-        -- Insert HOADON
-        INSERT INTO HOADON (MAHD, NGAYLAP, KHUYENMAI, TONGTIEN, MACN, MAKH, MANV)
-        VALUES (@MaHD, @NgayLap, @KhuyenMai, @TongTien, @MaCN, @MaKH, @MaNV);
-
-        /* comment vì code trên mac chưa sửa lại địa chỉ partition
-        -- Insert HOADON_partitioned (trên partition)
-        INSERT INTO HOADON_partitioned (MAHD, NGAYLAP, KHUYENMAI, TONGTIEN, MACN, MAKH, MANV)
-        VALUES (@MaHD, @NgayLap, @KhuyenMai, @TongTien, @MaCN, @MaKH, @MaNV);
-        */
-
-        -- Insert chi tiết hoá đơn
-        INSERT INTO CHITIETHOADON (MAHD, MASP, SOLUONG)
-        SELECT @MaHD, MASP, SOLUONG
-        FROM @ChiTiet;
-
-        -- Cập nhật tồn kho
-        UPDATE sp
-        SET TONKHO = sp.TONKHO - src.SL
-        FROM SANPHAM sp
-        JOIN (
-            SELECT MASP, SUM(SOLUONG) AS SL
-            FROM @ChiTiet
-            GROUP BY MASP
-        ) src ON sp.MASP = src.MASP;
-
-        -- Cập nhật CHITIEU
-        SET @Nam   = YEAR(@NgayLap);
-        SET @Thang = MONTH(@NgayLap);
-        -- Nếu đã có mục tiêu trong tháng thì cộng dồn, nếu chưa thì thêm mới
-        IF EXISTS (SELECT 1 FROM CHITIEU WHERE MAKH = @MaKH AND NAM = @Nam AND THANG = @Thang)
-        BEGIN
-            UPDATE CHITIEU
-            SET CHITIEU = CHITIEU + @TongTien
-            WHERE MAKH = @MaKH AND NAM = @Nam AND THANG = @Thang;
-        END
-        ELSE
-        BEGIN
-            INSERT INTO CHITIEU (MAKH, NAM, THANG, CHITIEU)
-            VALUES (@MaKH, @Nam, @Thang, @TongTien);
-        END
-
-        COMMIT TRAN;
-        RETURN 0;
+        SET @MaHD = SCOPE_IDENTITY();
     END TRY
     BEGIN CATCH
-        IF @@TRANCOUNT > 0 ROLLBACK TRAN;
-
-        DECLARE @ErrMsg NVARCHAR(4000), @ErrSeverity INT;
-        SELECT @ErrMsg = ERROR_MESSAGE(), @ErrSeverity = ERROR_SEVERITY();
+        DECLARE @ErrMsg NVARCHAR(4000) = ERROR_MESSAGE(),
+                @ErrSeverity INT = ERROR_SEVERITY();
         RAISERROR(@ErrMsg, @ErrSeverity, 1);
-
-        RETURN 1;
     END CATCH
 END;
 GO
 
-CREATE OR ALTER PROCEDURE sp_ThanhToan
 
---- Procedure thêm đánh giá hoá đơn
-CREATE PROCEDURE sp_ThemDanhGiaHoaDon
+-- Procedure cập nhật lịch hẹn
+CREATE OR ALTER PROCEDURE sp_CapNhatLichHen
 (
-    @MaHD          INTEGER,
-    @MaKH          INTEGER,
-    @DiemDichVu    TINYINT,
-    @MucDoHaiLong  TINYINT,
-    @BinhLuan      NVARCHAR(100) = NULL
+    @MaLichHen   INT,
+    @NgayHenMoi  DATE,
+    @ThoiGianMoi TIME,
+    @NoiDungMoi  NVARCHAR(200) = NULL,
+    @MaCNMoi     INT,
+    @MaLoaiDVMoi INT
+)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+
+    DECLARE @MaKH INT;
+
+    BEGIN TRY
+        -- Lấy khách của lịch
+        SELECT @MaKH = MAKH
+        FROM LICHHEN
+        WHERE MALICHHEN = @MaLichHen;
+
+        IF @MaKH IS NULL
+            RAISERROR(N'Không tìm thấy lịch hẹn', 16, 1);
+
+        -- Kiểm tra tham số đầu vào
+        IF NOT EXISTS (SELECT 1 FROM CHINHANH WHERE MACN = @MaCNMoi)
+            RAISERROR(N'Chi nhánh mới không tồn tại', 16, 1);
+
+        IF NOT EXISTS (SELECT 1 FROM LOAIDICHVU WHERE MALOAIDV = @MaLoaiDVMoi)
+            RAISERROR(N'Loại dịch vụ mới không tồn tại', 16, 1);
+
+        IF NOT EXISTS (
+            SELECT 1
+            FROM CUNGCAP
+            WHERE MACN = @MaCNMoi AND MALOAIDV = @MaLoaiDVMoi
+        )
+            RAISERROR(N'Dịch vụ mới không được cung cấp tại chi nhánh này', 16, 1);
+
+        -- Kiểm tra trùng slot với lịch khác
+        IF EXISTS (
+            SELECT 1
+            FROM LICHHEN
+            WHERE NGAYHEN = @NgayHenMoi
+              AND THOIGIAN = @ThoiGianMoi
+              AND MACN = @MaCNMoi
+              AND MAKH = @MaKH
+              AND MALICHHEN <> @MaLichHen
+        )
+            RAISERROR(N'Đã có lịch hẹn khác trùng slot', 16, 1);
+
+        -- Cập nhật
+        UPDATE LICHHEN
+        SET NGAYHEN  = @NgayHenMoi,
+            THOIGIAN = @ThoiGianMoi,
+            NOIDUNG  = @NoiDungMoi,
+            MACN     = @MaCNMoi,
+            MALOAIDV = @MaLoaiDVMoi
+        WHERE MALICHHEN = @MaLichHen;
+    END TRY
+    BEGIN CATCH
+        DECLARE @ErrMsg NVARCHAR(4000) = ERROR_MESSAGE(),
+                @ErrSeverity INT = ERROR_SEVERITY();
+
+        RAISERROR(@ErrMsg, @ErrSeverity, 1);
+    END CATCH
+END;
+GO
+-- PRocedure tạo hóa đơn
+CREATE OR ALTER PROCEDURE sp_TaoHoaDonMoi
+(
+    @NgayLap   DATETIME,
+    @MaKH      INT,
+    @MaCN      INT,
+    @MaNV      INT,
+    @MaHD      INT OUTPUT
+)       
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+
+    DECLARE @KhuyenMai INT;
+
+    BEGIN TRY
+        -- Kiểm tra input
+        IF NOT EXISTS (SELECT 1 FROM KHACHHANG WHERE MAKH = @MaKH)
+            RAISERROR(N'Khách hàng không tồn tại', 16, 1);
+
+        IF NOT EXISTS (SELECT 1 FROM CHINHANH WHERE MACN = @MaCN)
+            RAISERROR(N'Chi nhánh không tồn tại', 16, 1);
+
+        IF NOT EXISTS (SELECT 1 FROM NHANVIEN WHERE MANV = @MaNV)
+            RAISERROR(N'Nhân viên không tồn tại', 16, 1);
+
+        -- Nhân viên phải làm tại chi nhánh vào ngày lập hóa đơn
+        IF NOT EXISTS (
+            SELECT 1
+            FROM LAMVIEC
+            WHERE MANV = @MaNV
+              AND MACN = @MaCN
+              AND NGAYBATDAU <= CONVERT(DATE, @NgayLap)
+              AND (NGAYKETTHUC IS NULL OR NGAYKETTHUC >= CONVERT(DATE, @NgayLap))
+        )
+            RAISERROR(N'Nhân viên không làm tại chi nhánh này vào ngày lập hóa đơn', 16, 1);
+
+        
+        -- Lấy khuyến mãi theo CẤP BẬC khách hàng
+        SELECT @KhuyenMai =
+            CASE KH.TENCAPBAC
+                WHEN N'Cơ bản'    THEN 0
+                WHEN N'Thân thiết' THEN 10
+                WHEN N'VIP'       THEN 30
+                ELSE 0
+            END
+        FROM KHACHHANG KH
+        WHERE KH.MAKH = @MaKH;
+
+        IF @KhuyenMai IS NULL
+            RAISERROR(N'Không xác định được cấp bậc khách hàng', 16, 1);
+
+        -- Tao hoa don moi
+        INSERT INTO HOADON (NGAYLAP, KHUYENMAI, TONGTIEN, MACN, MAKH, TRANGTHAI, MANV)
+        VALUES (@NgayLap, @KhuyenMai, NULL, @MaCN, @MaKH, N'Chưa hoàn thành', @MaNV);
+
+        SET @MaHD = SCOPE_IDENTITY();
+    END TRY
+    BEGIN CATCH
+        DECLARE @ErrMsg NVARCHAR(4000) = ERROR_MESSAGE(),
+                @ErrSeverity INT = ERROR_SEVERITY();
+        RAISERROR(@ErrMsg, @ErrSeverity, 1);
+    END CATCH
+END;
+GO
+
+-- Procedure thêm chi tiết hoá đơn
+CREATE OR ALTER PROCEDURE sp_ThemChiTietHoaDon
+(
+    @MaHD    INT,
+    @MaSP    INT,
+    @SoLuong INT
 )
 AS
 BEGIN
@@ -348,122 +270,134 @@ BEGIN
     BEGIN TRY
         BEGIN TRAN;
 
-        -- Kiểm tra các tham số đầu vào
-        IF NOT EXISTS (SELECT 1 FROM KHACHHANG WHERE MAKH = @MaKH)
-            RAISERROR(N'Khách hàng không tồn tại', 16, 1);
+        -- Kiểm tra tham số đầu vào
+        IF NOT EXISTS (SELECT 1 FROM SANPHAM WHERE MASP = @MaSP)
+            RAISERROR(N'Sản phẩm không tồn tại', 16, 1);
 
-        -- Hóa đơn phải tồn tại và thuộc về khách này
+        IF @SoLuong <= 0
+            RAISERROR(N'Số lượng phải lớn hơn 0', 16, 1);
+
+        -- Hóa đơn phải còn trạng thái 'Chưa hoàn thành'
         IF NOT EXISTS (
             SELECT 1
             FROM HOADON
-            WHERE MAHD = @MaHD AND MAKH = @MaKH
+            WHERE MAHD = @MaHD
+              AND TRANGTHAI = N'Chưa hoàn thành'
         )
-            RAISERROR(N'Hóa đơn không tồn tại hoặc không thuộc về khách hàng này.', 16, 1);
+            RAISERROR(N'Hóa đơn không tồn tại hoặc đã được thanh toán', 16, 1);
 
-        -- Mỗi hóa đơn chỉ được đánh giá 1 lần
-        IF EXISTS (SELECT 1 FROM DANHGIA WHERE MAHD = @MaHD)
-            RAISERROR(N'Hóa đơn này đã được đánh giá', 16, 1);
-        -- Ràng buộc điểm dịch vụ và mức độ hài lòng từ 1 đến 5
-        IF @DiemDichVu NOT BETWEEN 1 AND 5
-            RAISERROR(N'Điểm dịch vụ phải từ 1 đến 5', 16, 1);
+        -- Kiểm tra tồn kho + lấy đơn giá
+        DECLARE @TonKho INT,
+                @GiaBan INT;
 
-        IF @MucDoHaiLong NOT BETWEEN 1 AND 5
-            RAISERROR(N'Mức độ hài lòng phải từ 1 đến 5', 16, 1);
+        SELECT @TonKho = TONKHO,
+               @GiaBan = DONGIA
+        FROM SANPHAM
+        WHERE MASP = @MaSP;
 
-        INSERT INTO DANHGIA (DIEMDICHVU, MUCDOHAILONG, BINHLUAN, MAKH, MAHD)
-        VALUES (@DiemDichVu, @MucDoHaiLong, @BinhLuan, @MaKH, @MaHD);
+        IF @TonKho < @SoLuong
+            RAISERROR(N'Tồn kho không đủ để đáp ứng yêu cầu', 16, 1);
+
+        -- Thêm chi tiết hoá đơn, lưu GIABAN = DONGIA hiện tại
+        INSERT INTO CHITIETHOADON (MAHD, MASP, SOLUONG, GIABAN)
+        VALUES (@MaHD, @MaSP, @SoLuong, @GiaBan);
+
+        -- Cập nhật tồn kho
+        UPDATE SANPHAM
+        SET TONKHO = TONKHO - @SoLuong
+        WHERE MASP = @MaSP;
 
         COMMIT TRAN;
-        RETURN 0;
     END TRY
     BEGIN CATCH
-        IF @@TRANCOUNT > 0 ROLLBACK TRAN;
+        IF @@TRANCOUNT > 0
+            ROLLBACK TRAN;
 
-        DECLARE @ErrMsg NVARCHAR(4000), @ErrSeverity INT;
-        SELECT @ErrMsg = ERROR_MESSAGE(), @ErrSeverity = ERROR_SEVERITY();
+        DECLARE @ErrMsg NVARCHAR(4000) = ERROR_MESSAGE(),
+                @ErrSeverity INT = ERROR_SEVERITY();
         RAISERROR(@ErrMsg, @ErrSeverity, 1);
-
-        RETURN 1;
     END CATCH
 END;
 GO
+-- Procedure thanh toan
+CREATE OR ALTER PROCEDURE sp_ThanhToanHoaDon
+(
+    @MaHD INT
+)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
 
-/*Exec (chưa có sample data)
--- Đặt lịch hẹn
-DECLARE @KQ INT;
+    BEGIN TRY
+        BEGIN TRAN;
 
-EXEC sp_DatLichHen
-    @MaLichHen = 'LH0000000001',
-    @NgayHen   = '2025-12-01',
-    @ThoiGian  = '09:00',
-    @NoiDung   = N'Khám sức khoẻ định kỳ',
-    @MaKH      = 'KH0000000001',
-    @MaCN      = 'CN001',
-    @MaLoaiDV  = 'LDV01',
-    @KQ        = @KQ OUTPUT;
+        -- Hóa đơn phải tồn tại và còn 'Chưa hoàn thành'
+        IF NOT EXISTS (
+            SELECT 1
+            FROM HOADON
+            WHERE MAHD = @MaHD
+              AND TRANGTHAI = N'Chưa hoàn thành'
+        )
+            RAISERROR(N'Hóa đơn không tồn tại hoặc đã được thanh toán', 16, 1);
 
-SELECT @KQ AS KetQua_DatLich;
--- 1 = thành công, 0 = thất bại (và sẽ có message lỗi trả về)
+        DECLARE @TongHang  DECIMAL(12, 2),
+                @TongTien  DECIMAL(12, 2),
+                @KhuyenMai INT,
+                @MaKH      INT,
+                @NgayLap   DATE,
+                @Nam       SMALLINT;
 
+        -- Tính tổng tiền hàng từ chi tiết hoá đơn
+        SELECT @TongHang = SUM(CAST(GIABAN AS DECIMAL(12,2)) * SOLUONG)
+        FROM CHITIETHOADON
+        WHERE MAHD = @MaHD;
 
-DECLARE @KQ INT;
+        IF @TongHang IS NULL
+            RAISERROR(N'Hóa đơn chưa có chi tiết', 16, 1);
 
-EXEC sp_CapNhatLichHen
-    @MaLichHen   = 'LH0000000001',
-    @NgayHenMoi  = '2025-12-02',
-    @ThoiGianMoi = '10:30',
-    @NoiDungMoi  = N'Đổi giờ khám sang buổi trưa',
-    @MaCNMoi     = 'CN001',   -- có thể giữ nguyên chi nhánh
-    @MaLoaiDVMoi = 'LDV01',   -- hoặc đổi sang loại DV khác nếu muốn
-    @KQ          = @KQ OUTPUT;
+        -- Lấy thông tin hóa đơn
+        SELECT  @KhuyenMai = ISNULL(KHUYENMAI, 0),
+                @MaKH      = MAKH,
+                @NgayLap   = CONVERT(DATE, NGAYLAP)
+        FROM HOADON
+        WHERE MAHD = @MaHD;
 
-SELECT @KQ AS KetQua_CapNhatLich;
+        -- Áp khuyến mãi
+        SET @TongTien = @TongHang * (1 - @KhuyenMai / 100.0);
+
+        IF @TongTien <= 0
+            RAISERROR(N'Tổng tiền không hợp lệ', 16, 1);
+
+        UPDATE HOADON
+        SET TONGTIEN  = @TongTien,
+            TRANGTHAI = N'Đã thanh toán'
+        WHERE MAHD = @MaHD;
+
+        -- Cập nhật CHITIEU 
+        SET @Nam = YEAR(@NgayLap);
+
+        IF EXISTS (SELECT 1 FROM CHITIEU WHERE MAKH = @MaKH AND NAM = @Nam)
+        BEGIN
+            UPDATE CHITIEU
+            SET CHITIEU = CHITIEU + @TongTien
+            WHERE MAKH = @MaKH AND NAM = @Nam;
+        END
+        ELSE
+        BEGIN
+            INSERT INTO CHITIEU (MAKH, NAM, CHITIEU)
+            VALUES (@MaKH, @Nam, @TongTien);
+        END
+
+        COMMIT TRAN;
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0
+            ROLLBACK TRAN;
+
+        DECLARE @ErrMsg NVARCHAR(4000) = ERROR_MESSAGE(),
+                @ErrSeverity INT = ERROR_SEVERITY();
+        RAISERROR(@ErrMsg, @ErrSeverity, 1);
+    END CATCH
+END;
 GO
-
---- Lập hoá đơn và thanh toán
--- Bước 1: Tạo biến bảng chi tiết hoá đơn
-DECLARE @CT dbo.HoaDonChiTietType;
-
-INSERT INTO @CT (MASP, SOLUONG)
-VALUES ('SP001', 2),      -- mua 2 sản phẩm SP001
-       ('SP002', 1);      -- mua 1 sản phẩm SP002
-
--- Bước 2: Gọi procedure
-DECLARE @KQ INT;
-
-EXEC sp_LapHoaDonVaThanhToan
-    @MaHD      = 'HD0000000001',
-    @NgayLap   = '2025-12-01T10:00:00',
-    @MaKH      = 'KH0000000001',
-    @MaCN      = 'CN001',
-    @MaNV      = 'NV001',
-    @KhuyenMai = 0,
-    @ChiTiet   = @CT,
-    @KQ        = @KQ OUTPUT;
-
-SELECT @KQ AS KetQua_LapHoaDon;
-
--- Xem lại dữ liệu:
-SELECT * FROM HOADON WHERE MAHD = 'HD0000000001';
-SELECT * FROM CHITIETHOADON WHERE MAHD = 'HD0000000001';
-SELECT * FROM SANPHAM WHERE MASP IN ('SP001', 'SP002'); -- kiểm tra TONKHO đã trừ
-SELECT * FROM CHITIEU WHERE MAKH = 'KH0000000001';
-GO
-
--- Thêm đánh giá hoá đơn
-DECLARE @KQ INT;
-
-EXEC sp_ThemDanhGiaHoaDon
-    @MaDanhGia     = 'DG0000000001',
-    @MaHD          = 'HD0000000001',
-    @MaKH          = 'KH0000000001',
-    @DiemDichVu    = 5,
-    @MucDoHaiLong  = 5,
-    @BinhLuan      = N'Dịch vụ rất tốt, nhân viên nhiệt tình',
-    @KQ            = @KQ OUTPUT;
-
-SELECT @KQ AS KetQua_DanhGia;
-
-SELECT * FROM DANHGIA WHERE MAHD = 'HD0000000001';
-
-*/
