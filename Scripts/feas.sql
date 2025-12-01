@@ -4,7 +4,7 @@ GO
 -- BÁO CÁO THỐNG KÊ
 -- tính tổng sản phẩm trong 1 hoá đơn
 GO
-CREATE OR ALTER FUNCTION f_TongSanPhamCuaHoaDon(@MAHD VARCHAR(12))
+CREATE OR ALTER FUNCTION f_TongSanPhamCuaHoaDon(@MAHD INTEGER)
 RETURNS INTEGER
 AS
 BEGIN
@@ -52,7 +52,7 @@ BEGIN
     SELECT
         MACN,
         @Nam AS N'Năm',
-        MONTH(NGAYLAP) AS N'Tháng'
+        MONTH(NGAYLAP) AS N'Tháng',
         COUNT(DISTINCT MAHD) AS N'Số lượng đơn',
         SUM(TONGTIEN) AS N'Tổng Doanh thu',
         SUM((KHUYENMAI / 100) * TONGTIEN) AS N'Tổng tiền chiết khấu'
@@ -69,8 +69,8 @@ GO
 -- thống kê lượng sản phẩm bán được trong tháng/năm theo từng loại hàng
 GO
 CREATE OR ALTER PROCEDURE sp_ThongKeSanPham
-    @Thang INTEGER NULL, 
-    @Nam INTEGER NULL
+    @Thang INTEGER = NULL, 
+    @Nam INTEGER = NULL
 AS
 BEGIN
     BEGIN TRY
@@ -119,9 +119,9 @@ GO
 CREATE OR ALTER FUNCTION f_TonKhoThap()
 RETURNS TABLE
 AS
-    RETURN SELECT MASP
+    RETURN SELECT *
     FROM SANPHAM
-    WHERE LOAI <> N'Dịch vụ' AND TONKHO < 50
+    WHERE TONKHO < 100
 GO
 
 -- phân tích khách hàng tiềm năng (trên toàn hệ thống)
@@ -162,7 +162,7 @@ BEGIN
                 WHEN rfm.R_Diem >= 3 AND rfm.F_Diem >= 2 AND rfm.M_Diem >= 2 THEN N'Tiềm năng'
                 WHEN rfm.R_Diem < 2 AND rfm.F_Diem >= 2 AND rfm.M_Diem >= 2 THEN N'Mua lâu, từng thường xuyên đến'
                 WHEN rfm.R_Diem < 2 AND rfm.F_Diem < 2 AND rfm.M_Diem < 2 THEN N'Mua lâu, ít khi mua, chi ít'
-            END
+            END AS N'Phân loại khách hàng'
         FROM RFM_Diem rfm
         ORDER BY MAKH
     END TRY
@@ -188,17 +188,25 @@ BEGIN
         IF @Nam IS NOT NULL AND @Nam < 1900
         RAISERROR (N'Năm không hợp lệ', 16, 1)
 
-        IF @Thang IS NULL SET @Thang = MONTH(GETDATE())
-        IF @Nam IS NULL SET @Nam = YEAR(GETDATE())
+        DECLARE @NGAYBD DATE
+        DECLARE @NGAYKT DATE
 
-        DECLARE @DauThangHienTai DATE = DATEFROMPARTS(@Nam, @Thang, 1);
+        IF @Thang IS NOT NULL
+        BEGIN
+            SET @NGAYBD = DATEFROMPARTS(@Nam, @Thang, 1)
+            SET @NGAYKT = EOMONTH(@NGAYBD)
+        END
+        ELSE IF @Thang IS NULL
+        BEGIN
+            SET @NGAYBD = DATEFROMPARTS(@Nam, 1, 1)
+            SET @NGAYKT = DATEFROMPARTS(@Nam, 12, 31)
+        END;
 
         WITH MuaHangTrongThang AS (
             SELECT 
-                DISTINCT HD.MAKH
+                *
             FROM HOADON HD 
-            WHERE HD.NGAYLAP >= @DauThangHienTai
-                AND HD.NGAYLAP <= EOMONTH(@DauThangHienTai)
+            WHERE HD.NGAYLAP BETWEEN @NGAYBD AND @NGAYKT
         ), KhachHangCTE AS (
             SELECT 
                 MAKH, 
@@ -206,7 +214,7 @@ BEGIN
                     WHEN EXISTS (SELECT 1 
                                 FROM HOADON HD
                                 WHERE HD.MAKH = kh.MAKH 
-                                AND HD.NGAYLAP < @DauThangHienTai
+                                AND HD.NGAYLAP < @NGAYBD
                                 ) THEN 1
                     ELSE 0 
                 END AS 'QuayLai'
@@ -233,35 +241,50 @@ BEGIN
     SET NOCOUNT ON;
 
     BEGIN TRY
-        WITH DiemDichVu AS (
+        WITH Points AS (
+            SELECT 1 AS DIEM UNION ALL
+            SELECT 2 UNION ALL
+            SELECT 3 UNION ALL
+            SELECT 4 UNION ALL
+            SELECT 5
+        ),
+        DiemDichVu AS (
             SELECT 
                 HD.MACN,
-                DG.DIEMDICHVU 'DIEM',
-                COUNT((DG.DIEMDICHVU)) 'SOLUONG'
+                DG.DIEMDICHVU AS DIEM,
+                COUNT(*) AS SOLUONG
             FROM HOADON HD
-            JOIN DANHGIA DG ON HD.MAHD = DG.MAHD -- chỉ quan tâm những hoá đơn có đánh giá => không dùng left join
+            JOIN DANHGIA DG ON HD.MAHD = DG.MAHD
             WHERE DG.DIEMDICHVU IS NOT NULL
             GROUP BY HD.MACN, DG.DIEMDICHVU
-        ), DiemHaiLong AS (
+        ),
+        DiemHaiLong AS (
             SELECT 
                 HD.MACN,
-                DG.MUCDOHAILONG 'DIEM',
-                COUNT(DG.MUCDOHAILONG) 'SOLUONG'
+                DG.MUCDOHAILONG AS DIEM,
+                COUNT(*) AS SOLUONG
             FROM HOADON HD
             JOIN DANHGIA DG ON HD.MAHD = DG.MAHD
             WHERE DG.MUCDOHAILONG IS NOT NULL
             GROUP BY HD.MACN, DG.MUCDOHAILONG
+        ),
+        Branches AS (
+            SELECT DISTINCT MACN FROM HOADON
         )
 
-        SELECT
-            COALESCE(DV.MACN, HL.MACN) AS N'Mã chi nhánh',
-            DV.DIEM AS N'Điểm dịch vụ',
-            DV.SOLUONG AS N'Số lượng',
-            HL.DIEM AS N'Điểm hài lòng',
-            HL.SOLUONG AS N'Số lượng'
-        FROM DiemDichVu AS DV
-        FULL OUTER JOIN DiemHaiLong AS HL ON DV.MACN = HL.MACN
-                                    AND DV.DIEM = HL.DIEM
+        SELECT 
+            B.MACN AS N'Mã chi nhánh',
+            P.DIEM AS N'Điểm',
+            ISNULL(DV.SOLUONG, 0) AS N'Số lượng dịch vụ',
+            ISNULL(HL.SOLUONG, 0) AS N'Số lượng hài lòng'
+        FROM Branches B
+        CROSS JOIN Points P
+        LEFT JOIN DiemDichVu DV 
+            ON DV.MACN = B.MACN AND DV.DIEM = P.DIEM
+        LEFT JOIN DiemHaiLong HL
+            ON HL.MACN = B.MACN AND HL.DIEM = P.DIEM
+        ORDER BY B.MACN, P.DIEM;
+
     END TRY
     BEGIN CATCH
         PRINT 'Lỗi: ' + ERROR_MESSAGE()
@@ -310,7 +333,7 @@ BEGIN
         JOIN SANPHAM SP ON CT.MASP = SP.MASP
         WHERE HD.NGAYLAP BETWEEN @NGAYBD AND @NGAYKT
         GROUP BY SP.MASP, SP.TENSP, SP.LOAI
-        HAVING SUM(CT.SOLUONG) > 500
+        HAVING SUM(CT.SOLUONG) > 0
         ORDER BY SOLUONG DESC
     END TRY
     BEGIN CATCH
@@ -319,9 +342,9 @@ BEGIN
 END
 GO
 
--- tra cứu thông tin sản phẩm
+GO-- tra cứu thông tin sản phẩm
 CREATE OR ALTER PROCEDURE sp_TraCuuThongTinSanPham
-    @MASP CHAR(5)
+    @MASP INTEGER
 AS
 BEGIN
     SET NOCOUNT ON;
