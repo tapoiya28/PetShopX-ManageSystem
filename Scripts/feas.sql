@@ -95,8 +95,9 @@ BEGIN
         TC.TINHTRANG,
         KH.TENKH AS ChuSoHuu,
         KH.SDT
-    FROM THUCUNG TC
-    JOIN KHACHHANG KH ON TC.MAKH = KH.MAKH
+    FROM KHACHHANG KH
+    LEFT JOIN THUCUNG TC ON TC.MAKH = KH.MAKH
+    WHERE KH.MAKH = @MAKH 
     ORDER BY TC.MATC DESC;
 END;
 GO
@@ -143,28 +144,6 @@ BEGIN
         GIOITINH = @GIOITINH,
         TINHTRANG = @TINHTRANG
     WHERE MATC = @MATC;
-END;
-GO
-CREATE OR ALTER PROCEDURE sp_CapNhatCapBacKhachHang
-AS
-BEGIN
-    SET NOCOUNT ON;
-
-    BEGIN TRY
-        UPDATE KH
-        SET TENCAPBAC = (
-            SELECT TOP 1 CB.TENCAPBAC
-            FROM CAPBAC CB
-            WHERE CB.MUCCHITIEU <= ISNULL(KH.TONGCHITIEU, 0)
-            ORDER BY CB.MUCCHITIEU DESC 
-        )
-        FROM KHACHHANG KH;
-
-        PRINT N'Đã cập nhật cấp bậc dựa trên tổng chi tiêu hiện tại.';
-    END TRY
-    BEGIN CATCH
-        PRINT N'Lỗi: ' + ERROR_MESSAGE();
-    END CATCH
 END;
 GO
 
@@ -233,17 +212,7 @@ BEGIN
         KH.MAKH,
         KH.TENKH AS ChuSoHuu,
         KH.SDT AS SDTLienHe,
-        KH.DIACHI,
-        (SELECT MAX(NGAYKHAM) FROM CAKHAMBENH WHERE MATC = TC.MATC) AS LanKhamGanNhat,
-        (SELECT MAX(NGAYTIEM) FROM CATIEM WHERE MATC = TC.MATC) AS LanTiemGanNhat,
-        (
-            (SELECT COUNT(*) FROM CAKHAMBENH WHERE MATC = TC.MATC) + 
-            (SELECT COUNT(*) FROM CATIEM WHERE MATC = TC.MATC)
-        ) AS TongSoLanGheTham,
-        CASE 
-            WHEN EXISTS (SELECT 1 FROM DANGKYGOITIEM WHERE MATC = TC.MATC) THEN N'Đang sử dụng gói'
-            ELSE N'Tiêm lẻ'
-       END AS TrangThaiGoiTiem
+        KH.DIACHI
     FROM THUCUNG TC
     JOIN KHACHHANG KH ON TC.MAKH = KH.MAKH
     WHERE TC.MATC = @MATC;
@@ -369,12 +338,11 @@ BEGIN
 
     WHILE @@FETCH_STATUS = 0
     BEGIN
-        SET @TienDaTieuNamNgoai = 0;
-        SELECT @TienDaTieuNamNgoai = CHITIEU 
+        SET @TienDaTieuNamNgoai = 0; 
+
+        SELECT @TienDaTieuNamNgoai = ISNULL(CHITIEU, 0) 
         FROM CHITIEU 
         WHERE MAKH = @MAKH AND NAM = @NamXetDuyet;
-        
-        IF @TienDaTieuNamNgoai IS NULL SET @TienDaTieuNamNgoai = 0;
 
         SELECT @MucGiuHang = MUCGIUHANG FROM CAPBAC WHERE TENCAPBAC = @CapBacHienTai;
         
@@ -411,5 +379,52 @@ BEGIN
 
     CLOSE cur_KhachHang;
     DEALLOCATE cur_KhachHang;
+END;
+GO
+CREATE OR ALTER PROCEDURE sp_HoaDon_LayThongTinChung
+    @MAHD INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    IF NOT EXISTS (SELECT 1 FROM HOADON WHERE MAHD = @MAHD)
+    BEGIN
+        PRINT N'Hóa đơn không tồn tại';
+        RETURN;
+    END
+    SELECT 
+        HD.MAHD,
+        HD.NGAYLAP,
+        KH.TENKH,
+        KH.SDT AS SDTKhachHang,
+        KH.DIACHI AS DiaChiKhachHang,
+        NV.HOTEN AS NhanVienLap,
+        CN.TENCN AS TaiChiNhanh,
+        CN.DIACHI AS DiaChiChiNhanh,
+        HD.TONGTIEN,
+        ISNULL(HD.KHUYENMAI, 0) AS KhuyenMai,
+        (HD.TONGTIEN - ISNULL(HD.KHUYENMAI, 0)) AS ThucThu 
+    FROM HOADON HD
+    JOIN KHACHHANG KH ON HD.MAKH = KH.MAKH
+    JOIN NHANVIEN NV ON HD.MANV = NV.MANV
+    JOIN CHINHANH CN ON HD.MACN = CN.MACN
+    WHERE HD.MAHD = @MAHD;
+END;
+GO
+CREATE OR ALTER PROCEDURE sp_HoaDon_LayChiTietHangHoa
+    @MAHD INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT 
+        ROW_NUMBER() OVER(ORDER BY SP.TENSP) AS STT,
+        SP.MASP,
+        SP.TENSP,
+        SP.LOAI,        
+        SP.DONGIA,
+        CT.SOLUONG,
+        (SP.DONGIA * CT.SOLUONG) AS ThanhTien
+    FROM CHITIETHOADON CT
+    JOIN SANPHAM SP ON CT.MASP = SP.MASP
+    WHERE CT.MAHD = @MAHD;
 END;
 GO
