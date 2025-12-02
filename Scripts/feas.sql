@@ -1,9 +1,6 @@
 USE PetcareX;
 GO
 
-
--- khách hàng và thú cưng
-
 /* Bảng cho chi tiết hoá đơn (khi dùng tham số bảng)
 CREATE TYPE dbo.HoaDonChiTietType AS TABLE
 (
@@ -354,6 +351,7 @@ BEGIN
 END;
 GO
 
+-- Procedure thêm đánh giá hoá đơn
 CREATE OR ALTER PROCEDURE sp_ThemDanhGiaHoaDon
 (
     @MaKH         INT,
