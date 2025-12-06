@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\DELL\\Documents\\PetShopX-ManageSystem\\Winform\\Winform.csproj": {}
+    "C:\\Users\\DELL\\Documents\\PetShopX-ManageSystem\\winform\\Winform.csproj": {}
   },
   "projects": {
-    "C:\\Users\\DELL\\Documents\\PetShopX-ManageSystem\\Winform\\Winform.csproj": {
+    "C:\\Users\\DELL\\Documents\\PetShopX-ManageSystem\\winform\\Winform.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\DELL\\Documents\\PetShopX-ManageSystem\\Winform\\Winform.csproj",
+        "projectUniqueName": "C:\\Users\\DELL\\Documents\\PetShopX-ManageSystem\\winform\\Winform.csproj",
         "projectName": "Winform",
-        "projectPath": "C:\\Users\\DELL\\Documents\\PetShopX-ManageSystem\\Winform\\Winform.csproj",
+        "projectPath": "C:\\Users\\DELL\\Documents\\PetShopX-ManageSystem\\winform\\Winform.csproj",
         "packagesPath": "C:\\Users\\DELL\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\DELL\\Documents\\PetShopX-ManageSystem\\Winform\\obj\\",
+        "outputPath": "C:\\Users\\DELL\\Documents\\PetShopX-ManageSystem\\winform\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\DELL\\AppData\\Roaming\\NuGet\\NuGet.Config"

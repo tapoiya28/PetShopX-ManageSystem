@@ -1,16 +1,35 @@
-namespace Winform;
+using System;
+using System.Windows.Forms;
 
-static class Program
+namespace Winform
 {
-    /// <summary>
-    ///  The main entry point for the application.
-    /// </summary>
-    [STAThread]
-    static void Main()
+    static class Program
     {
-        // To customize application configuration such as set high DPI settings or default font,
-        // see https://aka.ms/applicationconfiguration.
-        ApplicationConfiguration.Initialize();
-        Application.Run(new LoginForm());
-    }    
+        [STAThread]
+        static void Main()
+        {
+            ApplicationConfiguration.Initialize();
+            LoginForm login = new LoginForm();
+            if (login.ShowDialog() == DialogResult.OK)
+            {
+                if (UserSession.IsKhachHang()) 
+                {
+                    Application.Run(new DashboardKhachhang());
+                }
+                else if (UserSession.IsBacSi() || UserSession.IsNhanVien() || UserSession.IsQuanLy())
+                {
+                     Application.Run(new DashboardNhanVien());
+                }
+                else
+                {
+                    MessageBox.Show("Lỗi: Không xác định được vai trò người dùng!", "Lỗi Phân Quyền");
+                }
+            }
+            else
+            {
+                // Người dùng tắt form đăng nhập -> Thoát ứng dụng
+                Application.Exit();
+            }
+        }
+    }
 }

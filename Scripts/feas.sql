@@ -749,8 +749,8 @@ BEGIN
     IF EXISTS (SELECT 1 FROM KHACHHANG WHERE SDT = @SDT)
         THROW 50001, N'Số điện thoại này đã được sử dụng bởi khách hàng khác.', 1;
 
-    INSERT INTO KHACHHANG (TENKH, SDT, DIACHI, TENCAPBAC)
-    VALUES (@TENKH, @SDT, @DIACHI, N'Đồng');
+    INSERT INTO KHACHHANG (TENKH, SDT, DIACHI, TENCAPBAC,DIEMTICHLUY)
+    VALUES (@TENKH, @SDT, @DIACHI, N'Đồng',0);
 
     SET @NewID = SCOPE_IDENTITY();
 END;
@@ -825,7 +825,6 @@ BEGIN
         TC.MATC,
         TC.TENTC,       
         TC.LOAI,
-        TC.GIONG,
         TC.TUOI,
         TC.GIOITINH,
         TC.TINHTRANG,
@@ -1563,32 +1562,32 @@ END;
 GO
 
 CREATE OR ALTER PROCEDURE sp_KhachHang_DangKy
-    @HoTen      NVARCHAR(50),
-    @SDT        CHAR(10),
-    @DiaChi     NVARCHAR(100),
-    @TenDangNhap varchar(20),
-    @MatKhauHash CHAR(32)
+    @HoTen          NVARCHAR(50),
+    @SDT            CHAR(10),
+    @DiaChi         NVARCHAR(100),
+    @TenDangNhap    VARCHAR(20),
+    @MatKhauHash    CHAR(32), 
+    @Salt           CHAR(36) -- <--- THAM SỐ MỚI
 AS
 BEGIN
     SET NOCOUNT ON;
+    SET XACT_ABORT ON;
 
     BEGIN TRY
         BEGIN TRAN;
-        IF EXISTS (SELECT 1 FROM KHACHHANG WHERE SDT = @SDT)
-        BEGIN
-            RAISERROR(N'Số điện thoại này đã được đăng ký.', 16, 1);
-        END
-        If Exists (SELECT 1 from taikhoan where TenDangNhap = @TenDangNhap )
-        BEGIN
-            RAISERROR(N'Tên đăng nhập đã tồn tại', 16, 1);
-        end
-        declare @makh int
-        exec sp_KhachHang_Them @tenkh = @hoten, @diachi = @diachi, @sdt = @sdt, @newid = @makh output 
-        INSERT INTO TAIKHOAN (TENDANGNHAP, MATKHAU, TRANGTHAI, MAKH)
-        VALUES (@TenDangNhap, @MatKhauHash, 1, @MAKH);
+
+        IF EXISTS (SELECT 1 FROM TAIKHOAN WHERE TENDANGNHAP = @TenDangNhap)
+            THROW 50002, N'Tên đăng nhập đã tồn tại.', 1;
+
+        DECLARE @NewMAKH INT;
+        EXEC sp_KhachHang_Them @TENKH = @HoTen, @SDT = @SDT, @DIACHI = @DiaChi, @NewID = @NewMAKH OUTPUT;
+
+        -- Insert có thêm cột SALT
+        INSERT INTO TAIKHOAN (TENDANGNHAP, MATKHAU, SALT, TRANGTHAI, MAKH, MANV)
+        VALUES (@TenDangNhap, @MatKhauHash, @Salt, 1, @NewMAKH, NULL);
 
         COMMIT TRAN;
-        SELECT N'Đăng ký thành công' AS ThongBao, @MAKH AS MaKhachHang;
+        SELECT N'Đăng ký thành công' AS ThongBao;
     END TRY
     BEGIN CATCH
         IF @@TRANCOUNT > 0 ROLLBACK TRAN;
@@ -1596,26 +1595,33 @@ BEGIN
     END CATCH
 END;
 GO
+
 CREATE OR ALTER PROCEDURE sp_TaiKhoan_DangNhap
-    @TenDangNhap    VARCHAR(20),
+    @InputIdentifier VARCHAR(20), 
     @MatKhauHash    CHAR(32)
 AS
 BEGIN
     SET NOCOUNT ON;
+    DECLARE @TenDangNhapThuc VARCHAR(20);
     DECLARE @MatKhauDB CHAR(32);
     DECLARE @TrangThai BIT;
     DECLARE @MANV INT;
     DECLARE @MAKH INT;
-    SELECT 
-        @MatKhauDB = MATKHAU,
-        @TrangThai = TRANGTHAI,
-        @MANV = MANV,
-        @MAKH = MAKH
-    FROM TAIKHOAN
-    WHERE TENDANGNHAP = @TenDangNhap;
-    IF @MatKhauDB IS NULL 
+    SELECT TOP 1 
+        @TenDangNhapThuc = TK.TENDANGNHAP,
+        @MatKhauDB = TK.MATKHAU,
+        @TrangThai = TK.TRANGTHAI,
+        @MANV = TK.MANV,
+        @MAKH = TK.MAKH
+    FROM TAIKHOAN TK
+    LEFT JOIN NHANVIEN NV ON TK.MANV = NV.MANV
+    LEFT JOIN KHACHHANG KH ON TK.MAKH = KH.MAKH
+    WHERE TK.TENDANGNHAP = @InputIdentifier 
+       OR NV.SDT = @InputIdentifier 
+       OR KH.SDT = @InputIdentifier;
+    IF @TenDangNhapThuc IS NULL 
     BEGIN
-        RAISERROR(N'Tài khoản không tồn tại.', 16, 1);
+        RAISERROR(N'Tài khoản hoặc số điện thoại không tồn tại.', 16, 1);
         RETURN; 
     END
 
@@ -1624,38 +1630,135 @@ BEGIN
         RAISERROR(N'Tài khoản đã bị khóa.', 16, 1);
         RETURN;
     END
+
     IF @MatKhauDB <> @MatKhauHash 
     BEGIN
         RAISERROR(N'Mật khẩu không chính xác.', 16, 1);
         RETURN;
     END
-
     IF @MANV IS NOT NULL
     BEGIN
-        SELECT 
-            TK.TENDANGNHAP,
-            NV.HOTEN,
-            NV.MANV AS ID_NGUOIDUNG,
+        SELECT TOP 1
+            TK.TENDANGNHAP AS UserName,
+            NV.HOTEN AS FullName,
+            NV.MANV AS UserId,
             CASE NV.VAITRO
                 WHEN 'BS' THEN 'BacSi'
                 WHEN 'QL' THEN 'QuanLy'
                 WHEN 'NV' THEN 'NhanVien'
                 ELSE 'NhanVien'
-            END AS VAITRO_HE_THONG
+            END AS Role,
+            ISNULL(CN.MACN, 0) AS WorkBranchId,
+            ISNULL(CN.TENCN, N'Chưa phân công') AS WorkBranchName
+
         FROM TAIKHOAN TK
         JOIN NHANVIEN NV ON TK.MANV = NV.MANV
-        WHERE TK.TENDANGNHAP = @TenDangNhap;
+        LEFT JOIN LAMVIEC LV ON NV.MANV = LV.MANV 
+             AND (LV.NGAYKETTHUC IS NULL OR LV.NGAYKETTHUC >= GETDATE())
+        LEFT JOIN CHINHANH CN ON LV.MACN = CN.MACN
+        
+        WHERE TK.TENDANGNHAP = @TenDangNhapThuc
+        ORDER BY LV.NGAYBATDAU DESC; 
     END
     ELSE
     BEGIN
         SELECT 
-            TK.TENDANGNHAP,
-            KH.TENKH AS HOTEN,
-            KH.MAKH AS ID_NGUOIDUNG,
-            'KhachHang' AS VAITRO_HE_THONG
+            TK.TENDANGNHAP AS UserName,
+            KH.TENKH AS FullName,
+            KH.MAKH AS UserId,
+            'KhachHang' AS Role,
+            0 AS WorkBranchId,
+            N'' AS WorkBranchName
         FROM TAIKHOAN TK
         JOIN KHACHHANG KH ON TK.MAKH = KH.MAKH
-        WHERE TK.TENDANGNHAP = @TenDangNhap;
+        WHERE TK.TENDANGNHAP = @TenDangNhapThuc;
     END
+END;
+GO
+
+CREATE OR ALTER PROCEDURE sp_TaiKhoan_LaySalt
+    @InputIdentifier VARCHAR(20)
+AS
+BEGIN
+    -- Chỉ trả về Salt nếu tài khoản tồn tại và đang hoạt động
+    SELECT SALT 
+    FROM TAIKHOAN 
+    WHERE TENDANGNHAP = @InputIdentifier  AND TRANGTHAI = 1;
+END;
+GO
+
+CREATE OR ALTER PROCEDURE sp_NhanVien_XemLichHen
+    @MaCN INT,
+    @SdtKhachHang VARCHAR(20) = NULL -- Nếu NULL thì hiện tất cả hôm nay
+AS
+BEGIN
+    SELECT 
+        LH.MALICHHEN,
+        LH.NGAYHEN,
+        LH.THOIGIAN,
+        KH.MAKH,
+        KH.TENKH,
+        KH.SDT,
+        LDV.MALOAIDV,
+        LDV.TENLOAIDV,
+        LH.NOIDUNG AS GhiChu,
+        LH.TRANGTHAI
+    FROM LICHHEN LH
+    JOIN KHACHHANG KH ON LH.MAKH = KH.MAKH
+    JOIN LOAIDICHVU LDV ON LH.MALOAIDV = LDV.MALOAIDV
+    WHERE LH.MACN = @MaCN -- Chỉ hiện lịch của chi nhánh nhân viên đang làm
+      AND LH.TRANGTHAI = N'Chưa hoàn thành' -- Chỉ hiện lịch chưa xử lý
+      AND (@SdtKhachHang IS NULL OR KH.SDT LIKE '%' + @SdtKhachHang + '%')
+    ORDER BY LH.NGAYHEN, LH.THOIGIAN;
+END;
+GO
+
+-- 2. Procedure: Xác nhận lịch hẹn & Tạo hồ sơ (Khám hoặc Tiêm)
+CREATE OR ALTER PROCEDURE sp_NhanVien_XacNhanLichHen
+    @MaLichHen INT,
+    @MaNV      INT,
+    @MaTC      INT -- Bắt buộc phải chọn thú cưng để tạo hồ sơ
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+
+    BEGIN TRY
+        BEGIN TRAN;
+
+        -- A. Lấy thông tin loại dịch vụ từ lịch hẹn
+        DECLARE @MaLoaiDV INT;
+        SELECT @MaLoaiDV = MALOAIDV FROM LICHHEN WHERE MALICHHEN = @MaLichHen;
+
+        -- B. Cập nhật trạng thái lịch hẹn -> "Đã đến" (Hoặc Đã hoàn thành)
+        -- Tùy quy trình bên bạn, ở đây tôi set là Đã hoàn thành để ẩn khỏi danh sách chờ
+        -- UPDATE LICHHEN SET TRANGTHAI = N'Đã hoàn thành' WHERE MALICHHEN = @MaLichHen;
+        -- Tuy nhiên trong bảng DDL của bạn check constraint là: 'Chưa thanh toán', 'Đã thanh toán', 'Đã hủy'
+        -- Nên tạm thời ta không update trạng thái hoàn thành ở đây mà để quy trình thanh toán lo, 
+        -- hoặc ta coi việc tạo hồ sơ là bước đầu tiên. 
+        -- Ở đây tôi giữ nguyên hoặc bạn có thể thêm trạng thái 'Đang khám' vào Check Constraint sau.
+
+        -- C. Tạo hồ sơ dựa trên loại dịch vụ
+        
+        -- Nếu là KHÁM BỆNH
+        IF @MaLoaiDV = 3
+        BEGIN
+            INSERT INTO CAKHAMBENH (MATC, MANV, NGAYKHAM)
+            VALUES (@MaTC, @MaNV, GETDATE());
+        END
+        
+        -- Nếu là TIÊM PHÒNG
+        ELSE IF @MaLoaiDV = 6
+        BEGIN
+            INSERT INTO CATIEM (MATC, MANV, NGAYTIEM)
+            VALUES (@MaTC, @MaNV, GETDATE());
+        END
+
+        COMMIT TRAN;
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0 ROLLBACK TRAN;
+        THROW;
+    END CATCH
 END;
 GO

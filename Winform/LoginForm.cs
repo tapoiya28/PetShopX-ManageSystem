@@ -8,159 +8,217 @@ namespace Winform
 {
     public class LoginForm : Form
     {
+        // Khai báo các Panel container
         private Panel pnlDangNhap;
         private Panel pnlDangKy;
-        private TextBox txtLoginUser;
+
+        // Các controls cho phần Đăng Nhập
+        private TextBox txtLoginInput; // Nhập SĐT hoặc Tên đăng nhập
         private TextBox txtLoginPass;
+
+        // Các controls cho phần Đăng Ký
         private TextBox txtRegHoTen;
         private TextBox txtRegSDT;
+        private TextBox txtRegUser; // Tên đăng nhập
         private TextBox txtRegDiaChi;
         private TextBox txtRegPass;
 
         public LoginForm()
         {
-            this.Size = new Size(400, 450);
+            // Cài đặt Form
+            this.Size = new Size(420, 500);
             this.Text = "Hệ Thống PetcareX";
             this.StartPosition = FormStartPosition.CenterScreen;
+            this.FormBorderStyle = FormBorderStyle.FixedSingle;
+            this.MaximizeBox = false;
+
+            // Khởi tạo giao diện
             TaoGiaoDienDangNhap();
             TaoGiaoDienDangKy();
-            HienThiManHinh(true);
+
+            // Mặc định hiện màn hình Đăng nhập
+            ChuyenManHinh(isLogin: true);
         }
 
+        // --- 1. GIAO DIỆN ĐĂNG NHẬP ---
         private void TaoGiaoDienDangNhap()
         {
             pnlDangNhap = new Panel() { Size = this.ClientSize, Location = new Point(0, 0) };
 
-            Label lblTitle = new Label() { Text = "ĐĂNG NHẬP", Font = new Font("Arial", 14, FontStyle.Bold), Location = new Point(130, 30), AutoSize = true };
-            
-            Label lblUser = new Label() { Text = "Số điện thoại:", Location = new Point(50, 80) };
-            txtLoginUser = new TextBox() { Location = new Point(50, 105), Width = 280 };
+            Label lblTitle = new Label() { Text = "ĐĂNG NHẬP", Font = new Font("Segoe UI", 16, FontStyle.Bold), ForeColor = Color.Navy, Location = new Point(130, 40), AutoSize = true };
 
-            Label lblPass = new Label() { Text = "Mật khẩu:", Location = new Point(50, 140) };
-            txtLoginPass = new TextBox() { Location = new Point(50, 165), Width = 280, PasswordChar = '*' };
+            Label lblInput = new Label() { Text = "SĐT hoặc Tên đăng nhập:", Location = new Point(50, 100), AutoSize = true };
+            txtLoginInput = new TextBox() { Location = new Point(50, 125), Width = 300, Font = new Font("Segoe UI", 10) };
 
-            Button btnLogin = new Button() { Text = "Đăng Nhập", Location = new Point(50, 210), Width = 280, Height = 35, BackColor = Color.LightBlue };
+            Label lblPass = new Label() { Text = "Mật khẩu:", Location = new Point(50, 165), AutoSize = true };
+            txtLoginPass = new TextBox() { Location = new Point(50, 190), Width = 300, PasswordChar = '*', Font = new Font("Segoe UI", 10) };
+
+            Button btnLogin = new Button() { Text = "ĐĂNG NHẬP", Location = new Point(50, 240), Width = 300, Height = 40, BackColor = Color.RoyalBlue, ForeColor = Color.White, Font = new Font("Segoe UI", 10, FontStyle.Bold), FlatStyle = FlatStyle.Flat };
             btnLogin.Click += (s, e) => XuLyDangNhap();
 
-            Label lblHoi = new Label() { Text = "Chưa có tài khoản?", Location = new Point(80, 260), AutoSize = true };
-            Button btnGoToReg = new Button() { Text = "Đăng ký ngay", Location = new Point(200, 255), Width = 100, FlatStyle = FlatStyle.Flat };
+            Label lblDivider = new Label() { Text = "---------------- hoặc ----------------", Location = new Point(110, 300), AutoSize = true, ForeColor = Color.Gray };
+
+            Label lblAsk = new Label() { Text = "Bạn chưa có tài khoản?", Location = new Point(90, 340), AutoSize = true };
+            Button btnGoToReg = new Button() { Text = "Đăng ký ngay", Location = new Point(220, 335), Width = 100, FlatStyle = FlatStyle.Flat, ForeColor = Color.RoyalBlue, Cursor = Cursors.Hand };
             btnGoToReg.FlatAppearance.BorderSize = 0;
-            btnGoToReg.ForeColor = Color.Blue;
-            btnGoToReg.Click += (s, e) => HienThiManHinh(isLogin: false); 
+            btnGoToReg.Click += (s, e) => ChuyenManHinh(false);
 
-            pnlDangNhap.Controls.Add(lblTitle);
-            pnlDangNhap.Controls.Add(lblUser);
-            pnlDangNhap.Controls.Add(txtLoginUser);
-            pnlDangNhap.Controls.Add(lblPass);
-            pnlDangNhap.Controls.Add(txtLoginPass);
-            pnlDangNhap.Controls.Add(btnLogin);
-            pnlDangNhap.Controls.Add(lblHoi);
-            pnlDangNhap.Controls.Add(btnGoToReg);
-
+            pnlDangNhap.Controls.AddRange(new Control[] { lblTitle, lblInput, txtLoginInput, lblPass, txtLoginPass, btnLogin, lblDivider, lblAsk, btnGoToReg });
             this.Controls.Add(pnlDangNhap);
         }
+
+        // --- 2. GIAO DIỆN ĐĂNG KÝ ---
         private void TaoGiaoDienDangKy()
         {
             pnlDangKy = new Panel() { Size = this.ClientSize, Location = new Point(0, 0), Visible = false };
 
-            Label lblTitle = new Label() { Text = "ĐĂNG KÝ KHÁCH HÀNG", Font = new Font("Arial", 14, FontStyle.Bold), Location = new Point(80, 30), AutoSize = true };
+            Label lblTitle = new Label() { Text = "ĐĂNG KÝ KHÁCH HÀNG", Font = new Font("Segoe UI", 16, FontStyle.Bold), ForeColor = Color.Green, Location = new Point(70, 30), AutoSize = true };
 
-            Label lblTen = new Label() { Text = "Họ và tên:", Location = new Point(50, 70) };
-            txtRegHoTen = new TextBox() { Location = new Point(50, 95), Width = 280 };
-
-            Label lblSDT = new Label() { Text = "Số điện thoại (sẽ là tên đăng nhập):", Location = new Point(50, 130), AutoSize = true };
-            txtRegSDT = new TextBox() { Location = new Point(50, 155), Width = 280 };
-
-            Label lblDiaChi = new Label() { Text = "Địa chỉ:", Location = new Point(50, 190) };
-            txtRegDiaChi = new TextBox() { Location = new Point(50, 215), Width = 280 };
-
-            Label lblPass = new Label() { Text = "Mật khẩu:", Location = new Point(50, 250) };
-            txtRegPass = new TextBox() { Location = new Point(50, 275), Width = 280, PasswordChar = '*' };
-
-            Button btnRegister = new Button() { Text = "Đăng Ký", Location = new Point(50, 320), Width = 280, Height = 35, BackColor = Color.LightGreen };
-            btnRegister.Click += (s, e) => XuLyDangKy();
-
-            Button btnBack = new Button() { Text = "<< Quay lại Đăng nhập", Location = new Point(50, 370), Width = 280 };
-            btnBack.Click += (s, e) => HienThiManHinh(isLogin: true); 
-
-            pnlDangKy.Controls.Add(lblTitle);
-            pnlDangKy.Controls.Add(lblTen);
-            pnlDangKy.Controls.Add(txtRegHoTen);
-            pnlDangKy.Controls.Add(lblSDT);
-            pnlDangKy.Controls.Add(txtRegSDT);
-            pnlDangKy.Controls.Add(lblDiaChi);
-            pnlDangKy.Controls.Add(txtRegDiaChi);
+            // Các trường nhập liệu
+            txtRegHoTen = TaoTextBoxLabel("Họ và tên:", 80, pnlDangKy);
+            txtRegSDT = TaoTextBoxLabel("Số điện thoại:", 130, pnlDangKy);
+            txtRegDiaChi = TaoTextBoxLabel("Địa chỉ:", 180, pnlDangKy);
+            txtRegUser = TaoTextBoxLabel("Tên đăng nhập:", 230, pnlDangKy);
+            
+            Label lblPass = new Label() { Text = "Mật khẩu:", Location = new Point(50, 280), AutoSize = true };
+            txtRegPass = new TextBox() { Location = new Point(50, 305), Width = 300, PasswordChar = '*', Font = new Font("Segoe UI", 10) };
             pnlDangKy.Controls.Add(lblPass);
             pnlDangKy.Controls.Add(txtRegPass);
+
+            Button btnRegister = new Button() { Text = "ĐĂNG KÝ", Location = new Point(50, 360), Width = 300, Height = 40, BackColor = Color.ForestGreen, ForeColor = Color.White, Font = new Font("Segoe UI", 10, FontStyle.Bold), FlatStyle = FlatStyle.Flat };
+            btnRegister.Click += (s, e) => XuLyDangKy();
+
+            Button btnBack = new Button() { Text = " Quay lại Đăng nhập", Location = new Point(50, 410), Width = 300, FlatStyle = FlatStyle.Flat, ForeColor = Color.Gray };
+            btnBack.FlatAppearance.BorderSize = 0;
+            btnBack.Click += (s, e) => ChuyenManHinh(true);
+
+            pnlDangKy.Controls.Add(lblTitle);
             pnlDangKy.Controls.Add(btnRegister);
             pnlDangKy.Controls.Add(btnBack);
 
             this.Controls.Add(pnlDangKy);
         }
-        private void HienThiManHinh(bool isLogin)
+
+        // Hàm phụ trợ tạo TextBox nhanh cho phần Đăng ký
+        private TextBox TaoTextBoxLabel(string labelText, int yPos, Panel pnl)
         {
-            if (isLogin)
-            {
-                pnlDangNhap.Visible = true;
-                pnlDangKy.Visible = false;
-                this.Text = "Đăng Nhập";
-            }
-            else
-            {
-                pnlDangNhap.Visible = false;
-                pnlDangKy.Visible = true;
-                this.Text = "Đăng Ký Tài Khoản";
-            }
+            Label lbl = new Label() { Text = labelText, Location = new Point(50, yPos), AutoSize = true };
+            TextBox txt = new TextBox() { Location = new Point(50, yPos + 25), Width = 300, Font = new Font("Segoe UI", 10) };
+            pnl.Controls.Add(lbl);
+            pnl.Controls.Add(txt);
+            return txt;
         }
+
+        private void ChuyenManHinh(bool isLogin)
+        {
+            pnlDangNhap.Visible = isLogin;
+            pnlDangKy.Visible = !isLogin;
+            this.Text = isLogin ? "Đăng Nhập" : "Đăng Ký Tài Khoản";
+            
+            // Clear các trường mật khẩu khi chuyển màn hình để bảo mật
+            txtLoginPass.Text = "";
+            txtRegPass.Text = "";
+        }
+
+        // --- 3. XỬ LÝ ĐĂNG NHẬP (Logic Salt + Hash) ---
         private void XuLyDangNhap()
         {
-            string sdt = txtLoginUser.Text.Trim();
+            string input = txtLoginInput.Text.Trim();
             string matKhau = txtLoginPass.Text;
 
-            if (string.IsNullOrEmpty(sdt) || string.IsNullOrEmpty(matKhau)) { MessageBox.Show("Vui lòng nhập đủ thông tin!"); return; }
-
-            string hash = SecurityHelper.HashPassword(matKhau);
+            if (string.IsNullOrEmpty(input) || string.IsNullOrEmpty(matKhau))
+            {
+                MessageBox.Show("Vui lòng nhập đầy đủ thông tin!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
 
             try
             {
                 using (SqlConnection conn = Connection.GetConnection())
                 {
                     conn.Open();
-                    using (SqlCommand cmd = new SqlCommand("sp_TaiKhoan_DangNhap", conn))
-                    {
-                        cmd.CommandType = CommandType.StoredProcedure;
-                        cmd.Parameters.AddWithValue("@TenDangNhap", sdt);
-                        cmd.Parameters.AddWithValue("@MatKhauHash", hash);
 
-                        using (SqlDataReader reader = cmd.ExecuteReader())
+                    // BƯỚC 1: Lấy SALT từ Database trước
+                    string saltFromDB = "";
+                    using (SqlCommand cmdGetSalt = new SqlCommand("sp_TaiKhoan_LaySalt", conn))
+                    {
+                        cmdGetSalt.CommandType = CommandType.StoredProcedure;
+                        cmdGetSalt.Parameters.AddWithValue("@InputIdentifier", input);
+
+                        object result = cmdGetSalt.ExecuteScalar();
+                        
+                        if (result == null)
+                        {
+                            MessageBox.Show("Tài khoản hoặc số điện thoại không tồn tại!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            return; 
+                        }
+                        saltFromDB = result.ToString();
+                    }
+
+                    // BƯỚC 2: Hash mật khẩu nhập vào với Salt vừa lấy được
+                    string currentHash = SecurityHelper.HashPassword(matKhau, saltFromDB);
+
+                    // BƯỚC 3: Gọi Procedure Đăng nhập để kiểm tra và lấy thông tin
+                    using (SqlCommand cmdLogin = new SqlCommand("sp_TaiKhoan_DangNhap", conn))
+                    {
+                        cmdLogin.CommandType = CommandType.StoredProcedure;
+                        cmdLogin.Parameters.AddWithValue("@InputIdentifier", input);
+                        cmdLogin.Parameters.AddWithValue("@MatKhauHash", currentHash);
+
+                        using (SqlDataReader reader = cmdLogin.ExecuteReader())
                         {
                             if (reader.Read())
                             {
-                                string hoTen = reader["HOTEN"].ToString();
-                                string vaiTro = reader["VAITRO"].ToString(); 
+                                if (reader["UserId"] != DBNull.Value)
+                                {
+                                    UserSession.UserId = Convert.ToInt32(reader["UserId"]);
+                                }   
+                                UserSession.UserName = reader["UserName"].ToString();
+                                UserSession.FullName = reader["FullName"].ToString();
+                                if (reader["UserId"] != DBNull.Value)
+                                    {
+                                        UserSession.WorkBranchId = Convert.ToInt32(reader["WorkBranchId"]);
+                                    }
+                                UserSession.Role = reader["Role"].ToString(); 
+                                MessageBox.Show($"Đăng nhập thành công!\nXin chào: {UserSession.FullName}", "Thông báo");
+
+                                this.DialogResult = DialogResult.OK;
+                                this.Close();
                             }
                         }
                     }
                 }
             }
+            catch (SqlException ex)
+            {
+                // Bắt lỗi RAISERROR từ SQL (Sai mật khẩu, tài khoản khóa...)
+                MessageBox.Show(ex.Message, "Lỗi Đăng Nhập", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi: " + ex.Message);
+                MessageBox.Show("Lỗi hệ thống: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+
+        // --- 4. XỬ LÝ ĐĂNG KÝ ---
         private void XuLyDangKy()
         {
             string hoTen = txtRegHoTen.Text.Trim();
             string sdt = txtRegSDT.Text.Trim();
+            string user = txtRegUser.Text.Trim();
             string diaChi = txtRegDiaChi.Text.Trim();
             string pass = txtRegPass.Text;
-            if (string.IsNullOrEmpty(hoTen) || string.IsNullOrEmpty(sdt) || string.IsNullOrEmpty(pass))
+
+            if (string.IsNullOrEmpty(hoTen) || string.IsNullOrEmpty(sdt) || string.IsNullOrEmpty(user) || string.IsNullOrEmpty(pass))
             {
-                MessageBox.Show("Vui lòng nhập đầy đủ thông tin bắt buộc!");
+                MessageBox.Show("Vui lòng nhập đầy đủ các trường bắt buộc!", "Thông báo");
                 return;
             }
-            string hash = SecurityHelper.HashPassword(pass);
-            string salt = Guid.NewGuid().ToString(); 
+
+            // Tạo Salt mới ngẫu nhiên cho user này
+            string newSalt = Guid.NewGuid().ToString();
+            // Hash mật khẩu với salt mới
+            string hash = SecurityHelper.HashPassword(pass, newSalt);
 
             try
             {
@@ -173,17 +231,27 @@ namespace Winform
                         cmd.Parameters.AddWithValue("@HoTen", hoTen);
                         cmd.Parameters.AddWithValue("@SDT", sdt);
                         cmd.Parameters.AddWithValue("@DiaChi", diaChi);
-                        cmd.Parameters.AddWithValue("@TenDangNhap", sdt); 
+                        cmd.Parameters.AddWithValue("@TenDangNhap", user);
                         cmd.Parameters.AddWithValue("@MatKhauHash", hash);
+                        cmd.Parameters.AddWithValue("@Salt", newSalt); // Gửi Salt xuống để lưu
+
                         cmd.ExecuteNonQuery();
-                        MessageBox.Show("Đăng ký thành công! Vui lòng đăng nhập.");
-                        HienThiManHinh(isLogin: true); 
+
+                        MessageBox.Show("Đăng ký thành công! Vui lòng đăng nhập.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        
+                        // Chuyển ngay về màn hình đăng nhập
+                        ChuyenManHinh(isLogin: true);
+                        txtLoginInput.Text = user; // Điền sẵn tên đăng nhập cho tiện
                     }
                 }
             }
+            catch (SqlException ex)
+            {
+                MessageBox.Show("Lỗi đăng ký: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi đăng ký: " + ex.Message);
+                MessageBox.Show("Lỗi hệ thống: " + ex.Message);
             }
         }
     }
