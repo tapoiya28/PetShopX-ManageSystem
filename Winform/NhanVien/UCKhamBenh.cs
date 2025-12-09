@@ -72,6 +72,25 @@ namespace Winform
             this.AutoScroll = true;
             
             TaoGiaoDien();
+            
+            // Chỉ Bác sĩ mới có quyền tạo ca khám
+            if (!UserSession.IsBacSi())
+            {
+                // Vô hiệu hóa toàn bộ form
+                this.Enabled = false;
+                Label lblThongBao = new Label()
+                {
+                    Text = "⚠️ Chỉ Bác Sĩ mới có quyền tạo ca khám mới!",
+                    Font = new Font("Segoe UI", 16, FontStyle.Bold),
+                    ForeColor = Color.FromArgb(231, 76, 60),
+                    Location = new Point(300, 300),
+                    AutoSize = true
+                };
+                this.Controls.Add(lblThongBao);
+                lblThongBao.BringToFront();
+                return;
+            }
+            
             TaiDanhSachThuoc();
             LoadKhachHang();
         }
@@ -915,6 +934,13 @@ namespace Winform
 
         private void BtnLuuCaKham_Click(object sender, EventArgs e)
         {
+            // Kiểm tra quyền Bác sĩ
+            if (!UserSession.IsBacSi())
+            {
+                MessageBox.Show("Chỉ Bác Sĩ mới có quyền tạo ca khám!", "Không có quyền", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            
             if (cboKhachHang.SelectedIndex == -1 || cboThuCung.SelectedIndex == -1)
             {
                 MessageBox.Show("Vui lòng chọn khách hàng và thú cưng!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);

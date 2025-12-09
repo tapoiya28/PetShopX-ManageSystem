@@ -71,7 +71,8 @@ namespace Winform
                 btnXemLichSu.Click += (s, e) => ChuyenTrang(new UCXemLichSuKham());
             }
             
-            if (UserSession.IsBacSi() || UserSession.IsQuanLy())
+            // CHỈ BÁC SĨ MỚI ĐƯỢC TẠO CA KHÁM
+            if (UserSession.IsBacSi())
             {
                 btnKhamBenh = TaoNutMenu("🏭  Tạo Ca Khám Mới", 220);
                 btnKhamBenh.Click += (s, e) => ChuyenTrang(new UCKhamBenh());
@@ -80,7 +81,7 @@ namespace Winform
             // Nút Thống kê chỉ hiện với Quản lý
             if (UserSession.IsQuanLy())
             {
-                btnThongKe = TaoNutMenu("📊  Thống Kê", 220);
+                btnThongKe = TaoNutMenu("📊  Thống Kê", 275);
                 btnThongKe.Click += (s, e) => ChuyenTrang(new UCThongKe());
             }
 
@@ -100,7 +101,7 @@ namespace Winform
 
             if (UserSession.IsQuanLy() && btnThongKe != null)
                 pnlSidebar.Controls.Add(btnThongKe);
-            if ((UserSession.IsBacSi() || UserSession.IsQuanLy()) && btnKhamBenh != null)
+            if (UserSession.IsBacSi() && btnKhamBenh != null)
                 pnlSidebar.Controls.Add(btnKhamBenh);
             if ((UserSession.IsBacSi() || UserSession.IsQuanLy()) && btnXemLichSu != null)
                 pnlSidebar.Controls.Add(btnXemLichSu);

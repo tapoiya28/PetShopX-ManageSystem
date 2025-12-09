@@ -74,22 +74,40 @@ namespace Winform
 
         private void TaoGiaoDien()
         {
-            // Tiêu đề
+            // Panel tiêu đề với gradient
+            Panel pnlHeader = new Panel()
+            {
+                Location = new Point(10, 10),
+                Size = new Size(1070, 60),
+                BackColor = Color.FromArgb(41, 128, 185)
+            };
+            
             Label lblTitle = new Label()
             {
-                Text = "📊 THỐNG KÊ TOÀN HỆ THỐNG",
-                Font = new Font("Segoe UI", 20, FontStyle.Bold),
-                ForeColor = Color.FromArgb(41, 128, 185),
-                Location = new Point(30, 15),
+                Text = "📊 THỐNG KÊ  BÁO CÁO HỆ THỐNG",
+                Font = new Font("Segoe UI", 16, FontStyle.Bold),
+                ForeColor = Color.White,
+                Location = new Point(20, 8),
                 AutoSize = true
             };
+            
+            Label lblSubtitle = new Label()
+            {
+                Text = "Phân tích và báo cáo toàn diện về hoạt động kinh doanh",
+                Font = new Font("Segoe UI", 8, FontStyle.Italic),
+                ForeColor = Color.FromArgb(230, 240, 255),
+                Location = new Point(22, 35),
+                AutoSize = true
+            };
+            
+            pnlHeader.Controls.AddRange(new Control[] { lblTitle, lblSubtitle });
             
             // Tab Control
             tabMain = new TabControl()
             {
-                Location = new Point(20, 60),
-                Size = new Size(1060, 670),
-                Font = new Font("Segoe UI", 10)
+                Location = new Point(10, 80),
+                Size = new Size(1070, 660),
+                Font = new Font("Segoe UI", 10, FontStyle.Bold)
             };
             
             // Tạo các tab
@@ -100,7 +118,7 @@ namespace Winform
             TaoTabDanhGia();
             TaoTabTonKho();
             
-            this.Controls.Add(lblTitle);
+            this.Controls.Add(pnlHeader);
             this.Controls.Add(tabMain);
         }
 
@@ -108,14 +126,23 @@ namespace Winform
         private void TaoTabKinhDoanh()
         {
             tabKinhDoanh = new TabPage("💰 Kinh Doanh");
-            tabKinhDoanh.BackColor = Color.White;
+            tabKinhDoanh.BackColor = Color.FromArgb(245, 248, 250);
             
-            Label lblNam = new Label() { Text = "Năm:", Location = new Point(30, 25), AutoSize = true, Font = new Font("Segoe UI", 10) };
-            cboNam1 = new ComboBox() { Location = new Point(90, 22), Width = 100, DropDownStyle = ComboBoxStyle.DropDownList };
+            // Panel filter
+            Panel pnlFilter = new Panel()
+            {
+                Location = new Point(15, 15),
+                Size = new Size(1020, 75),
+                BackColor = Color.White,
+                BorderStyle = BorderStyle.FixedSingle
+            };
+            
+            Label lblNam = new Label() { Text = "Năm:", Location = new Point(25, 28), AutoSize = true, Font = new Font("Segoe UI", 10) };
+            cboNam1 = new ComboBox() { Location = new Point(85, 25), Width = 120, DropDownStyle = ComboBoxStyle.DropDownList, Font = new Font("Segoe UI", 10) };
             TaiDanhSachNam(cboNam1);
             
-            Label lblThang = new Label() { Text = "Tháng:", Location = new Point(220, 25), AutoSize = true, Font = new Font("Segoe UI", 10) };
-            cboThang1 = new ComboBox() { Location = new Point(290, 22), Width = 100, DropDownStyle = ComboBoxStyle.DropDownList };
+            Label lblThang = new Label() { Text = "Tháng:", Location = new Point(230, 28), AutoSize = true, Font = new Font("Segoe UI", 10) };
+            cboThang1 = new ComboBox() { Location = new Point(295, 25), Width = 130, DropDownStyle = ComboBoxStyle.DropDownList, Font = new Font("Segoe UI", 10) };
             cboThang1.Items.Add("Tất cả");
             for (int i = 1; i <= 12; i++) cboThang1.Items.Add(i);
             cboThang1.SelectedIndex = 0;
@@ -123,39 +150,61 @@ namespace Winform
             btnXemKinhDoanh = new Button()
             {
                 Text = "🔍 Xem báo cáo",
-                Location = new Point(420, 20),
-                Size = new Size(140, 30),
+                Location = new Point(465, 23),
+                Size = new Size(140, 32),
                 BackColor = Color.FromArgb(52, 152, 219),
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat,
-                Font = new Font("Segoe UI", 9, FontStyle.Bold),
+                Font = new Font("Segoe UI", 10, FontStyle.Bold),
                 Cursor = Cursors.Hand
             };
             btnXemKinhDoanh.FlatAppearance.BorderSize = 0;
             btnXemKinhDoanh.Click += BtnXemKinhDoanh_Click;
             
-            dgvKinhDoanh = TaoDataGridView(new Point(30, 70), new Size(1000, 350));
+            pnlFilter.Controls.AddRange(new Control[] { lblNam, cboNam1, lblThang, cboThang1, btnXemKinhDoanh });
             
-            // Tổng kết
+            // DataGridView
+            dgvKinhDoanh = TaoDataGridView(new Point(15, 100), new Size(1020, 315));
+            
+            // Card summary 1
+            Panel pnlCardDoanhThu = new Panel()
+            {
+                Location = new Point(50, 430),
+                Size = new Size(450, 65),
+                BackColor = Color.FromArgb(46, 204, 113)
+            };
+            Label lblIconDT = new Label() { Text = "💰", Location = new Point(15, 16), Font = new Font("Segoe UI", 24), ForeColor = Color.White, AutoSize = true };
+            Label lblTitleDT = new Label() { Text = "TỔNG DOANH THU", Location = new Point(70, 15), Font = new Font("Segoe UI", 9, FontStyle.Bold), ForeColor = Color.White, AutoSize = true };
             lblTongDoanhThu = new Label()
             {
-                Text = "Tổng doanh thu: 0 đ",
-                Location = new Point(30, 440),
+                Text = "0 đ",
+                Location = new Point(70, 35),
                 AutoSize = true,
-                Font = new Font("Segoe UI", 12, FontStyle.Bold),
-                ForeColor = Color.FromArgb(39, 174, 96)
+                Font = new Font("Segoe UI", 15, FontStyle.Bold),
+                ForeColor = Color.White
             };
+            pnlCardDoanhThu.Controls.AddRange(new Control[] { lblIconDT, lblTitleDT, lblTongDoanhThu });
             
+            // Card summary 2
+            Panel pnlCardDon = new Panel()
+            {
+                Location = new Point(550, 430),
+                Size = new Size(450, 65),
+                BackColor = Color.FromArgb(52, 152, 219)
+            };
+            Label lblIconDon = new Label() { Text = "📦", Location = new Point(15, 16), Font = new Font("Segoe UI", 24), ForeColor = Color.White, AutoSize = true };
+            Label lblTitleDon = new Label() { Text = "TỔNG SỐ ĐƠN", Location = new Point(70, 15), Font = new Font("Segoe UI", 9, FontStyle.Bold), ForeColor = Color.White, AutoSize = true };
             lblTongDon = new Label()
             {
-                Text = "Tổng số đơn: 0",
-                Location = new Point(400, 440),
+                Text = "0",
+                Location = new Point(70, 35),
                 AutoSize = true,
-                Font = new Font("Segoe UI", 12, FontStyle.Bold),
-                ForeColor = Color.FromArgb(41, 128, 185)
+                Font = new Font("Segoe UI", 15, FontStyle.Bold),
+                ForeColor = Color.White
             };
+            pnlCardDon.Controls.AddRange(new Control[] { lblIconDon, lblTitleDon, lblTongDon });
             
-            tabKinhDoanh.Controls.AddRange(new Control[] { lblNam, cboNam1, lblThang, cboThang1, btnXemKinhDoanh, dgvKinhDoanh, lblTongDoanhThu, lblTongDon });
+            tabKinhDoanh.Controls.AddRange(new Control[] { pnlFilter, pnlCardDoanhThu, pnlCardDon, dgvKinhDoanh });
             tabMain.TabPages.Add(tabKinhDoanh);
         }
 
@@ -347,7 +396,7 @@ namespace Winform
         // ============ TAB 5: THỐNG KÊ ĐÁNH GIÁ ============
         private void TaoTabDanhGia()
         {
-            tabDanhGia = new TabPage("⭐ Đánh Giá");
+            tabDanhGia = new TabPage(" Đánh Giá");
             tabDanhGia.BackColor = Color.White;
             
             Label lblSection = new Label() { Text = "THỐNG KÊ ĐÁNH GIÁ DỊCH VỤ", Location = new Point(30, 15), AutoSize = true, Font = new Font("Segoe UI", 11, FontStyle.Bold), ForeColor = Color.FromArgb(44, 62, 80) };
