@@ -26,3 +26,31 @@ C:\Users\DELL\Documents\PetShopX-ManageSystem\Winform\bin\Debug\net8.0-windows\S
 C:\Users\DELL\Documents\PetShopX-ManageSystem\Winform\bin\Debug\net8.0-windows\System.Security.Cryptography.ProtectedData.dll
 C:\Users\DELL\Documents\PetShopX-ManageSystem\Winform\bin\Debug\net8.0-windows\runtimes\win\lib\net8.0\System.Diagnostics.EventLog.Messages.dll
 C:\Users\DELL\Documents\PetShopX-ManageSystem\Winform\bin\Debug\net8.0-windows\runtimes\win\lib\net8.0\System.Diagnostics.EventLog.dll
+E:\New folder (4)\PetShopX-ManageSystem\Winform\bin\Debug\net8.0-windows\Winform.exe
+E:\New folder (4)\PetShopX-ManageSystem\Winform\bin\Debug\net8.0-windows\Winform.deps.json
+E:\New folder (4)\PetShopX-ManageSystem\Winform\bin\Debug\net8.0-windows\Winform.runtimeconfig.json
+E:\New folder (4)\PetShopX-ManageSystem\Winform\bin\Debug\net8.0-windows\Winform.dll
+E:\New folder (4)\PetShopX-ManageSystem\Winform\bin\Debug\net8.0-windows\Winform.pdb
+E:\New folder (4)\PetShopX-ManageSystem\Winform\bin\Debug\net8.0-windows\System.Configuration.ConfigurationManager.dll
+E:\New folder (4)\PetShopX-ManageSystem\Winform\bin\Debug\net8.0-windows\System.Data.SqlClient.dll
+E:\New folder (4)\PetShopX-ManageSystem\Winform\bin\Debug\net8.0-windows\System.Diagnostics.EventLog.dll
+E:\New folder (4)\PetShopX-ManageSystem\Winform\bin\Debug\net8.0-windows\System.Security.Cryptography.ProtectedData.dll
+E:\New folder (4)\PetShopX-ManageSystem\Winform\bin\Debug\net8.0-windows\runtimes\win-arm64\native\sni.dll
+E:\New folder (4)\PetShopX-ManageSystem\Winform\bin\Debug\net8.0-windows\runtimes\win-x64\native\sni.dll
+E:\New folder (4)\PetShopX-ManageSystem\Winform\bin\Debug\net8.0-windows\runtimes\win-x86\native\sni.dll
+E:\New folder (4)\PetShopX-ManageSystem\Winform\bin\Debug\net8.0-windows\runtimes\unix\lib\net8.0\System.Data.SqlClient.dll
+E:\New folder (4)\PetShopX-ManageSystem\Winform\bin\Debug\net8.0-windows\runtimes\win\lib\net8.0\System.Data.SqlClient.dll
+E:\New folder (4)\PetShopX-ManageSystem\Winform\bin\Debug\net8.0-windows\runtimes\win\lib\net8.0\System.Diagnostics.EventLog.Messages.dll
+E:\New folder (4)\PetShopX-ManageSystem\Winform\bin\Debug\net8.0-windows\runtimes\win\lib\net8.0\System.Diagnostics.EventLog.dll
+E:\New folder (4)\PetShopX-ManageSystem\Winform\obj\Debug\net8.0-windows\Winform.csproj.AssemblyReference.cache
+E:\New folder (4)\PetShopX-ManageSystem\Winform\obj\Debug\net8.0-windows\Winform.GeneratedMSBuildEditorConfig.editorconfig
+E:\New folder (4)\PetShopX-ManageSystem\Winform\obj\Debug\net8.0-windows\Winform.AssemblyInfoInputs.cache
+E:\New folder (4)\PetShopX-ManageSystem\Winform\obj\Debug\net8.0-windows\Winform.AssemblyInfo.cs
+E:\New folder (4)\PetShopX-ManageSystem\Winform\obj\Debug\net8.0-windows\Winform.csproj.CoreCompileInputs.cache
+E:\New folder (4)\PetShopX-ManageSystem\Winform\obj\Debug\net8.0-windows\Winform.sourcelink.json
+E:\New folder (4)\PetShopX-ManageSystem\Winform\obj\Debug\net8.0-windows\Winform.csproj.Up2Date
+E:\New folder (4)\PetShopX-ManageSystem\Winform\obj\Debug\net8.0-windows\Winform.dll
+E:\New folder (4)\PetShopX-ManageSystem\Winform\obj\Debug\net8.0-windows\refint\Winform.dll
+E:\New folder (4)\PetShopX-ManageSystem\Winform\obj\Debug\net8.0-windows\Winform.pdb
+E:\New folder (4)\PetShopX-ManageSystem\Winform\obj\Debug\net8.0-windows\Winform.genruntimeconfig.cache
+E:\New folder (4)\PetShopX-ManageSystem\Winform\obj\Debug\net8.0-windows\ref\Winform.dll

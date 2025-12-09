@@ -449,7 +449,7 @@ END
 GO
 
 -- QuanLyHeThong - toan
-CREATE PROCEDURE sp_Sub_NhanVien_Xem
+CREATE OR ALTER PROCEDURE sp_Sub_NhanVien_Xem
     @MANV INT = NULL
 AS
 BEGIN
@@ -496,7 +496,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE sp_Sub_NhanVien_Them
+CREATE OR ALTER PROCEDURE sp_Sub_NhanVien_Them
     @HOTEN NVARCHAR(50), @NGAYSINH DATE, @GIOITINH NVARCHAR(5), @SDT CHAR(10), @LUONGCOBAN INT,
     @VAITRO VARCHAR(2), @BANGCAP NVARCHAR(50) = NULL, @KINHNGHIEM INT = 0, @MACN_QUANLY INT = NULL
 AS
@@ -516,7 +516,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE sp_Sub_NhanVien_Sua
+CREATE OR ALTER PROCEDURE sp_Sub_NhanVien_Sua
     @MANV INT, @HOTEN NVARCHAR(50), @NGAYSINH DATE, @GIOITINH NVARCHAR(5), @SDT CHAR(10), @LUONGCOBAN INT,
     @BANGCAP NVARCHAR(50) = NULL, @KINHNGHIEM INT = 0, @MACN_QUANLY INT = NULL
 AS
@@ -549,11 +549,11 @@ END;
 GO
 
 --- QuanLyChiNhanh
-CREATE PROCEDURE sp_Sub_ChiNhanh_Xem AS 
+CREATE OR ALTER PROCEDURE sp_Sub_ChiNhanh_Xem AS 
 BEGIN SELECT * FROM CHINHANH; END;
 GO
 
-CREATE PROCEDURE sp_Sub_ChiNhanh_Them
+CREATE OR ALTER PROCEDURE sp_Sub_ChiNhanh_Them
     @TENCN NVARCHAR(50), @DIACHI NVARCHAR(100), @SDT CHAR(10), 
     @GIODM TIME, @GIODONGCUA TIME
 AS
@@ -569,7 +569,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE sp_Sub_ChiNhanh_Sua
+CREATE OR ALTER PROCEDURE sp_Sub_ChiNhanh_Sua
     @MACN INT, @TENCN NVARCHAR(50), @DIACHI NVARCHAR(100), 
     @SDT CHAR(10), @GIODM TIME, @GIODONGCUA TIME
 AS
@@ -595,7 +595,7 @@ END;
 GO
 
 -- QuanLyLichSuPhanCong
-CREATE PROCEDURE sp_Sub_LichSu_PhanCong
+CREATE OR ALTER PROCEDURE sp_Sub_LichSu_PhanCong
     @MACN INT, 
     @MANV INT, 
     @NGAYBATDAU DATE, 
@@ -637,7 +637,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE sp_Sub_LichSu_XemNV @MANV INT 
+CREATE OR ALTER PROCEDURE sp_Sub_LichSu_XemNV @MANV INT 
 AS
 BEGIN
     SELECT LV.MANV, NV.HOTEN, LV.MACN, CN.TENCN, LV.NGAYBATDAU,
@@ -649,7 +649,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE sp_Sub_LichSu_XemCN @MACN INT 
+CREATE OR ALTER PROCEDURE sp_Sub_LichSu_XemCN @MACN INT 
 AS
 BEGIN
     SELECT LV.MACN, CN.TENCN, LV.MANV, NV.HOTEN, NV.SDT, NV.LUONGCOBAN, LV.NGAYBATDAU,
@@ -664,7 +664,7 @@ END;
 GO
 
 --- QuanLyLuongChiNhanh
-CREATE PROCEDURE sp_Sub_TinhLuong @MACN INT = NULL
+CREATE OR ALTER PROCEDURE sp_Sub_TinhLuong @MACN INT = NULL
 AS
 BEGIN
     SELECT CN.MACN, CN.TENCN, COUNT(NV.MANV) AS SoLuongNhanVien, ISNULL(SUM(NV.LUONGCOBAN), 0) AS TongLuongPhaiTra
@@ -676,7 +676,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE sp_ThongKeHieuSuatNhanVien
+CREATE OR ALTER PROCEDURE sp_ThongKeHieuSuatNhanVien
     @THANG INT,
     @NAM INT,
     @MACN INT = NULL 
@@ -909,8 +909,7 @@ BEGIN
         CT.MATIEM,
         CT.NGAYTIEM,
         NV.HOTEN AS NguoiTiem,
-        SP.TENSP AS TenVacXin, 
-        VX.LIEULUONG,
+        SP.TENSP AS TenVacXin,
         VX.DOTUOIAPDUNG,
         CTX.SOLUONG AS SoMui
     FROM CATIEM CT
@@ -1085,10 +1084,10 @@ BEGIN
             SET @CapBacMoi = NULL;
             SELECT TOP 1 @CapBacMoi = TENCAPBAC 
             FROM CAPBAC 
-            WHERE MUCLENHANG <= @TienDaTieuNamNgoai
-            ORDER BY MUCLENHANG DESC;
+            WHERE MUCCHITIEU <= @TienDaTieuNamNgoai
+            ORDER BY MUCCHITIEU DESC;
             
-            IF @CapBacMoi IS NULL SET @CapBacMoi = N'Đồng';
+            IF @CapBacMoi IS NULL SET @CapBacMoi = N'Cơ bản';
         END
 
         IF @CapBacMoi <> @CapBacHienTai
@@ -1642,7 +1641,7 @@ BEGIN
             TK.TENDANGNHAP AS UserName,
             NV.HOTEN AS FullName,
             NV.MANV AS UserId,
-            CASE NV.VAITRO
+            CASE ISNULL(LV.VAITRO, NV.VAITRO)
                 WHEN 'BS' THEN 'BacSi'
                 WHEN 'QL' THEN 'QuanLy'
                 WHEN 'NV' THEN 'NhanVien'
@@ -1701,13 +1700,11 @@ BEGIN
         KH.SDT,
         LDV.MALOAIDV,
         LDV.TENLOAIDV,
-        LH.NOIDUNG AS GhiChu,
-        LH.TRANGTHAI
+        LH.NOIDUNG AS GhiChu
     FROM LICHHEN LH
     JOIN KHACHHANG KH ON LH.MAKH = KH.MAKH
     JOIN LOAIDICHVU LDV ON LH.MALOAIDV = LDV.MALOAIDV
     WHERE LH.MACN = @MaCN -- Chỉ hiện lịch của chi nhánh nhân viên đang làm
-      AND LH.TRANGTHAI = N'Chưa hoàn thành' -- Chỉ hiện lịch chưa xử lý
       AND (@SdtKhachHang IS NULL OR KH.SDT LIKE '%' + @SdtKhachHang + '%')
     ORDER BY LH.NGAYHEN, LH.THOIGIAN;
 END;
