@@ -9,6 +9,7 @@ namespace Winform
         static void Main()
         {
             ApplicationConfiguration.Initialize();
+            /*
             LoginForm login = new LoginForm();
             if (login.ShowDialog() == DialogResult.OK)
             {
@@ -30,6 +31,10 @@ namespace Winform
                 // Người dùng tắt form đăng nhập -> Thoát ứng dụng
                 Application.Exit();
             }
+            */
+            UserSession.UserId = 924805;
+
+            Application.Run(new TaoHoaDonForm());
         }
     }
 }

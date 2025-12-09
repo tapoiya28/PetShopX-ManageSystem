@@ -7,7 +7,7 @@ namespace Winform
 {
     public static class Connection
     {
-        private static string connectionString = @"Data Source=DESKTOP-EIS4KER\SQLEXPRESS;Initial Catalog=PetcareX;Integrated Security=True;TrustServerCertificate=True";
+        private static string connectionString = @"Data Source=DESKTOP-E7PEM57;Initial Catalog=PetcareX;Integrated Security=True;TrustServerCertificate=True";
         public static SqlConnection GetConnection()
         {
             if (string.IsNullOrEmpty(connectionString))
