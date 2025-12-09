@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Drawing;
@@ -14,91 +15,191 @@ namespace Winform
         private DataGridView dgvChiTiet;
         private Label lblTongTienValue;
         private Button btnThanhToan;
-        private Button btnMuaThem;   // nút quay lại thêm chi tiết
+        private Button btnMuaThem;
+
+        // ==== Biến phục vụ scale layout ====
+        private Size _originalClientSize;
+        private readonly Dictionary<Control, Rectangle> _originalBounds = new();
+        private readonly Dictionary<Control, float> _originalFontSizes = new();
+        private bool _layoutSaved = false;
 
         public ThanhToanHoaDonForm(int maHD)
         {
             _maHD = maHD;
 
             this.Text = "Thanh toán hóa đơn";
-            this.Size = new Size(600, 400);
+            this.Size = new Size(900, 600);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.FixedSingle;
-            this.MaximizeBox = false;
+            this.MaximizeBox = true;
+            this.BackColor = Color.WhiteSmoke;
 
             TaoGiaoDien();
             LoadChiTietHoaDon();
+
+            this.Load += ThanhToanHoaDonForm_Load;
+            this.Resize += ThanhToanHoaDonForm_Resize;
         }
+
+        // ================== SCALE LAYOUT ==================
+
+        private void ThanhToanHoaDonForm_Load(object? sender, EventArgs e)
+        {
+            SaveInitialLayout();
+            this.WindowState = FormWindowState.Maximized;
+        }
+
+        private void SaveInitialLayout()
+        {
+            if (_layoutSaved) return;
+
+            _originalClientSize = this.ClientSize;
+            SaveControlLayout(this);
+            _layoutSaved = true;
+        }
+
+        private void SaveControlLayout(Control parent)
+        {
+            foreach (Control c in parent.Controls)
+            {
+                _originalBounds[c] = c.Bounds;
+                _originalFontSizes[c] = c.Font.Size;
+
+                if (c.Controls.Count > 0)
+                {
+                    SaveControlLayout(c);
+                }
+            }
+        }
+
+        private void ThanhToanHoaDonForm_Resize(object? sender, EventArgs e)
+        {
+            if (!_layoutSaved || _originalClientSize.Width == 0 || _originalClientSize.Height == 0)
+                return;
+
+            float scaleX = (float)this.ClientSize.Width / _originalClientSize.Width;
+            float scaleY = (float)this.ClientSize.Height / _originalClientSize.Height;
+            float scale = Math.Min(scaleX, scaleY);
+
+            foreach (var kvp in _originalBounds)
+            {
+                Control c = kvp.Key;
+                Rectangle rect = kvp.Value;
+
+                c.Bounds = new Rectangle(
+                    (int)(rect.X * scaleX),
+                    (int)(rect.Y * scaleY),
+                    (int)(rect.Width * scaleX),
+                    (int)(rect.Height * scaleY)
+                );
+
+                if (_originalFontSizes.TryGetValue(c, out float fontSize) && fontSize > 0)
+                {
+                    c.Font = new Font(c.Font.FontFamily, fontSize * scale, c.Font.Style);
+                }
+            }
+        }
+
+        // ================== GIAO DIỆN ==================
 
         private void TaoGiaoDien()
         {
             var lblTitle = new Label
             {
                 Text = "THANH TOÁN HÓA ĐƠN",
-                Font = new Font("Segoe UI", 16, FontStyle.Bold),
-                ForeColor = Color.DarkBlue,
+                Font = new Font("Segoe UI", 20, FontStyle.Bold),
+                ForeColor = Color.Navy,
                 AutoSize = true,
-                Location = new Point(170, 15)
+                Location = new Point(300, 20)
             };
 
             var lblMaHD = new Label
             {
                 Text = "Mã hóa đơn:",
                 AutoSize = true,
-                Location = new Point(20, 55)
+                Font = new Font("Segoe UI", 12, FontStyle.Regular),
+                Location = new Point(30, 75)
             };
             lblMaHDValue = new Label
             {
                 Text = _maHD.ToString(),
                 AutoSize = true,
-                Location = new Point(110, 55),
-                ForeColor = Color.DarkGreen
+                Font = new Font("Segoe UI", 12, FontStyle.Bold),
+                Location = new Point(140, 75),
+                ForeColor = Color.Green
             };
 
+            // ===== DataGridView hiển thị sản phẩm =====
             dgvChiTiet = new DataGridView
             {
-                Location = new Point(20, 80),
-                Size = new Size(550, 220),
+                Location = new Point(30, 110),
+                Size = new Size(830, 380),
                 ReadOnly = true,
                 AllowUserToAddRows = false,
                 AllowUserToDeleteRows = false,
-                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
+                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
+                BackgroundColor = Color.White,
+                BorderStyle = BorderStyle.FixedSingle
             };
+
+            // Font & kích thước ô cell
+            dgvChiTiet.DefaultCellStyle = new DataGridViewCellStyle
+            {
+                Font = new Font("Segoe UI", 14f, FontStyle.Regular),
+                Padding = new Padding(6),
+                Alignment = DataGridViewContentAlignment.MiddleLeft
+            };
+
+            // ===== HEADER: Tăng height để không bị cắt chữ =====
+            dgvChiTiet.ColumnHeadersDefaultCellStyle = new DataGridViewCellStyle
+            {
+                Font = new Font("Segoe UI", 14f, FontStyle.Bold),
+                BackColor = Color.SteelBlue,
+                ForeColor = Color.White,
+                Alignment = DataGridViewContentAlignment.MiddleCenter,
+                Padding = new Padding(0, 8, 0, 8)   // thêm padding dọc
+            };
+            dgvChiTiet.EnableHeadersVisualStyles = false;
+            dgvChiTiet.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.EnableResizing;
+            dgvChiTiet.ColumnHeadersHeight = 48;   // header đủ cao cho font 14
+
+            // Chiều cao từng dòng
+            dgvChiTiet.RowTemplate.Height = 40;
+            dgvChiTiet.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
 
             var lblTongTien = new Label
             {
                 Text = "Tổng tạm tính:",
                 AutoSize = true,
-                Location = new Point(20, 315),
-                Font = new Font("Segoe UI", 10, FontStyle.Bold)
+                Font = new Font("Segoe UI", 12, FontStyle.Bold),
+                Location = new Point(30, 510)
             };
             lblTongTienValue = new Label
             {
-                Text = "0",
+                Text = "0 đ",
                 AutoSize = true,
-                Location = new Point(130, 315),
-                Font = new Font("Segoe UI", 10, FontStyle.Bold),
-                ForeColor = Color.Maroon
+                Font = new Font("Segoe UI", 12, FontStyle.Bold),
+                ForeColor = Color.Maroon,
+                Location = new Point(160, 510)
             };
 
-            // Nút "Mua thêm" (quay lại form chi tiết) - lệch trái một chút
             btnMuaThem = new Button
             {
                 Text = "Mua thêm",
-                Width = 120,
-                Height = 35,
-                Location = new Point(320, 310), // lệch trái so với trước
-                FlatStyle = FlatStyle.Standard
+                Width = 150,
+                Height = 40,
+                Font = new Font("Segoe UI", 11, FontStyle.Regular),
+                Location = new Point(520, 505)
             };
-            btnMuaThem.Click += (s, e) => this.Close(); // quay lại thêm chi tiết
+            btnMuaThem.Click += (s, e) => this.Close();
 
-            // Nút "Thanh toán" – ngoài cùng bên phải, cũng kéo trái nhẹ
             btnThanhToan = new Button
             {
                 Text = "Thanh toán",
-                Width = 120,
-                Height = 35,
-                Location = new Point(450, 310), // 450 + 120 = 570 < 600, không tràn
+                Width = 150,
+                Height = 40,
+                Font = new Font("Segoe UI", 11, FontStyle.Bold),
+                Location = new Point(700, 505),
                 BackColor = Color.ForestGreen,
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat
@@ -115,6 +216,8 @@ namespace Winform
                 btnMuaThem, btnThanhToan
             });
         }
+
+        // ================== DATA ==================
 
         private void LoadChiTietHoaDon()
         {
@@ -200,7 +303,6 @@ namespace Winform
                 MessageBox.Show("Thanh toán hóa đơn thành công.",
                                 "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-                // Sau khi thanh toán xong -> mở form đánh giá
                 using (var frmDanhGia = new DanhGiaHoaDonForm(_maHD))
                 {
                     frmDanhGia.ShowDialog();

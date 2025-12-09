@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Drawing;
@@ -19,18 +20,89 @@ namespace Winform
         private Button btnDanhGia;
         private Button btnThoat;
 
+        // ==== Biến phục vụ scale layout ====
+        private Size _originalClientSize;
+        private readonly Dictionary<Control, Rectangle> _originalBounds = new();
+        private readonly Dictionary<Control, float> _originalFontSizes = new();
+        private bool _layoutSaved = false;
+
         public DanhGiaHoaDonForm(int maHD)
         {
             _maHD = maHD;
 
             this.Text = "Đánh giá hóa đơn";
-            this.Size = new Size(500, 350);
+            this.Size = new Size(500, 350); // kích thước thiết kế ban đầu
             this.StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.FixedSingle;
-            this.MaximizeBox = false;
+            this.MaximizeBox = true;
 
             TaoGiaoDien();
+
+            // Lưu layout ban đầu + phóng to khi load xong
+            this.Load += DanhGiaHoaDonForm_Load;
+            this.Resize += DanhGiaHoaDonForm_Resize;
         }
+
+        // ================== SCALE LAYOUT ==================
+
+        private void DanhGiaHoaDonForm_Load(object? sender, EventArgs e)
+        {
+            SaveInitialLayout();
+            this.WindowState = FormWindowState.Maximized;
+        }
+
+        private void SaveInitialLayout()
+        {
+            if (_layoutSaved) return;
+
+            _originalClientSize = this.ClientSize;
+            SaveControlLayout(this);
+            _layoutSaved = true;
+        }
+
+        private void SaveControlLayout(Control parent)
+        {
+            foreach (Control c in parent.Controls)
+            {
+                _originalBounds[c] = c.Bounds;
+                _originalFontSizes[c] = c.Font.Size;
+
+                if (c.Controls.Count > 0)
+                {
+                    SaveControlLayout(c);
+                }
+            }
+        }
+
+        private void DanhGiaHoaDonForm_Resize(object? sender, EventArgs e)
+        {
+            if (!_layoutSaved || _originalClientSize.Width == 0 || _originalClientSize.Height == 0)
+                return;
+
+            float scaleX = (float)this.ClientSize.Width / _originalClientSize.Width;
+            float scaleY = (float)this.ClientSize.Height / _originalClientSize.Height;
+            float scale = Math.Min(scaleX, scaleY);
+
+            foreach (var kvp in _originalBounds)
+            {
+                Control c = kvp.Key;
+                Rectangle rect = kvp.Value;
+
+                c.Bounds = new Rectangle(
+                    (int)(rect.X * scaleX),
+                    (int)(rect.Y * scaleY),
+                    (int)(rect.Width * scaleX),
+                    (int)(rect.Height * scaleY)
+                );
+
+                if (_originalFontSizes.TryGetValue(c, out float fontSize) && fontSize > 0)
+                {
+                    c.Font = new Font(c.Font.FontFamily, fontSize * scale, c.Font.Style);
+                }
+            }
+        }
+
+        // ================== GIAO DIỆN GỐC ==================
 
         private void TaoGiaoDien()
         {

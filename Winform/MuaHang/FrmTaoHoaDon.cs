@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Drawing;
@@ -19,17 +20,97 @@ namespace Winform
         private int _maCN;
         private DateTime _ngayLap;
 
+        // ==== Biến phục vụ scale layout ====
+        private Size _originalClientSize;
+        private readonly Dictionary<Control, Rectangle> _originalBounds = new();
+        private readonly Dictionary<Control, float> _originalFontSizes = new();
+        private bool _layoutSaved = false;
+
         public TaoHoaDonForm()
         {
             this.Text = "Tạo hóa đơn mới";
+
+            // Kích thước thiết kế ban đầu (layout gốc) – cứ để nhỏ như bạn đang design
             this.Size = new Size(420, 320);
             this.StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.FixedSingle;
-            this.MaximizeBox = false;
+            this.MaximizeBox = true; // cho phép phóng to
 
             TaoGiaoDien();
             NapThongTinMacDinh();
+
+            // Khi load xong form thì lưu layout gốc và phóng to
+            this.Load += TaoHoaDonForm_Load;
+
+            // Mỗi lần resize thì scale control theo
+            this.Resize += TaoHoaDonForm_Resize;
         }
+
+        // ================== SCALE LAYOUT ==================
+
+        private void TaoHoaDonForm_Load(object? sender, EventArgs e)
+        {
+            SaveInitialLayout();
+
+            // Sau khi lưu layout ban đầu -> phóng to form
+            this.WindowState = FormWindowState.Maximized;
+        }
+
+        private void SaveInitialLayout()
+        {
+            if (_layoutSaved) return;
+
+            _originalClientSize = this.ClientSize;
+            SaveControlLayout(this);
+            _layoutSaved = true;
+        }
+
+        private void SaveControlLayout(Control parent)
+        {
+            foreach (Control c in parent.Controls)
+            {
+                _originalBounds[c] = c.Bounds;
+                _originalFontSizes[c] = c.Font.Size;
+
+                if (c.Controls.Count > 0)
+                {
+                    SaveControlLayout(c);
+                }
+            }
+        }
+
+        private void TaoHoaDonForm_Resize(object? sender, EventArgs e)
+        {
+            if (!_layoutSaved || _originalClientSize.Width == 0 || _originalClientSize.Height == 0)
+                return;
+
+            float scaleX = (float)this.ClientSize.Width / _originalClientSize.Width;
+            float scaleY = (float)this.ClientSize.Height / _originalClientSize.Height;
+            float scale = Math.Min(scaleX, scaleY); // dùng min để font không bị méo
+
+            foreach (var kvp in _originalBounds)
+            {
+                Control c = kvp.Key;
+                Rectangle rect = kvp.Value;
+
+                c.Bounds = new Rectangle(
+                    (int)(rect.X * scaleX),
+                    (int)(rect.Y * scaleY),
+                    (int)(rect.Width * scaleX),
+                    (int)(rect.Height * scaleY)
+                );
+
+                if (_originalFontSizes.TryGetValue(c, out float fontSize))
+                {
+                    if (fontSize > 0)
+                    {
+                        c.Font = new Font(c.Font.FontFamily, fontSize * scale, c.Font.Style);
+                    }
+                }
+            }
+        }
+
+        // ================== GIAO DIỆN GỐC ==================
 
         private void TaoGiaoDien()
         {
@@ -126,6 +207,8 @@ namespace Winform
             });
         }
 
+        // ================== LOGIC CŨ (giữ nguyên) ==================
+
         private void NapThongTinMacDinh()
         {
             _maNV = UserSession.UserId;
@@ -179,7 +262,7 @@ namespace Winform
             }
         }
 
-        private void BtnTaoHoaDon_Click(object sender, EventArgs e)
+        private void BtnTaoHoaDon_Click(object? sender, EventArgs e)
         {
             if (!int.TryParse(txtMaKH.Text.Trim(), out int maKH))
             {
