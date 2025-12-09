@@ -9,6 +9,7 @@ namespace Winform
         private Panel pnlContent;
         private Panel pnlSidebar;
         private Button btnQuanLyLichHen;
+        private Button btnXemLichSu;
         private Button btnKhamBenh;
         private Button btnThongKe;
         private Button btnDangXuat;
@@ -63,10 +64,16 @@ namespace Winform
             btnQuanLyLichHen = TaoNutMenu("📅  Quản Lý Lịch Hẹn", 110);
             btnQuanLyLichHen.Click += (s, e) => ChuyenTrang(new UCLichHen());
             
-            // Nút Khám Bệnh chỉ hiện với Bác sĩ
-            if (UserSession.IsBacSi())
+            // Nút cho Bác sĩ: Xem Lịch Sử + Tạo Ca Khám
+            if (UserSession.IsBacSi() || UserSession.IsQuanLy())
             {
-                btnKhamBenh = TaoNutMenu("🏥  Khám Bệnh", 165);
+                btnXemLichSu = TaoNutMenu("📋  Xem Lịch Sử Khám", 165);
+                btnXemLichSu.Click += (s, e) => ChuyenTrang(new UCXemLichSuKham());
+            }
+            
+            if (UserSession.IsBacSi() || UserSession.IsQuanLy())
+            {
+                btnKhamBenh = TaoNutMenu("🏭  Tạo Ca Khám Mới", 220);
                 btnKhamBenh.Click += (s, e) => ChuyenTrang(new UCKhamBenh());
             }
             
@@ -93,8 +100,10 @@ namespace Winform
 
             if (UserSession.IsQuanLy() && btnThongKe != null)
                 pnlSidebar.Controls.Add(btnThongKe);
-            if (UserSession.IsBacSi() && btnKhamBenh != null)
+            if ((UserSession.IsBacSi() || UserSession.IsQuanLy()) && btnKhamBenh != null)
                 pnlSidebar.Controls.Add(btnKhamBenh);
+            if ((UserSession.IsBacSi() || UserSession.IsQuanLy()) && btnXemLichSu != null)
+                pnlSidebar.Controls.Add(btnXemLichSu);
             pnlSidebar.Controls.Add(btnQuanLyLichHen);
             pnlSidebar.Controls.Add(btnDangXuat); // Add nút Bottom trước
             pnlSidebar.Controls.Add(pnlUser);     // Add Header sau (Dock Top)
