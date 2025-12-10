@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Winform")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+92b806b96cd292b87e251e0567cb3a943340a32c")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e3974c0c591d3dcad618e410fdc00ef8dcd9ae29")]
 [assembly: System.Reflection.AssemblyProductAttribute("Winform")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Winform")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

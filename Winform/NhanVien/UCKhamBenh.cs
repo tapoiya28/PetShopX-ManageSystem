@@ -581,18 +581,17 @@ namespace Winform
                 using (SqlConnection conn = Connection.GetConnection())
                 {
                     conn.Open();
-                    string query = @"
-                        SELECT T.MATHUOC, SP.TENSP 
-                        FROM THUOC T
-                        JOIN SANPHAM SP ON T.MATHUOC = SP.MASP
-                        WHERE SP.LOAI = N'Thuốc' AND SP.TONKHO > 0";
-                    SqlDataAdapter da = new SqlDataAdapter(query, conn);
-                    DataTable dt = new DataTable();
-                    da.Fill(dt);
-                    
-                    cboThuoc.DataSource = dt;
-                    cboThuoc.DisplayMember = "TENSP";
-                    cboThuoc.ValueMember = "MATHUOC";
+                    using (SqlCommand cmd = new SqlCommand("sp_Thuoc_DanhSach", conn))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        SqlDataAdapter da = new SqlDataAdapter(cmd);
+                        DataTable dt = new DataTable();
+                        da.Fill(dt);
+                        
+                        cboThuoc.DataSource = dt;
+                        cboThuoc.DisplayMember = "TENSP";
+                        cboThuoc.ValueMember = "MATHUOC";
+                    }
                 }
             }
             catch (Exception ex)
@@ -621,9 +620,9 @@ namespace Winform
                 using (SqlConnection conn = Connection.GetConnection())
                 {
                     conn.Open();
-                    string query = "INSERT INTO TRIEUCHUNG (MAKB, TENTRIEUCHUNG) VALUES (@MAKB, @TENTRIEUCHUNG)";
-                    using (SqlCommand cmd = new SqlCommand(query, conn))
+                    using (SqlCommand cmd = new SqlCommand("sp_TrieuChung_Them", conn))
                     {
+                        cmd.CommandType = CommandType.StoredProcedure;
                         cmd.Parameters.AddWithValue("@MAKB", maKBHienTai);
                         cmd.Parameters.AddWithValue("@TENTRIEUCHUNG", trieuChung);
                         cmd.ExecuteNonQuery();
@@ -651,9 +650,9 @@ namespace Winform
                 using (SqlConnection conn = Connection.GetConnection())
                 {
                     conn.Open();
-                    string query = "DELETE FROM TRIEUCHUNG WHERE MAKB = @MAKB AND TENTRIEUCHUNG = @TENTRIEUCHUNG";
-                    using (SqlCommand cmd = new SqlCommand(query, conn))
+                    using (SqlCommand cmd = new SqlCommand("sp_TrieuChung_Xoa", conn))
                     {
+                        cmd.CommandType = CommandType.StoredProcedure;
                         cmd.Parameters.AddWithValue("@MAKB", maKBHienTai);
                         cmd.Parameters.AddWithValue("@TENTRIEUCHUNG", trieuChung);
                         cmd.ExecuteNonQuery();
@@ -689,9 +688,9 @@ namespace Winform
                 using (SqlConnection conn = Connection.GetConnection())
                 {
                     conn.Open();
-                    string query = "INSERT INTO CHANDOAN (MAKB, TENCHANDOAN) VALUES (@MAKB, @TENCHANDOAN)";
-                    using (SqlCommand cmd = new SqlCommand(query, conn))
+                    using (SqlCommand cmd = new SqlCommand("sp_ChanDoan_Them", conn))
                     {
+                        cmd.CommandType = CommandType.StoredProcedure;
                         cmd.Parameters.AddWithValue("@MAKB", maKBHienTai);
                         cmd.Parameters.AddWithValue("@TENCHANDOAN", chanDoan);
                         cmd.ExecuteNonQuery();
@@ -719,9 +718,9 @@ namespace Winform
                 using (SqlConnection conn = Connection.GetConnection())
                 {
                     conn.Open();
-                    string query = "DELETE FROM CHANDOAN WHERE MAKB = @MAKB AND TENCHANDOAN = @TENCHANDOAN";
-                    using (SqlCommand cmd = new SqlCommand(query, conn))
+                    using (SqlCommand cmd = new SqlCommand("sp_ChanDoan_Xoa", conn))
                     {
+                        cmd.CommandType = CommandType.StoredProcedure;
                         cmd.Parameters.AddWithValue("@MAKB", maKBHienTai);
                         cmd.Parameters.AddWithValue("@TENCHANDOAN", chanDoan);
                         cmd.ExecuteNonQuery();
@@ -757,34 +756,31 @@ namespace Winform
                 {
                     conn.Open();
                     
-                    // Kiểm tra xem đã có toa thuốc chưa
-                    string checkQuery = "SELECT MATT FROM TOATHUOC WHERE MAKB = @MAKB";
-                    SqlCommand checkCmd = new SqlCommand(checkQuery, conn);
-                    checkCmd.Parameters.AddWithValue("@MAKB", maKBHienTai);
-                    object result = checkCmd.ExecuteScalar();
-                    
+                    // Tạo hoặc lấy toa thuốc
                     int maToa;
-                    if (result == null)
+                    using (SqlCommand cmd = new SqlCommand("sp_ToaThuoc_TaoHoacLay", conn))
                     {
-                        // Tạo toa mới
-                        string insertToa = "INSERT INTO TOATHUOC (MAKB, GHICHU) VALUES (@MAKB, @GHICHU); SELECT SCOPE_IDENTITY();";
-                        SqlCommand cmdToa = new SqlCommand(insertToa, conn);
-                        cmdToa.Parameters.AddWithValue("@MAKB", maKBHienTai);
-                        cmdToa.Parameters.AddWithValue("@GHICHU", txtGhiChuToa.Text.Trim());
-                        maToa = Convert.ToInt32(cmdToa.ExecuteScalar());
-                    }
-                    else
-                    {
-                        maToa = Convert.ToInt32(result);
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.AddWithValue("@MAKB", maKBHienTai);
+                        cmd.Parameters.AddWithValue("@GHICHU", txtGhiChuToa.Text.Trim());
+                        
+                        SqlParameter outParam = new SqlParameter("@MATT", SqlDbType.Int)
+                        {
+                            Direction = ParameterDirection.Output
+                        };
+                        cmd.Parameters.Add(outParam);
+                        
+                        cmd.ExecuteNonQuery();
+                        maToa = Convert.ToInt32(outParam.Value);
                     }
                     
-                    // Thêm chi tiết toa
-                    string insertDetail = "INSERT INTO CHITIETTOATHUOC (MATT, MATHUOC, SOLUONG) VALUES (@MATT, @MATHUOC, @SOLUONG)";
-                    using (SqlCommand cmd = new SqlCommand(insertDetail, conn))
+                    // Thêm thuốc vào toa
+                    using (SqlCommand cmd = new SqlCommand("sp_ToaThuoc_ThemThuoc", conn))
                     {
+                        cmd.CommandType = CommandType.StoredProcedure;
                         cmd.Parameters.AddWithValue("@MATT", maToa);
                         cmd.Parameters.AddWithValue("@MATHUOC", cboThuoc.SelectedValue);
-                        cmd.Parameters.AddWithValue("@SOLUONG", nudSoLuong.Value);
+                        cmd.Parameters.AddWithValue("@SOLUONG", (int)nudSoLuong.Value);
                         cmd.ExecuteNonQuery();
                     }
                 }
@@ -816,9 +812,9 @@ namespace Winform
                     getCmd.Parameters.AddWithValue("@TENSP", tenThuoc);
                     int maThuoc = Convert.ToInt32(getCmd.ExecuteScalar());
                     
-                    string query = "DELETE FROM CHITIETTOATHUOC WHERE MATT = @MATT AND MATHUOC = @MATHUOC";
-                    using (SqlCommand cmd = new SqlCommand(query, conn))
+                    using (SqlCommand cmd = new SqlCommand("sp_ToaThuoc_XoaThuoc", conn))
                     {
+                        cmd.CommandType = CommandType.StoredProcedure;
                         cmd.Parameters.AddWithValue("@MATT", matt);
                         cmd.Parameters.AddWithValue("@MATHUOC", maThuoc);
                         cmd.ExecuteNonQuery();
@@ -847,9 +843,9 @@ namespace Winform
                 using (SqlConnection conn = Connection.GetConnection())
                 {
                     conn.Open();
-                    string query = "UPDATE TOATHUOC SET GHICHU = @GHICHU WHERE MAKB = @MAKB";
-                    using (SqlCommand cmd = new SqlCommand(query, conn))
+                    using (SqlCommand cmd = new SqlCommand("sp_ToaThuoc_CapNhatGhiChu", conn))
                     {
+                        cmd.CommandType = CommandType.StoredProcedure;
                         cmd.Parameters.AddWithValue("@MAKB", maKBHienTai);
                         cmd.Parameters.AddWithValue("@GHICHU", txtGhiChuToa.Text.Trim());
                         cmd.ExecuteNonQuery();
@@ -873,15 +869,18 @@ namespace Winform
                 using (SqlConnection conn = Connection.GetConnection())
                 {
                     conn.Open();
-                    string query = "SELECT MAKH, TENKH + ' - ' + SDT AS Display FROM KHACHHANG ORDER BY TENKH";
-                    SqlDataAdapter da = new SqlDataAdapter(query, conn);
-                    DataTable dt = new DataTable();
-                    da.Fill(dt);
-                    
-                    cboKhachHang.DataSource = dt;
-                    cboKhachHang.DisplayMember = "Display";
-                    cboKhachHang.ValueMember = "MAKH";
-                    cboKhachHang.SelectedIndex = -1;
+                    using (SqlCommand cmd = new SqlCommand("sp_KhachHang_DanhSach", conn))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        SqlDataAdapter da = new SqlDataAdapter(cmd);
+                        DataTable dt = new DataTable();
+                        da.Fill(dt);
+                        
+                        cboKhachHang.DataSource = dt;
+                        cboKhachHang.DisplayMember = "Display";
+                        cboKhachHang.ValueMember = "MAKH";
+                        cboKhachHang.SelectedIndex = -1;
+                    }
                 }
             }
             catch (Exception ex)
@@ -914,16 +913,20 @@ namespace Winform
                 using (SqlConnection conn = Connection.GetConnection())
                 {
                     conn.Open();
-                    string query = "SELECT MATC, TENTC + ' (' + LOAI + ')' AS Display FROM THUCUNG WHERE MAKH = @MAKH ORDER BY TENTC";
-                    SqlDataAdapter da = new SqlDataAdapter(query, conn);
-                    da.SelectCommand.Parameters.AddWithValue("@MAKH", maKH);
-                    DataTable dt = new DataTable();
-                    da.Fill(dt);
-                    
-                    cboThuCung.DataSource = dt;
-                    cboThuCung.DisplayMember = "Display";
-                    cboThuCung.ValueMember = "MATC";
-                    cboThuCung.SelectedIndex = -1;
+                    using (SqlCommand cmd = new SqlCommand("sp_ThuCung_DanhSachTheoKH", conn))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.AddWithValue("@MAKH", maKH);
+                        
+                        SqlDataAdapter da = new SqlDataAdapter(cmd);
+                        DataTable dt = new DataTable();
+                        da.Fill(dt);
+                        
+                        cboThuCung.DataSource = dt;
+                        cboThuCung.DisplayMember = "Display";
+                        cboThuCung.ValueMember = "MATC";
+                        cboThuCung.SelectedIndex = -1;
+                    }
                 }
             }
             catch (Exception ex)
@@ -966,18 +969,23 @@ namespace Winform
                 {
                     conn.Open();
                     
-                    // Tạo ca khám mới
-                    string query = @"
-                        INSERT INTO CAKHAMBENH (MATC, MANV, NGAYKHAM) 
-                        VALUES (@MATC, @MANV, @NGAYKHAM);
-                        SELECT SCOPE_IDENTITY();";
-                    
-                    SqlCommand cmd = new SqlCommand(query, conn);
-                    cmd.Parameters.AddWithValue("@MATC", maTCHienTai);
-                    cmd.Parameters.AddWithValue("@MANV", maNV);
-                    cmd.Parameters.AddWithValue("@NGAYKHAM", dtpNgayKhamMoi.Value.Date);
-                    
-                    maKBHienTai = Convert.ToInt32(cmd.ExecuteScalar());
+                    // Tạo ca khám mới bằng stored procedure
+                    using (SqlCommand cmd = new SqlCommand("sp_CaKham_Tao", conn))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.AddWithValue("@MATC", maTCHienTai);
+                        cmd.Parameters.AddWithValue("@MANV", maNV);
+                        cmd.Parameters.AddWithValue("@NGAYKHAM", dtpNgayKhamMoi.Value.Date);
+                        
+                        SqlParameter outParam = new SqlParameter("@MAKB", SqlDbType.Int)
+                        {
+                            Direction = ParameterDirection.Output
+                        };
+                        cmd.Parameters.Add(outParam);
+                        
+                        cmd.ExecuteNonQuery();
+                        maKBHienTai = Convert.ToInt32(outParam.Value);
+                    }
                     
                     // Load thông tin ca khám
                     LoadThongTinCaKham();
@@ -1005,29 +1013,21 @@ namespace Winform
                 using (SqlConnection conn = Connection.GetConnection())
                 {
                     conn.Open();
-                    string query = @"
-                        SELECT 
-                            KB.MAKB,
-                            TC.TENTC,
-                            TC.LOAI,
-                            KH.TENKH,
-                            KB.NGAYKHAM
-                        FROM CAKHAMBENH KB
-                        JOIN THUCUNG TC ON KB.MATC = TC.MATC
-                        JOIN KHACHHANG KH ON TC.MAKH = KH.MAKH
-                        WHERE KB.MAKB = @MAKB";
-                    
-                    SqlCommand cmd = new SqlCommand(query, conn);
-                    cmd.Parameters.AddWithValue("@MAKB", maKBHienTai);
-                    SqlDataReader reader = cmd.ExecuteReader();
-                    
-                    if (reader.Read())
+                    using (SqlCommand cmd = new SqlCommand("sp_CaKham_ChiTiet", conn))
                     {
-                        txtMaKB.Text = reader["MAKB"].ToString();
-                        txtTenTC.Text = reader["TENTC"].ToString();
-                        txtLoai.Text = reader["LOAI"].ToString();
-                        txtChuSoHuu.Text = reader["TENKH"].ToString();
-                        dtpNgayKhamInfo.Value = Convert.ToDateTime(reader["NGAYKHAM"]);
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.AddWithValue("@MAKB", maKBHienTai);
+                        
+                        SqlDataReader reader = cmd.ExecuteReader();
+                        
+                        if (reader.Read())
+                        {
+                            txtMaKB.Text = reader["MAKB"].ToString();
+                            txtTenTC.Text = reader["TENTC"].ToString();
+                            txtLoai.Text = reader["LOAI"].ToString();
+                            txtChuSoHuu.Text = reader["TENKH"].ToString();
+                            dtpNgayKhamInfo.Value = Convert.ToDateTime(reader["NGAYKHAM"]);
+                        }
                     }
                 }
             }

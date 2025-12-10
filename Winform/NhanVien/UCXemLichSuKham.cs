@@ -293,49 +293,36 @@ namespace Winform
                 using (SqlConnection conn = Connection.GetConnection())
                 {
                     conn.Open();
-                    string query = @"
-                        SELECT DISTINCT
-                            KB.MAKB,
-                            KB.NGAYKHAM,
-                            TC.MATC,
-                            TC.TENTC AS [Tên Thú Cưng],
-                            TC.LOAI AS [Loại],
-                            KH.TENKH AS [Chủ Sở Hữu],
-                            KH.SDT,
-                            NV.HOTEN AS [Bác Sĩ Khám]
-                        FROM CAKHAMBENH KB
-                        JOIN THUCUNG TC ON KB.MATC = TC.MATC
-                        JOIN KHACHHANG KH ON TC.MAKH = KH.MAKH
-                        LEFT JOIN NHANVIEN NV ON KB.MANV = NV.MANV
-                        WHERE KH.SDT LIKE @SDT
-                        ORDER BY KB.NGAYKHAM DESC";
-                    
-                    SqlDataAdapter da = new SqlDataAdapter(query, conn);
-                    da.SelectCommand.Parameters.AddWithValue("@SDT", "%" + sdt + "%");
-                    
-                    DataTable dt = new DataTable();
-                    da.Fill(dt);
-                    
-                    dgvLichSuKham.DataSource = dt;
-                    
-                    if (dt.Rows.Count == 0)
+                    using (SqlCommand cmd = new SqlCommand("sp_LichSuKham_TimTheoSDT", conn))
                     {
-                        MessageBox.Show($"Không tìm thấy lịch sử khám cho SĐT: {sdt}", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.AddWithValue("@SDT", sdt);
+                        
+                        SqlDataAdapter da = new SqlDataAdapter(cmd);
+                        DataTable dt = new DataTable();
+                        da.Fill(dt);
+                        
+                        dgvLichSuKham.DataSource = dt;
+                        
+                        if (dt.Rows.Count == 0)
+                        {
+                            MessageBox.Show($"Không tìm thấy lịch sử khám cho SĐT: {sdt}", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
+                        else
+                        {
+                            MessageBox.Show($"Đã tìm thấy {dt.Rows.Count} ca khám!", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
+                        
+                        // Ẩn cột ID
+                        if (dgvLichSuKham.Columns.Contains("MAKB"))
+                            dgvLichSuKham.Columns["MAKB"].Visible = false;
+                        if (dgvLichSuKham.Columns.Contains("MATC"))
+                            dgvLichSuKham.Columns["MATC"].Visible = false;
+                        if (dgvLichSuKham.Columns.Contains("SDT"))
+                            dgvLichSuKham.Columns["SDT"].Visible = false;
+                        if (dgvLichSuKham.Columns.Contains("NGAYKHAM"))
+                            dgvLichSuKham.Columns["NGAYKHAM"].HeaderText = "Ngày Khám";
                     }
-                    else
-                    {
-                        MessageBox.Show($"Đã tìm thấy {dt.Rows.Count} ca khám!", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    }
-                    
-                    // Ẩn cột ID
-                    if (dgvLichSuKham.Columns.Contains("MAKB"))
-                        dgvLichSuKham.Columns["MAKB"].Visible = false;
-                    if (dgvLichSuKham.Columns.Contains("MATC"))
-                        dgvLichSuKham.Columns["MATC"].Visible = false;
-                    if (dgvLichSuKham.Columns.Contains("SDT"))
-                        dgvLichSuKham.Columns["SDT"].Visible = false;
-                    if (dgvLichSuKham.Columns.Contains("NGAYKHAM"))
-                        dgvLichSuKham.Columns["NGAYKHAM"].HeaderText = "Ngày Khám";
                 }
             }
             catch (Exception ex)
@@ -372,22 +359,19 @@ namespace Winform
                 using (SqlConnection conn = Connection.GetConnection())
                 {
                     conn.Open();
-                    string query = @"
-                        SELECT 
-                            ROW_NUMBER() OVER(ORDER BY TENTRIEUCHUNG) AS [STT],
-                            TENTRIEUCHUNG AS [Triệu Chứng]
-                        FROM TRIEUCHUNG
-                        WHERE MAKB = @MAKB";
-                    
-                    SqlDataAdapter da = new SqlDataAdapter(query, conn);
-                    da.SelectCommand.Parameters.AddWithValue("@MAKB", maKBHienTai);
-                    
-                    DataTable dt = new DataTable();
-                    da.Fill(dt);
-                    dgvTrieuChung.DataSource = dt;
-                    
-                    if (dgvTrieuChung.Columns.Contains("STT"))
-                        dgvTrieuChung.Columns["STT"].Width = 50;
+                    using (SqlCommand cmd = new SqlCommand("sp_TrieuChung_DanhSach", conn))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.AddWithValue("@MAKB", maKBHienTai);
+                        
+                        SqlDataAdapter da = new SqlDataAdapter(cmd);
+                        DataTable dt = new DataTable();
+                        da.Fill(dt);
+                        dgvTrieuChung.DataSource = dt;
+                        
+                        if (dgvTrieuChung.Columns.Contains("STT"))
+                            dgvTrieuChung.Columns["STT"].Width = 50;
+                    }
                 }
             }
             catch (Exception ex)
@@ -403,22 +387,19 @@ namespace Winform
                 using (SqlConnection conn = Connection.GetConnection())
                 {
                     conn.Open();
-                    string query = @"
-                        SELECT 
-                            ROW_NUMBER() OVER(ORDER BY TENCHANDOAN) AS [STT],
-                            TENCHANDOAN AS [Chẩn Đoán]
-                        FROM CHANDOAN
-                        WHERE MAKB = @MAKB";
-                    
-                    SqlDataAdapter da = new SqlDataAdapter(query, conn);
-                    da.SelectCommand.Parameters.AddWithValue("@MAKB", maKBHienTai);
-                    
-                    DataTable dt = new DataTable();
-                    da.Fill(dt);
-                    dgvChanDoan.DataSource = dt;
-                    
-                    if (dgvChanDoan.Columns.Contains("STT"))
-                        dgvChanDoan.Columns["STT"].Width = 50;
+                    using (SqlCommand cmd = new SqlCommand("sp_ChanDoan_DanhSach", conn))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.AddWithValue("@MAKB", maKBHienTai);
+                        
+                        SqlDataAdapter da = new SqlDataAdapter(cmd);
+                        DataTable dt = new DataTable();
+                        da.Fill(dt);
+                        dgvChanDoan.DataSource = dt;
+                        
+                        if (dgvChanDoan.Columns.Contains("STT"))
+                            dgvChanDoan.Columns["STT"].Width = 50;
+                    }
                 }
             }
             catch (Exception ex)
@@ -434,35 +415,34 @@ namespace Winform
                 using (SqlConnection conn = Connection.GetConnection())
                 {
                     conn.Open();
-                    string query = @"
-                        SELECT 
-                            CTT.MATT,
-                            SP.TENSP AS [Tên Thuốc],
-                            CTT.SOLUONG AS [Số Lượng],
-                            T.DONVI AS [Đơn Vị]
-                        FROM TOATHUOC TT
-                        JOIN CHITIETTOATHUOC CTT ON TT.MATT = CTT.MATT
-                        JOIN THUOC T ON CTT.MATHUOC = T.MATHUOC
-                        JOIN SANPHAM SP ON T.MATHUOC = SP.MASP
-                        WHERE TT.MAKB = @MAKB";
-                    
-                    SqlDataAdapter da = new SqlDataAdapter(query, conn);
-                    da.SelectCommand.Parameters.AddWithValue("@MAKB", maKBHienTai);
-                    
-                    DataTable dt = new DataTable();
-                    da.Fill(dt);
-                    dgvToaThuoc.DataSource = dt;
-                    
-                    if (dgvToaThuoc.Columns.Contains("MATT"))
-                        dgvToaThuoc.Columns["MATT"].Visible = false;
-                        
-                    // Load ghi chú toa thuốc
-                    string queryGhiChu = "SELECT TOP 1 GHICHU FROM TOATHUOC WHERE MAKB = @MAKB";
-                    using (SqlCommand cmd = new SqlCommand(queryGhiChu, conn))
+                    using (SqlCommand cmd = new SqlCommand("sp_ToaThuoc_ChiTiet", conn))
                     {
+                        cmd.CommandType = CommandType.StoredProcedure;
                         cmd.Parameters.AddWithValue("@MAKB", maKBHienTai);
-                        object result = cmd.ExecuteScalar();
-                        txtGhiChuToa.Text = result != null ? result.ToString() : "";
+                        
+                        // Đọc result set đầu tiên (danh sách thuốc)
+                        SqlDataAdapter da = new SqlDataAdapter(cmd);
+                        DataSet ds = new DataSet();
+                        da.Fill(ds);
+                        
+                        if (ds.Tables.Count > 0)
+                        {
+                            dgvToaThuoc.DataSource = ds.Tables[0];
+                            
+                            if (dgvToaThuoc.Columns.Contains("MATT"))
+                                dgvToaThuoc.Columns["MATT"].Visible = false;
+                        }
+                        
+                        // Đọc result set thứ hai (ghi chú)
+                        if (ds.Tables.Count > 1 && ds.Tables[1].Rows.Count > 0)
+                        {
+                            object ghiChu = ds.Tables[1].Rows[0][0];
+                            txtGhiChuToa.Text = ghiChu != null && ghiChu != DBNull.Value ? ghiChu.ToString() : "";
+                        }
+                        else
+                        {
+                            txtGhiChuToa.Text = "";
+                        }
                     }
                 }
             }
