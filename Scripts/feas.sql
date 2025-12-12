@@ -1225,7 +1225,6 @@ BEGIN
     END CATCH
 END;
 GO
--- Processure tạo hóa đơn mới
 CREATE OR ALTER PROCEDURE sp_TaoHoaDonMoi
 (
     @NgayLap   DATETIME,
@@ -1383,8 +1382,6 @@ BEGIN
               AND (NGAYKETTHUC IS NULL OR NGAYKETTHUC >= CONVERT(DATE, @NgayLap))
         )
             RAISERROR(N'Nhân viên không làm tại chi nhánh này vào ngày lập hóa đơn', 16, 1);
-
-        
         -- Lấy khuyến mãi theo CẤP BẬC khách hàng
         SELECT @KhuyenMai =
             CASE KH.TENCAPBAC
@@ -1401,8 +1398,7 @@ BEGIN
 
         -- Tao hoa don moi
         INSERT INTO HOADON (NGAYLAP, KHUYENMAI, TONGTIEN, MACN, MAKH, TRANGTHAI, MANV)
-        VALUES (@NgayLap, @KhuyenMai, NULL, @MaCN, @MaKH, N'Chưa hoàn thành', @MaNV);
-
+        VALUES (@NgayLap, @KhuyenMai, NULL, @MaCN, @MaKH, N'Chưa thanh toán', @MaNV);
         SET @MaHD = SCOPE_IDENTITY();
     END TRY
     BEGIN CATCH
@@ -1435,12 +1431,12 @@ BEGIN
         IF @SoLuong <= 0
             RAISERROR(N'Số lượng phải lớn hơn 0', 16, 1);
 
-        -- Hóa đơn phải còn trạng thái 'Chưa hoàn thành'
+        -- Hóa đơn phải còn trạng thái 'Chưa thanh toán'
         IF NOT EXISTS (
             SELECT 1
             FROM HOADON
             WHERE MAHD = @MaHD
-              AND TRANGTHAI = N'Chưa hoàn thành'
+              AND TRANGTHAI = N'Chưa thanh toán'
         )
             RAISERROR(N'Hóa đơn không tồn tại hoặc đã được thanh toán', 16, 1);
 
@@ -1495,7 +1491,8 @@ BEGIN
             SELECT 1
             FROM HOADON
             WHERE MAHD = @MaHD
-              AND TRANGTHAI = N'Chưa hoàn thành'
+              AND TRANGTHAI = N'Chưa thanh toán'
+
         )
             RAISERROR(N'Hóa đơn không tồn tại hoặc đã được thanh toán', 16, 1);
 
@@ -1559,3 +1556,57 @@ BEGIN
     END CATCH
 END;
 GO
+
+
+-- Procedure thêm đánh giá hoá đơn
+CREATE OR ALTER PROCEDURE sp_ThemDanhGiaHoaDon
+(
+    @MaKH         INT,
+    @MaHD         INT,
+    @DiemDichVu   TINYINT,
+    @MucDoHaiLong TINYINT,
+    @BinhLuan     NVARCHAR(200) = NULL
+)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+
+    BEGIN TRY
+        -- Khách hàng phải tồn tại
+        IF NOT EXISTS (SELECT 1 FROM KHACHHANG WHERE MAKH = @MaKH)
+            RAISERROR(N'Khách hàng không tồn tại', 16, 1);
+
+        -- Hóa đơn phải tồn tại và đã thanh toán
+        IF NOT EXISTS (
+            SELECT 1
+            FROM HOADON
+            WHERE MAHD = @MaHD
+              AND TRANGTHAI = N'Đã thanh toán'
+        )
+            RAISERROR(N'Hóa đơn không tồn tại hoặc chưa được thanh toán', 16, 1);
+
+        -- Mỗi hóa đơn chỉ được đánh giá một lần
+        IF EXISTS (SELECT 1 FROM DANHGIA WHERE MAHD = @MaHD)
+            RAISERROR(N'Hóa đơn này đã được đánh giá', 16, 1);
+
+        -- Điểm dịch vụ và mức độ hài lòng phải từ 1 đến 5
+        IF @DiemDichVu NOT BETWEEN 1 AND 5
+            RAISERROR(N'Điểm dịch vụ phải từ 1 đến 5', 16, 1);
+
+        IF @MucDoHaiLong NOT BETWEEN 1 AND 5
+            RAISERROR(N'Mức độ hài lòng phải từ 1 đến 5', 16, 1);
+
+        -- Thêm đánh giá
+        INSERT INTO DANHGIA (DIEMDICHVU, MUCDOHAILONG, BINHLUAN, MAKH, MAHD)
+        VALUES (@DiemDichVu, @MucDoHaiLong, @BinhLuan, @MaKH, @MaHD);
+    END TRY
+    BEGIN CATCH
+        DECLARE @ErrMsg NVARCHAR(4000) = ERROR_MESSAGE(),
+                @ErrSeverity INT = ERROR_SEVERITY();
+
+        RAISERROR(@ErrMsg, @ErrSeverity, 1);
+    END CATCH
+END;
+GO
+

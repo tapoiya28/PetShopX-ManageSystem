@@ -1,0 +1,254 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\Winform\\PetShopX-ManageSystem-winform\\Winform\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{043E67AF-1C41-94A1-C2AA-1DFDCA5D2167}|Winform.csproj|d:\\winform\\petshopx-managesystem-winform\\winform\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{043E67AF-1C41-94A1-C2AA-1DFDCA5D2167}|Winform.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{043E67AF-1C41-94A1-C2AA-1DFDCA5D2167}|Winform.csproj|d:\\winform\\petshopx-managesystem-winform\\winform\\muahang\\frmdanhgia.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{043E67AF-1C41-94A1-C2AA-1DFDCA5D2167}|Winform.csproj|solutionrelative:muahang\\frmdanhgia.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{043E67AF-1C41-94A1-C2AA-1DFDCA5D2167}|Winform.csproj|d:\\winform\\petshopx-managesystem-winform\\winform\\loginform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "RelativeMoniker": "D:0:0:{043E67AF-1C41-94A1-C2AA-1DFDCA5D2167}|Winform.csproj|solutionrelative:loginform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{043E67AF-1C41-94A1-C2AA-1DFDCA5D2167}|Winform.csproj|d:\\winform\\petshopx-managesystem-winform\\winform\\muahang\\frmthanhtoan.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{043E67AF-1C41-94A1-C2AA-1DFDCA5D2167}|Winform.csproj|solutionrelative:muahang\\frmthanhtoan.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{043E67AF-1C41-94A1-C2AA-1DFDCA5D2167}|Winform.csproj|d:\\winform\\petshopx-managesystem-winform\\winform\\muahang\\frmchitiethoadon.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{043E67AF-1C41-94A1-C2AA-1DFDCA5D2167}|Winform.csproj|solutionrelative:muahang\\frmchitiethoadon.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{043E67AF-1C41-94A1-C2AA-1DFDCA5D2167}|Winform.csproj|d:\\winform\\petshopx-managesystem-winform\\winform\\muahang\\frmtaohoadon.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{043E67AF-1C41-94A1-C2AA-1DFDCA5D2167}|Winform.csproj|solutionrelative:muahang\\frmtaohoadon.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{043E67AF-1C41-94A1-C2AA-1DFDCA5D2167}|Winform.csproj|d:\\winform\\petshopx-managesystem-winform\\winform\\muahang\\frmtaohoadon.resx||{81828910-B8B3-4D2B-99A3-067027C180C1}",
+      "RelativeMoniker": "D:0:0:{043E67AF-1C41-94A1-C2AA-1DFDCA5D2167}|Winform.csproj|solutionrelative:muahang\\frmtaohoadon.resx||{81828910-B8B3-4D2B-99A3-067027C180C1}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{043E67AF-1C41-94A1-C2AA-1DFDCA5D2167}|Winform.csproj|d:\\winform\\petshopx-managesystem-winform\\winform\\muahang\\frmtaohoadon.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "RelativeMoniker": "D:0:0:{043E67AF-1C41-94A1-C2AA-1DFDCA5D2167}|Winform.csproj|solutionrelative:muahang\\frmtaohoadon.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{043E67AF-1C41-94A1-C2AA-1DFDCA5D2167}|Winform.csproj|d:\\winform\\petshopx-managesystem-winform\\winform\\connection.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{043E67AF-1C41-94A1-C2AA-1DFDCA5D2167}|Winform.csproj|solutionrelative:connection.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{043E67AF-1C41-94A1-C2AA-1DFDCA5D2167}|Winform.csproj|d:\\winform\\petshopx-managesystem-winform\\winform\\hashpassword.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{043E67AF-1C41-94A1-C2AA-1DFDCA5D2167}|Winform.csproj|solutionrelative:hashpassword.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{043E67AF-1C41-94A1-C2AA-1DFDCA5D2167}|Winform.csproj|d:\\winform\\petshopx-managesystem-winform\\winform\\usersesssion.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{043E67AF-1C41-94A1-C2AA-1DFDCA5D2167}|Winform.csproj|solutionrelative:usersesssion.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{043E67AF-1C41-94A1-C2AA-1DFDCA5D2167}|Winform.csproj|d:\\winform\\petshopx-managesystem-winform\\winform\\loginform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{043E67AF-1C41-94A1-C2AA-1DFDCA5D2167}|Winform.csproj|solutionrelative:loginform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{043E67AF-1C41-94A1-C2AA-1DFDCA5D2167}|Winform.csproj|d:\\winform\\petshopx-managesystem-winform\\winform\\loginform.resx||{81828910-B8B3-4D2B-99A3-067027C180C1}",
+      "RelativeMoniker": "D:0:0:{043E67AF-1C41-94A1-C2AA-1DFDCA5D2167}|Winform.csproj|solutionrelative:loginform.resx||{81828910-B8B3-4D2B-99A3-067027C180C1}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{043E67AF-1C41-94A1-C2AA-1DFDCA5D2167}|Winform.csproj|d:\\winform\\petshopx-managesystem-winform\\winform\\winform.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{043E67AF-1C41-94A1-C2AA-1DFDCA5D2167}|Winform.csproj|solutionrelative:winform.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 3,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "FrmTaoHoaDon.resx",
+              "DocumentMoniker": "D:\\Winform\\PetShopX-ManageSystem-winform\\Winform\\MuaHang\\FrmTaoHoaDon.resx",
+              "RelativeDocumentMoniker": "MuaHang\\FrmTaoHoaDon.resx",
+              "ToolTip": "D:\\Winform\\PetShopX-ManageSystem-winform\\Winform\\MuaHang\\FrmTaoHoaDon.resx",
+              "RelativeToolTip": "MuaHang\\FrmTaoHoaDon.resx",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001005|",
+              "WhenOpened": "2025-12-09T07:21:31.296Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "FrmTaoHoaDon.cs [Design]",
+              "DocumentMoniker": "D:\\Winform\\PetShopX-ManageSystem-winform\\Winform\\MuaHang\\FrmTaoHoaDon.cs",
+              "RelativeDocumentMoniker": "MuaHang\\FrmTaoHoaDon.cs",
+              "ToolTip": "D:\\Winform\\PetShopX-ManageSystem-winform\\Winform\\MuaHang\\FrmTaoHoaDon.cs [Design]",
+              "RelativeToolTip": "MuaHang\\FrmTaoHoaDon.cs [Design]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-09T07:18:13.273Z",
+              "EditorCaption": " [Design]"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "FrmTaoHoaDon.cs",
+              "DocumentMoniker": "D:\\Winform\\PetShopX-ManageSystem-winform\\Winform\\MuaHang\\FrmTaoHoaDon.cs",
+              "RelativeDocumentMoniker": "MuaHang\\FrmTaoHoaDon.cs",
+              "ToolTip": "D:\\Winform\\PetShopX-ManageSystem-winform\\Winform\\MuaHang\\FrmTaoHoaDon.cs",
+              "RelativeToolTip": "MuaHang\\FrmTaoHoaDon.cs",
+              "ViewState": "AgIAAMMAAAAAAAAAAAAgwPIAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-09T07:05:08.495Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Program.cs",
+              "DocumentMoniker": "D:\\Winform\\PetShopX-ManageSystem-winform\\Winform\\Program.cs",
+              "RelativeDocumentMoniker": "Program.cs",
+              "ToolTip": "D:\\Winform\\PetShopX-ManageSystem-winform\\Winform\\Program.cs",
+              "RelativeToolTip": "Program.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAAOAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-09T06:40:51.021Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "LoginForm.cs [Design]",
+              "DocumentMoniker": "D:\\Winform\\PetShopX-ManageSystem-winform\\Winform\\LoginForm.cs",
+              "RelativeDocumentMoniker": "LoginForm.cs",
+              "ToolTip": "D:\\Winform\\PetShopX-ManageSystem-winform\\Winform\\LoginForm.cs [Design]",
+              "RelativeToolTip": "LoginForm.cs [Design]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-09T07:11:31.186Z",
+              "EditorCaption": " [Design]"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "Connection.cs",
+              "DocumentMoniker": "D:\\Winform\\PetShopX-ManageSystem-winform\\Winform\\Connection.cs",
+              "RelativeDocumentMoniker": "Connection.cs",
+              "ToolTip": "D:\\Winform\\PetShopX-ManageSystem-winform\\Winform\\Connection.cs",
+              "RelativeToolTip": "Connection.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAAxAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-09T06:44:03.338Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "FrmChiTietHoaDon.cs",
+              "DocumentMoniker": "D:\\Winform\\PetShopX-ManageSystem-winform\\Winform\\MuaHang\\FrmChiTietHoaDon.cs",
+              "RelativeDocumentMoniker": "MuaHang\\FrmChiTietHoaDon.cs",
+              "ToolTip": "D:\\Winform\\PetShopX-ManageSystem-winform\\Winform\\MuaHang\\FrmChiTietHoaDon.cs",
+              "RelativeToolTip": "MuaHang\\FrmChiTietHoaDon.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAqwBAAAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-09T07:05:41.234Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "FrmDanhGia.cs",
+              "DocumentMoniker": "D:\\Winform\\PetShopX-ManageSystem-winform\\Winform\\MuaHang\\FrmDanhGia.cs",
+              "RelativeDocumentMoniker": "MuaHang\\FrmDanhGia.cs",
+              "ToolTip": "D:\\Winform\\PetShopX-ManageSystem-winform\\Winform\\MuaHang\\FrmDanhGia.cs",
+              "RelativeToolTip": "MuaHang\\FrmDanhGia.cs",
+              "ViewState": "AgIAAMoAAAAAAAAAAAAgwOYAAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-09T07:06:07.236Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "FrmThanhToan.cs",
+              "DocumentMoniker": "D:\\Winform\\PetShopX-ManageSystem-winform\\Winform\\MuaHang\\FrmThanhToan.cs",
+              "RelativeDocumentMoniker": "MuaHang\\FrmThanhToan.cs",
+              "ToolTip": "D:\\Winform\\PetShopX-ManageSystem-winform\\Winform\\MuaHang\\FrmThanhToan.cs",
+              "RelativeToolTip": "MuaHang\\FrmThanhToan.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABIAAAAsAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-09T07:05:57.261Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "HashPassword.cs",
+              "DocumentMoniker": "D:\\Winform\\PetShopX-ManageSystem-winform\\Winform\\HashPassword.cs",
+              "RelativeDocumentMoniker": "HashPassword.cs",
+              "ToolTip": "D:\\Winform\\PetShopX-ManageSystem-winform\\Winform\\HashPassword.cs",
+              "RelativeToolTip": "HashPassword.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-09T07:11:27.086Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "UserSesssion.cs",
+              "DocumentMoniker": "D:\\Winform\\PetShopX-ManageSystem-winform\\Winform\\UserSesssion.cs",
+              "RelativeDocumentMoniker": "UserSesssion.cs",
+              "ToolTip": "D:\\Winform\\PetShopX-ManageSystem-winform\\Winform\\UserSesssion.cs",
+              "RelativeToolTip": "UserSesssion.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAqwBIAAAAiAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-09T07:27:36.242Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "LoginForm.cs",
+              "DocumentMoniker": "D:\\Winform\\PetShopX-ManageSystem-winform\\Winform\\LoginForm.cs",
+              "RelativeDocumentMoniker": "LoginForm.cs",
+              "ToolTip": "D:\\Winform\\PetShopX-ManageSystem-winform\\Winform\\LoginForm.cs",
+              "RelativeToolTip": "LoginForm.cs",
+              "ViewState": "AgIAANIAAAAAAAAAAAAgwAEBAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-09T07:11:39.872Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "LoginForm.resx",
+              "DocumentMoniker": "D:\\Winform\\PetShopX-ManageSystem-winform\\Winform\\LoginForm.resx",
+              "RelativeDocumentMoniker": "LoginForm.resx",
+              "ToolTip": "D:\\Winform\\PetShopX-ManageSystem-winform\\Winform\\LoginForm.resx",
+              "RelativeToolTip": "LoginForm.resx",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001005|",
+              "WhenOpened": "2025-12-09T07:11:38.368Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "Winform",
+              "DocumentMoniker": "D:\\Winform\\PetShopX-ManageSystem-winform\\Winform\\Winform.csproj",
+              "RelativeDocumentMoniker": "Winform.csproj",
+              "ToolTip": "D:\\Winform\\PetShopX-ManageSystem-winform\\Winform\\Winform.csproj",
+              "RelativeToolTip": "Winform.csproj",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2025-12-09T07:04:09.379Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
