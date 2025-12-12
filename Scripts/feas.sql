@@ -909,7 +909,7 @@ BEGIN
         CT.MATIEM,
         CT.NGAYTIEM,
         NV.HOTEN AS NguoiTiem,
-        SP.TENSP AS TenVacXin, 
+        SP.TENSP AS TenVacXin,
         VX.DOTUOIAPDUNG,
         CTX.SOLUONG AS SoMui
     FROM CATIEM CT
@@ -1087,7 +1087,7 @@ BEGIN
             WHERE MUCCHITIEU <= @TienDaTieuNamNgoai
             ORDER BY MUCCHITIEU DESC;
             
-            IF @CapBacMoi IS NULL SET @CapBacMoi = N'Đồng';
+            IF @CapBacMoi IS NULL SET @CapBacMoi = N'Cơ bản';
         END
 
         IF @CapBacMoi <> @CapBacHienTai
@@ -1610,3 +1610,167 @@ BEGIN
 END;
 GO
 
+CREATE OR ALTER PROCEDURE sp_TaiKhoan_DangNhap
+    @InputIdentifier VARCHAR(20), 
+    @MatKhauHash    CHAR(32)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @TenDangNhapThuc VARCHAR(20);
+    DECLARE @MatKhauDB CHAR(32);
+    DECLARE @TrangThai BIT;
+    DECLARE @MANV INT;
+    DECLARE @MAKH INT;
+    SELECT TOP 1 
+        @TenDangNhapThuc = TK.TENDANGNHAP,
+        @MatKhauDB = TK.MATKHAU,
+        @TrangThai = TK.TRANGTHAI,
+        @MANV = TK.MANV,
+        @MAKH = TK.MAKH
+    FROM TAIKHOAN TK
+    LEFT JOIN NHANVIEN NV ON TK.MANV = NV.MANV
+    LEFT JOIN KHACHHANG KH ON TK.MAKH = KH.MAKH
+    WHERE TK.TENDANGNHAP = @InputIdentifier 
+       OR NV.SDT = @InputIdentifier 
+       OR KH.SDT = @InputIdentifier;
+    IF @TenDangNhapThuc IS NULL 
+    BEGIN
+        RAISERROR(N'Tài khoản hoặc số điện thoại không tồn tại.', 16, 1);
+        RETURN; 
+    END
+
+    IF @TrangThai = 0 
+    BEGIN
+        RAISERROR(N'Tài khoản đã bị khóa.', 16, 1);
+        RETURN;
+    END
+
+    IF @MatKhauDB <> @MatKhauHash 
+    BEGIN
+        RAISERROR(N'Mật khẩu không chính xác.', 16, 1);
+        RETURN;
+    END
+    IF @MANV IS NOT NULL
+    BEGIN
+        SELECT TOP 1
+            TK.TENDANGNHAP AS UserName,
+            NV.HOTEN AS FullName,
+            NV.MANV AS UserId,
+            CASE ISNULL(LV.VAITRO, NV.VAITRO)
+                WHEN 'BS' THEN 'BacSi'
+                WHEN 'QL' THEN 'QuanLy'
+                WHEN 'NV' THEN 'NhanVien'
+                ELSE 'NhanVien'
+            END AS Role,
+            ISNULL(CN.MACN, 0) AS WorkBranchId,
+            ISNULL(CN.TENCN, N'Chưa phân công') AS WorkBranchName
+
+        FROM TAIKHOAN TK
+        JOIN NHANVIEN NV ON TK.MANV = NV.MANV
+        LEFT JOIN LAMVIEC LV ON NV.MANV = LV.MANV 
+             AND (LV.NGAYKETTHUC IS NULL OR LV.NGAYKETTHUC >= GETDATE())
+        LEFT JOIN CHINHANH CN ON LV.MACN = CN.MACN
+        
+        WHERE TK.TENDANGNHAP = @TenDangNhapThuc
+        ORDER BY LV.NGAYBATDAU DESC; 
+    END
+    ELSE
+    BEGIN
+        SELECT 
+            TK.TENDANGNHAP AS UserName,
+            KH.TENKH AS FullName,
+            KH.MAKH AS UserId,
+            'KhachHang' AS Role,
+            0 AS WorkBranchId,
+            N'' AS WorkBranchName
+        FROM TAIKHOAN TK
+        JOIN KHACHHANG KH ON TK.MAKH = KH.MAKH
+        WHERE TK.TENDANGNHAP = @TenDangNhapThuc;
+    END
+END;
+GO
+
+CREATE OR ALTER PROCEDURE sp_TaiKhoan_LaySalt
+    @InputIdentifier VARCHAR(20)
+AS
+BEGIN
+    -- Chỉ trả về Salt nếu tài khoản tồn tại và đang hoạt động
+    SELECT SALT 
+    FROM TAIKHOAN 
+    WHERE TENDANGNHAP = @InputIdentifier  AND TRANGTHAI = 1;
+END;
+GO
+
+CREATE OR ALTER PROCEDURE sp_NhanVien_XemLichHen
+    @MaCN INT,
+    @SdtKhachHang VARCHAR(20) = NULL -- Nếu NULL thì hiện tất cả hôm nay
+AS
+BEGIN
+    SELECT 
+        LH.MALICHHEN,
+        LH.NGAYHEN,
+        LH.THOIGIAN,
+        KH.MAKH,
+        KH.TENKH,
+        KH.SDT,
+        LDV.MALOAIDV,
+        LDV.TENLOAIDV,
+        LH.NOIDUNG AS GhiChu
+    FROM LICHHEN LH
+    JOIN KHACHHANG KH ON LH.MAKH = KH.MAKH
+    JOIN LOAIDICHVU LDV ON LH.MALOAIDV = LDV.MALOAIDV
+    WHERE LH.MACN = @MaCN -- Chỉ hiện lịch của chi nhánh nhân viên đang làm
+      AND (@SdtKhachHang IS NULL OR KH.SDT LIKE '%' + @SdtKhachHang + '%')
+    ORDER BY LH.NGAYHEN, LH.THOIGIAN;
+END;
+GO
+
+-- 2. Procedure: Xác nhận lịch hẹn & Tạo hồ sơ (Khám hoặc Tiêm)
+CREATE OR ALTER PROCEDURE sp_NhanVien_XacNhanLichHen
+    @MaLichHen INT,
+    @MaNV      INT,
+    @MaTC      INT -- Bắt buộc phải chọn thú cưng để tạo hồ sơ
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+
+    BEGIN TRY
+        BEGIN TRAN;
+
+        -- A. Lấy thông tin loại dịch vụ từ lịch hẹn
+        DECLARE @MaLoaiDV INT;
+        SELECT @MaLoaiDV = MALOAIDV FROM LICHHEN WHERE MALICHHEN = @MaLichHen;
+
+        -- B. Cập nhật trạng thái lịch hẹn -> "Đã đến" (Hoặc Đã hoàn thành)
+        -- Tùy quy trình bên bạn, ở đây tôi set là Đã hoàn thành để ẩn khỏi danh sách chờ
+        -- UPDATE LICHHEN SET TRANGTHAI = N'Đã hoàn thành' WHERE MALICHHEN = @MaLichHen;
+        -- Tuy nhiên trong bảng DDL của bạn check constraint là: 'Chưa thanh toán', 'Đã thanh toán', 'Đã hủy'
+        -- Nên tạm thời ta không update trạng thái hoàn thành ở đây mà để quy trình thanh toán lo, 
+        -- hoặc ta coi việc tạo hồ sơ là bước đầu tiên. 
+        -- Ở đây tôi giữ nguyên hoặc bạn có thể thêm trạng thái 'Đang khám' vào Check Constraint sau.
+
+        -- C. Tạo hồ sơ dựa trên loại dịch vụ
+        
+        -- Nếu là KHÁM BỆNH
+        IF @MaLoaiDV = 3
+        BEGIN
+            INSERT INTO CAKHAMBENH (MATC, MANV, NGAYKHAM)
+            VALUES (@MaTC, @MaNV, GETDATE());
+        END
+        
+        -- Nếu là TIÊM PHÒNG
+        ELSE IF @MaLoaiDV = 6
+        BEGIN
+            INSERT INTO CATIEM (MATC, MANV, NGAYTIEM)
+            VALUES (@MaTC, @MaNV, GETDATE());
+        END
+
+        COMMIT TRAN;
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0 ROLLBACK TRAN;
+        THROW;
+    END CATCH
+END;
+GO

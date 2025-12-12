@@ -9,6 +9,9 @@ namespace Winform
         private Panel pnlContent;
         private Panel pnlSidebar;
         private Button btnQuanLyLichHen;
+        private Button btnXemLichSu;
+        private Button btnKhamBenh;
+        private Button btnThongKe;
         private Button btnDangXuat;
         private Label lblUser;
 
@@ -59,7 +62,28 @@ namespace Winform
 
             // Menu Buttons
             btnQuanLyLichHen = TaoNutMenu("📅  Quản Lý Lịch Hẹn", 110);
-            btnQuanLyLichHen.BackColor = Color.FromArgb(52, 73, 94); // Active state giả định
+            btnQuanLyLichHen.Click += (s, e) => ChuyenTrang(new UCLichHen());
+            
+            // Nút cho Bác sĩ: Xem Lịch Sử + Tạo Ca Khám
+            if (UserSession.IsBacSi() || UserSession.IsQuanLy())
+            {
+                btnXemLichSu = TaoNutMenu("📋  Xem Lịch Sử Khám", 165);
+                btnXemLichSu.Click += (s, e) => ChuyenTrang(new UCXemLichSuKham());
+            }
+            
+            // CHỈ BÁC SĨ MỚI ĐƯỢC TẠO CA KHÁM
+            if (UserSession.IsBacSi())
+            {
+                btnKhamBenh = TaoNutMenu("🏭  Tạo Ca Khám Mới", 220);
+                btnKhamBenh.Click += (s, e) => ChuyenTrang(new UCKhamBenh());
+            }
+            
+            // Nút Thống kê chỉ hiện với Quản lý
+            if (UserSession.IsQuanLy())
+            {
+                btnThongKe = TaoNutMenu("📊  Thống Kê", 275);
+                btnThongKe.Click += (s, e) => ChuyenTrang(new UCThongKe());
+            }
 
             // Nút Đăng xuất ở dưới cùng
             btnDangXuat = new Button() { 
@@ -75,6 +99,12 @@ namespace Winform
             btnDangXuat.FlatAppearance.BorderSize = 0;
             btnDangXuat.Click += (s, e) => { this.Close(); };
 
+            if (UserSession.IsQuanLy() && btnThongKe != null)
+                pnlSidebar.Controls.Add(btnThongKe);
+            if (UserSession.IsBacSi() && btnKhamBenh != null)
+                pnlSidebar.Controls.Add(btnKhamBenh);
+            if ((UserSession.IsBacSi() || UserSession.IsQuanLy()) && btnXemLichSu != null)
+                pnlSidebar.Controls.Add(btnXemLichSu);
             pnlSidebar.Controls.Add(btnQuanLyLichHen);
             pnlSidebar.Controls.Add(btnDangXuat); // Add nút Bottom trước
             pnlSidebar.Controls.Add(pnlUser);     // Add Header sau (Dock Top)

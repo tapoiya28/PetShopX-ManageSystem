@@ -49,5 +49,6 @@ select * from QUANLY
 select * from KHACHHANG
 select * from taikhoan 
 select * from CAKHAMBENH
+select * from LAMVIEC
 
 
