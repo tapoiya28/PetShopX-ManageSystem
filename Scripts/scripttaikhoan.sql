@@ -32,23 +32,46 @@ DECLARE @DefaultPassHash CHAR(32) = 'fb276fb0ed6cdd1639bd678d3ace8614';
 DECLARE @DefaultSalt CHAR(3) = 'ABC'; 
 insert taikhoan (TENDANGNHAP,MATKHAU,salt,trangthai,MAKH)
 values 
-('taikhoankhachhang', @DefaultPassHash,@DefaultSalt,1,302129)
+('taikhoankhachhang', @DefaultPassHash,@DefaultSalt,1,1)
 
 insert taikhoan (TENDANGNHAP,MATKHAU,salt,trangthai,MANV)
 values 
-('taikhoanbacsi', @DefaultPassHash,@DefaultSalt,1,924802),
-('taikhoannhanvien', @DefaultPassHash,@DefaultSalt,1,924805),
-('taikhoanquanli', @DefaultPassHash,@DefaultSalt,1,924803)
+('taikhoanbacsi', @DefaultPassHash,@DefaultSalt,1,2),
+('taikhoannhanvien', @DefaultPassHash,@DefaultSalt,1,3),
+('taikhoanquanli', @DefaultPassHash,@DefaultSalt,1,1)
+select * from taikhoan
+IF NOT EXISTS (SELECT 1 FROM LAMVIEC WHERE MANV = 1)
+BEGIN
+    INSERT INTO LAMVIEC (MACN, MANV, NGAYBATDAU, NGAYKETTHUC, VAITRO)
+    VALUES (1, 1, '2023-01-01', NULL, 'QL'); -- NULL nghĩa là làm vô thời hạn
+END
+
+-- Cho Bác sĩ (MANV = 2)
+IF NOT EXISTS (SELECT 1 FROM LAMVIEC WHERE MANV = 2)
+BEGIN
+    INSERT INTO LAMVIEC (MACN, MANV, NGAYBATDAU, NGAYKETTHUC, VAITRO)
+    VALUES (1, 2, '2023-01-01', NULL, 'BS');
+END
+
+-- Cho Nhân viên (MANV = 3) -> Tài khoản bạn đang test có thể là cái này
+IF NOT EXISTS (SELECT 1 FROM LAMVIEC WHERE MANV = 3)
+BEGIN
+    INSERT INTO LAMVIEC (MACN, MANV, NGAYBATDAU, NGAYKETTHUC, VAITRO)
+    VALUES (1, 3, '2023-01-01', NULL, 'NV');
+END
+GO
+
+-- 3. Kiểm tra lại dữ liệu đã vào chưa
+SELECT * FROM LAMVIEC;
 -- co so 1
-INSERT LAMVIEC(MACN, MANV, NGAYBATDAU, NGAYKETTHUC, VAITRO) VALUES (5112203, 924805, '2020-04-30', '2028-04-26', N'NV')
-INSERT LAMVIEC(MACN, MANV, NGAYBATDAU, NGAYKETTHUC, VAITRO) VALUES (5112203, 924802, '2020-04-30', '2028-04-26', N'BS')
-INSERT LAMVIEC(MACN, MANV, NGAYBATDAU, NGAYKETTHUC, VAITRO) VALUES (5112203, 924803, '2020-04-30', '2028-04-26', N'QL')
 select * from NHANVIEN 
 select * from BACSI
 select * from QUANLY
-select * from KHACHHANG
+select * from KHACHHANG where makh = 1
 select * from taikhoan 
 select * from CAKHAMBENH
-select * from LAMVIEC
+select * from LAMVIEC where manv = 1
+select * from LAMVIEC where manv = 5
+select * from LAMVIEC where manv = 4
 
 

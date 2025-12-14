@@ -8,7 +8,10 @@ namespace Winform
     {
         private Panel pnlSidebar;
         private Panel pnlHeader;
-        private Panel pnlContent; // Nơi hiển thị nội dung chính
+        private Panel pnlContent;
+
+        // Bỏ biến btnLichSu vì không dùng riêng nữa
+        // private Button btnLichSu; 
 
         public DashboardKhachhang()
         {
@@ -25,7 +28,7 @@ namespace Winform
 
         private void TaoGiaoDien()
         {
-            // 1. HEADER (Trên cùng)
+            // 1. HEADER
             pnlHeader = new Panel() { Dock = DockStyle.Top, Height = 60, BackColor = Color.White };
             Label lblLogo = new Label() { 
                 Text = "PETCARE X", 
@@ -43,18 +46,15 @@ namespace Winform
             };
             pnlHeader.Controls.AddRange(new Control[] { lblLogo, lblUser });
 
-            // 2. SIDEBAR (Bên trái)
+            // 2. SIDEBAR
             pnlSidebar = new Panel() { Dock = DockStyle.Left, Width = 220, BackColor = Color.FromArgb(40, 50, 70) };
             
-            // Tạo các nút menu
             Button btnDatLich = CreateMenuButton("📅  Đặt Lịch Hẹn", 80);
             btnDatLich.Click += (s, e) => ChuyenTrang(new UCDatLich());
 
-            Button btnHoSo = CreateMenuButton("🐶  Hồ Sơ Thú Cưng", 140);
-            // btnHoSo.Click += ...
-
-            Button btnLichSu = CreateMenuButton("🕒  Lịch Sử Khám", 200);
-            // btnLichSu.Click += ...
+            // Nút này mở UserControl "Thông Tin & Hồ Sơ"
+            Button btnHoSo = CreateMenuButton("🐶  Thông Tin & Hồ Sơ", 140);
+            btnHoSo.Click += (s, e) => ChuyenTrang(new UCThongTinCaNhan()); 
 
             Button btnDangXuat = new Button() { 
                 Text = "Đăng Xuất", 
@@ -67,9 +67,10 @@ namespace Winform
             };
             btnDangXuat.Click += (s, e) => { this.Close(); };
 
-            pnlSidebar.Controls.AddRange(new Control[] { btnDatLich, btnHoSo, btnLichSu, btnDangXuat });
+            // --- ĐÃ XÓA btnLichSu KHỎI DANH SÁCH ---
+            pnlSidebar.Controls.AddRange(new Control[] { btnDatLich, btnHoSo, btnDangXuat });
 
-            // 3. MAIN CONTENT (Ở giữa)
+            // 3. MAIN CONTENT
             pnlContent = new Panel() { Dock = DockStyle.Fill, Padding = new Padding(20) };
 
             this.Controls.Add(pnlContent);
@@ -93,14 +94,12 @@ namespace Winform
             btn.Padding = new Padding(20, 0, 0, 0);
             btn.Cursor = Cursors.Hand;
             
-            // Hiệu ứng hover
             btn.MouseEnter += (s, e) => btn.BackColor = Color.FromArgb(60, 70, 90);
             btn.MouseLeave += (s, e) => btn.BackColor = Color.Transparent;
 
             return btn;
         }
 
-        // Hàm chuyển trang mượt mà
         private void ChuyenTrang(UserControl uc)
         {
             pnlContent.Controls.Clear();
