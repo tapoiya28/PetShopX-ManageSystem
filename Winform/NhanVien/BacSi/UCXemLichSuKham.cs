@@ -278,7 +278,20 @@ namespace Winform
         }
 
         // ============ SỰ KIỆN ============
-
+        private void BtnXemLichSuNhanh_Click(object sender, EventArgs e)
+        {
+            if (maTCHienTai == -1) return;
+            
+            // Mở một Form popup đơn giản chỉ chứa DataGridView
+            Form frmLichSu = new Form() { Text = "Lịch sử khám của bé", Size = new Size(800, 500) };
+            DataGridView dgv = new DataGridView() { Dock = DockStyle.Fill, AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill };
+            frmLichSu.Controls.Add(dgv);
+            
+            // Gọi hàm load dữ liệu vào dgv (dùng sp_ThuCung_LichSuKham)
+            // ... (Code gọi SQL) ...
+            
+            frmLichSu.ShowDialog();
+        }
         private void BtnTimKiem_Click(object sender, EventArgs e)
         {
             string sdt = txtTimSDT.Text.Trim();

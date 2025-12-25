@@ -337,3 +337,26 @@ BEGIN
     WHERE MAKB = @MAKB;
 END;
 GO
+-- Procedure lấy danh sách chờ khám của một Bác sĩ cụ thể trong ngày
+CREATE OR ALTER PROCEDURE sp_BacSi_LayDanhSachChoKham
+    @MANV INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT 
+        KB.MAKB,
+        TC.MATC,
+        TC.TENTC AS [Tên Thú Cưng],
+        TC.LOAI AS [Loại],
+        TC.GIOITINH AS [Giới Tính],
+        KH.TENKH AS [Chủ Sở Hữu],
+        KB.NGAYKHAM
+    FROM CAKHAMBENH KB
+    JOIN THUCUNG TC ON KB.MATC = TC.MATC
+    JOIN KHACHHANG KH ON TC.MAKH = KH.MAKH
+    WHERE KB.MANV = @MANV 
+      AND CAST(KB.NGAYKHAM AS DATE) = CAST(GETDATE() AS DATE) -- Chỉ lấy ca hôm nay
+      -- Có thể thêm điều kiện lọc những ca chưa có kết luận nếu muốn
+    ORDER BY KB.MAKB DESC;
+END;
+GO

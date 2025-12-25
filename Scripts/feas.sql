@@ -1773,3 +1773,100 @@ BEGIN
         THROW;
     END CATCH
 END;
+go
+CREATE OR ALTER PROCEDURE sp_ChiNhanh_DanhSach
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT MACN, TENCN FROM CHINHANH;
+END;
+GO
+
+-- 2. Procedure: Tra cứu bác sĩ
+-- Đảm bảo bảng NHANVIEN, BACSI, LAMVIEC, CHINHANH đã tồn tại
+CREATE OR ALTER PROCEDURE sp_TraCuu_BacSi
+    @MaCN INT = NULL,
+    @TenBS NVARCHAR(50) = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT 
+        NV.MANV,
+        NV.HOTEN AS [Bác Sĩ],
+        BS.BANGCAP AS [Bằng Cấp],
+        BS.KINHNGHIEM AS [Kinh Nghiệm],
+        CN.TENCN AS [Chi Nhánh]
+    FROM NHANVIEN NV
+    JOIN BACSI BS ON NV.MANV = BS.MANV
+    JOIN LAMVIEC LV ON NV.MANV = LV.MANV
+    JOIN CHINHANH CN ON LV.MACN = CN.MACN
+    WHERE (@MaCN IS NULL OR CN.MACN = @MaCN)
+      AND (@TenBS IS NULL OR @TenBS = '' OR NV.HOTEN LIKE '%' + @TenBS + '%')
+      AND (LV.NGAYKETTHUC IS NULL OR LV.NGAYKETTHUC >= GETDATE());
+END;
+GO
+
+-- 3. Procedure: Tìm kiếm sản phẩm Online
+CREATE OR ALTER PROCEDURE sp_SanPham_TimKiemOnline
+    @TuKhoa NVARCHAR(50) = NULL,
+    @Loai NVARCHAR(10) = NULL -- Sửa từ CHAR(2) thành NVARCHAR(10)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT 
+        MASP, TENSP, DONGIA, TONKHO, LOAI,
+        CASE 
+            WHEN LOAI = 'SP' THEN N'Sản phẩm'
+            WHEN LOAI = 'Th' THEN N'Thuốc'
+            WHEN LOAI = 'VX' THEN N'Vacxin'
+            WHEN LOAI = 'GT' THEN N'Gói tiêm'
+            ELSE N'Khác'
+        END AS [LoaiHienThi]
+    FROM SANPHAM
+    WHERE TONKHO > 0 
+      AND LOAI IN ('SP', 'Th', 'VX', 'GT')
+      AND (@TuKhoa IS NULL OR TENSP LIKE N'%' + @TuKhoa + N'%')
+      AND (@Loai IS NULL OR @Loai = 'All' OR LOAI = @Loai);
+END;
+GO
+
+-- 4. Procedure: Tạo đơn hàng Online
+CREATE OR ALTER PROCEDURE sp_DonHangOnline_Tao
+    @MaKH INT,
+    @TongTien DECIMAL(12, 2),
+    @MaHD INT OUTPUT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @DefaultMANV INT = (SELECT TOP 1 MANV FROM NHANVIEN); 
+    DECLARE @DefaultMACN INT = (SELECT TOP 1 MACN FROM CHINHANH);
+
+    IF (@DefaultMANV IS NULL OR @DefaultMACN IS NULL)
+    BEGIN
+        RAISERROR(N'Database chưa có dữ liệu Nhân viên hoặc Chi nhánh để tạo đơn!', 16, 1);
+        RETURN;
+    END
+
+    INSERT INTO HOADON (NGAYLAP, TONGTIEN, MAKH, MANV, MACN, TRANGTHAI)
+    VALUES (GETDATE(), @TongTien, @MaKH, @DefaultMANV, @DefaultMACN, N'Chưa thanh toán');
+    
+    SET @MaHD = SCOPE_IDENTITY();
+END;
+GO
+
+-- 5. Procedure: Thêm chi tiết đơn hàng
+CREATE OR ALTER PROCEDURE sp_DonHangOnline_ThemChiTiet
+    @MaHD INT,
+    @MaSP INT,
+    @SoLuong INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @GiaBan INTEGER = (SELECT DONGIA FROM SANPHAM WHERE MASP = @MaSP);
+
+    INSERT INTO CHITIETHOADON (MAHD, MASP, SOLUONG, GIABAN)
+    VALUES (@MaHD, @MaSP, @SoLuong, @GiaBan);
+
+    UPDATE SANPHAM SET TONKHO = TONKHO - @SoLuong WHERE MASP = @MaSP;
+END;
+GO

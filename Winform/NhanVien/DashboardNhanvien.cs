@@ -73,40 +73,26 @@ namespace Winform
 
             // --- TẠO CÁC NÚT MENU ---
 
-            // 1. Quản lý Lịch Hẹn (Nhân viên + Quản lý)
-            if (!UserSession.IsBacSi())
+            if (UserSession.IsNhanVien())
             {
                 btnQuanLyLichHen = TaoNutMenu("📅  Quản Lý Lịch Hẹn");
                 btnQuanLyLichHen.Click += (s, e) => ChuyenTrang(new UCLichHen());
-            }
-
-            // 2. Lập Hóa Đơn (Nhân viên + Quản lý) -> MỚI THÊM
-            if (!UserSession.IsBacSi())
-            {
                 btnLapHoaDon = TaoNutMenu("💰  Lập Hóa Đơn");
                 btnLapHoaDon.Click += (s, e) => {
-                    // Vì TaoHoaDonForm là Form riêng (Popup), ta dùng ShowDialog
-                    // Không dùng ChuyenTrang (UserControl)
                     var frm = new TaoHoaDonForm();
                     frm.ShowDialog();
                 };
             }
             
-            // 3. Xem Lịch Sử (Bác sĩ + Quản lý)
-            if (UserSession.IsBacSi() || UserSession.IsQuanLy())
+            if (UserSession.IsBacSi())
             {
                 btnXemLichSu = TaoNutMenu("📋  Xem Lịch Sử Khám");
                 btnXemLichSu.Click += (s, e) => ChuyenTrang(new UCXemLichSuKham());
-            }
-            
-            // 4. Tạo Ca Khám (Chỉ Bác sĩ)
-            if (UserSession.IsBacSi())
-            {
                 btnKhamBenh = TaoNutMenu("🏭  Tạo Ca Khám Mới");
                 btnKhamBenh.Click += (s, e) => ChuyenTrang(new UCKhamBenh());
             }
+    
             
-            // 5. Thống Kê (Chỉ Quản lý)
             if (UserSession.IsQuanLy())
             {
                 btnThongKe = TaoNutMenu("📊  Thống Kê");

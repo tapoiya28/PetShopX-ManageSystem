@@ -6,30 +6,34 @@ namespace Winform
 {
     public class DashboardKhachhang : Form
     {
+        // Khai báo biến
         private Panel pnlSidebar;
         private Panel pnlHeader;
         private Panel pnlContent;
 
-        // Bỏ biến btnLichSu vì không dùng riêng nữa
-        // private Button btnLichSu; 
-
         public DashboardKhachhang()
         {
-            this.Size = new Size(1100, 700);
+            // 1. Cấu hình Form
+            this.Size = new Size(1280, 720);
             this.Text = "PetcareX - Khách Hàng";
             this.StartPosition = FormStartPosition.CenterScreen;
             this.BackColor = Color.WhiteSmoke;
 
+            // 2. Khởi tạo giao diện (QUAN TRỌNG: Phải chạy xong hàm này mới có pnlContent)
             TaoGiaoDien();
             
-            // Mặc định hiện trang Đặt Lịch
+            // 3. Chuyển trang mặc định (Chỉ gọi khi pnlContent đã được new)
             ChuyenTrang(new UCDatLich());
         }
 
         private void TaoGiaoDien()
         {
-            // 1. HEADER
+            // --- BƯỚC 1: KHỞI TẠO CÁC PANEL CHÍNH TRƯỚC (QUAN TRỌNG) ---
             pnlHeader = new Panel() { Dock = DockStyle.Top, Height = 60, BackColor = Color.White };
+            pnlSidebar = new Panel() { Dock = DockStyle.Left, Width = 240, BackColor = Color.FromArgb(41, 50, 65) };
+            pnlContent = new Panel() { Dock = DockStyle.Fill, Padding = new Padding(10) };
+
+            // --- BƯỚC 2: THIẾT LẬP HEADER ---
             Label lblLogo = new Label() { 
                 Text = "PETCARE X", 
                 Font = new Font("Segoe UI", 18, FontStyle.Bold), 
@@ -37,8 +41,11 @@ namespace Winform
                 Location = new Point(20, 15), 
                 AutoSize = true 
             };
+            
+            // Xử lý an toàn cho UserSession (tránh lỗi nếu chưa đăng nhập)
+            string tenUser = !string.IsNullOrEmpty(UserSession.FullName) ? UserSession.FullName : "Khách hàng";
             Label lblUser = new Label() {
-                Text = $"Xin chào, {UserSession.FullName}",
+                Text = $"Xin chào, {tenUser}",
                 Font = new Font("Segoe UI", 10, FontStyle.Bold),
                 Location = new Point(800, 20),
                 AutoSize = true,
@@ -46,15 +53,18 @@ namespace Winform
             };
             pnlHeader.Controls.AddRange(new Control[] { lblLogo, lblUser });
 
-            // 2. SIDEBAR
-            pnlSidebar = new Panel() { Dock = DockStyle.Left, Width = 220, BackColor = Color.FromArgb(40, 50, 70) };
-            
+            // --- BƯỚC 3: TẠO CÁC NÚT MENU ---
             Button btnDatLich = CreateMenuButton("📅  Đặt Lịch Hẹn", 80);
             btnDatLich.Click += (s, e) => ChuyenTrang(new UCDatLich());
 
-            // Nút này mở UserControl "Thông Tin & Hồ Sơ"
             Button btnHoSo = CreateMenuButton("🐶  Thông Tin & Hồ Sơ", 140);
             btnHoSo.Click += (s, e) => ChuyenTrang(new UCThongTinCaNhan()); 
+
+            Button btnTraCuuBS = CreateMenuButton("👨‍⚕️  Tra Cứu Bác Sĩ", 200);
+            btnTraCuuBS.Click += (s, e) => ChuyenTrang(new UCTraCuuBacSi());
+
+            Button btnMuaHang = CreateMenuButton("🛒  Mua Hàng Online", 260);
+            btnMuaHang.Click += (s, e) => ChuyenTrang(new UCMuaHangOnline());
 
             Button btnDangXuat = new Button() { 
                 Text = "Đăng Xuất", 
@@ -63,19 +73,19 @@ namespace Winform
                 FlatStyle = FlatStyle.Flat, 
                 BackColor = Color.IndianRed, 
                 ForeColor = Color.White,
-                Font = new Font("Segoe UI", 10, FontStyle.Bold)
+                Font = new Font("Segoe UI", 10, FontStyle.Bold),
+                Cursor = Cursors.Hand
             };
             btnDangXuat.Click += (s, e) => { this.Close(); };
 
-            // --- ĐÃ XÓA btnLichSu KHỎI DANH SÁCH ---
-            pnlSidebar.Controls.AddRange(new Control[] { btnDatLich, btnHoSo, btnDangXuat });
+            // --- BƯỚC 4: ADD CONTROL VÀO PANEL ---
+            // Đảm bảo tất cả biến button đã được tạo ở trên
+            pnlSidebar.Controls.AddRange(new Control[] { btnDatLich, btnHoSo, btnTraCuuBS, btnMuaHang, btnDangXuat });
 
-            // 3. MAIN CONTENT
-            pnlContent = new Panel() { Dock = DockStyle.Fill, Padding = new Padding(20) };
-
-            this.Controls.Add(pnlContent);
-            this.Controls.Add(pnlSidebar);
-            this.Controls.Add(pnlHeader);
+            // --- BƯỚC 5: ADD PANEL VÀO FORM ---
+            this.Controls.Add(pnlContent); // Content nằm giữa
+            this.Controls.Add(pnlSidebar); // Sidebar bên trái
+            this.Controls.Add(pnlHeader);  // Header trên cùng
         }
 
         private Button CreateMenuButton(string text, int top)
@@ -84,7 +94,7 @@ namespace Winform
             btn.Text = text;
             btn.Top = top;
             btn.Left = 0;
-            btn.Width = 220;
+            btn.Width = 240; // Khớp với chiều rộng Sidebar
             btn.Height = 50;
             btn.FlatStyle = FlatStyle.Flat;
             btn.FlatAppearance.BorderSize = 0;
@@ -102,6 +112,9 @@ namespace Winform
 
         private void ChuyenTrang(UserControl uc)
         {
+            // Kiểm tra an toàn
+            if (pnlContent == null) return; 
+
             pnlContent.Controls.Clear();
             uc.Dock = DockStyle.Fill;
             pnlContent.Controls.Add(uc);

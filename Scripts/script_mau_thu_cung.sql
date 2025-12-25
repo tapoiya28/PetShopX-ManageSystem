@@ -74,3 +74,4 @@ PRINT N'=== ĐÃ BƠM DỮ LIỆU MẪU CHO KHÁCH HÀNG ID ' + CAST(@MaKH_Test 
 select * from THUCUNG where makh = 1
 EXEC sp_ThuCung_XemDanhSach @MAKH = 1;
 GO
+select * from nhanvien

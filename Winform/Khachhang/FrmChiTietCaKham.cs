@@ -176,7 +176,6 @@ namespace Winform
                             }
                         }
                     }
-
                     // --- 4. Cập nhật Layout sau khi có dữ liệu ---
                     UpdateLayout();
                 }

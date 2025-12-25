@@ -94,8 +94,23 @@ namespace Winform
             
             // Format tiền tệ cho cell
             dgvChiTiet.DefaultCellStyle.Font = new Font("Segoe UI", 10);
+            // Thêm button Đánh giá vào TaoGiaoDien()
+            Button btnDanhGia = new Button() {
+                Text = "⭐ Đánh giá",
+                Width = 100,
+                Height = 35,
+                BackColor = Color.Gold,
+                FlatStyle = FlatStyle.Flat,
+                Location = new Point(500, 510) // Đặt cạnh nút Đóng
+            };
 
-            this.Controls.AddRange(new Control[] { lblTieuDe, lblThongTinTrai, lblThongTinPhai, dgvChiTiet, btnClose });
+            // Sự kiện click mở form đánh giá
+            btnDanhGia.Click += (s, e) => {
+                // Mở form đánh giá dưới dạng Dialog
+                new DanhGiaHoaDonForm(_maHD).ShowDialog();
+            };
+
+            this.Controls.AddRange(new Control[] { lblTieuDe, lblThongTinTrai, lblThongTinPhai, dgvChiTiet, btnClose,btnDanhGia });
         }
 
         private void LoadDuLieu()
