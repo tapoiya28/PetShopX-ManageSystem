@@ -9,13 +9,12 @@ namespace Winform
         private Panel pnlContent;
         private Panel pnlSidebar;
         
-        // Các nút chức năng
-        private Button btnQuanLyLichHen; // Nhân viên + Quản lý
-        private Button btnLapHoaDon;     // Nhân viên + Quản lý (Mới thêm)
-        private Button btnXemLichSu;     // Bác sĩ + Quản lý
-        private Button btnKhamBenh;      // Chỉ Bác sĩ
-        private Button btnThongKe;       // Chỉ Quản lý
-        
+        private Button btnQuanLyLichHen;
+        private Button btnLapHoaDon;    
+        private Button btnXemLichSu;     
+        private Button btnKhamBenh;     
+        private Button btnThongKe;       
+        private Button btnTraCuuKhach; 
         private Button btnDangXuat;
         private Label lblUser;
 
@@ -77,6 +76,8 @@ namespace Winform
             {
                 btnQuanLyLichHen = TaoNutMenu("📅  Quản Lý Lịch Hẹn");
                 btnQuanLyLichHen.Click += (s, e) => ChuyenTrang(new UCLichHen());
+                btnTraCuuKhach = TaoNutMenu("🔍  Tra Cứu Thú Cưng");
+                btnTraCuuKhach.Click += (s, e) => ChuyenTrang(new UCTraCuuThuCungToanHeThong());
                 btnLapHoaDon = TaoNutMenu("💰  Lập Hóa Đơn");
                 btnLapHoaDon.Click += (s, e) => {
                     var frm = new TaoHoaDonForm();
@@ -133,7 +134,8 @@ namespace Winform
 
             if (btnQuanLyLichHen != null) 
                 pnlSidebar.Controls.Add(btnQuanLyLichHen); // Sẽ nằm trên cùng
-
+            if (btnTraCuuKhach != null) 
+                pnlSidebar.Controls.Add(btnTraCuuKhach); 
             // Các thành phần cố định
             pnlSidebar.Controls.Add(btnDangXuat); // Dock Bottom
             pnlSidebar.Controls.Add(pnlUser);     // Dock Top (sẽ đè lên trên cùng của Top)

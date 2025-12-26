@@ -63,7 +63,13 @@ namespace Winform
                 Location = new Point(55, 75),
                 AutoSize = true
             };
-
+            btnThemTrucTiep = new Button() { 
+                Text = "➕ ĐẶT LỊCH TRỰC TIẾP", 
+                Location = new Point(410, 70), // Chỉnh lại tọa độ cho phù hợp
+                Width = 200, Height = 30,
+                BackColor = Color.Orange, ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat, Font = new Font("Segoe UI", 9, FontStyle.Bold)
+            };
             // --- GROUP 1: THÔNG TIN DỊCH VỤ ---
             int startY = 130;
             int gap = 80; // Khoảng cách giữa các dòng
