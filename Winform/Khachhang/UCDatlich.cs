@@ -19,7 +19,7 @@ namespace Winform
         private TextBox txtGhiChu;
         private Button btnDatLich;
         private Button btnBack;
-
+        private Button btnThemTrucTiep;
         // Màu sắc chủ đạo
         private Color primaryColor = Color.FromArgb(51, 102, 255); // Xanh dương
         private Color successColor = Color.FromArgb(40, 167, 69);  // Xanh lá
