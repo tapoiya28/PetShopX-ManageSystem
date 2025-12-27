@@ -26,7 +26,7 @@ namespace Winform
         public LoginForm()
         {
             // Cài đặt Form
-            this.Size = new Size(420, 500);
+            this.Size = new Size(420, 520);
             this.Text = "Hệ Thống PetcareX";
             this.StartPosition = FormStartPosition.CenterScreen;
             this.FormBorderStyle = FormBorderStyle.FixedSingle;
@@ -56,14 +56,27 @@ namespace Winform
             Button btnLogin = new Button() { Text = "ĐĂNG NHẬP", Location = new Point(50, 240), Width = 300, Height = 40, BackColor = Color.RoyalBlue, ForeColor = Color.White, Font = new Font("Segoe UI", 10, FontStyle.Bold), FlatStyle = FlatStyle.Flat };
             btnLogin.Click += (s, e) => XuLyDangNhap();
 
-            Label lblDivider = new Label() { Text = "---------------- hoặc ----------------", Location = new Point(110, 300), AutoSize = true, ForeColor = Color.Gray };
+            Label lblAsk = new Label() { 
+                Text = "Bạn chưa có tài khoản?", 
+                Location = new Point(85, 345), 
+                AutoSize = true 
+            };
 
-            Label lblAsk = new Label() { Text = "Bạn chưa có tài khoản?", Location = new Point(90, 340), AutoSize = true };
-            Button btnGoToReg = new Button() { Text = "Đăng ký ngay", Location = new Point(220, 335), Width = 100, FlatStyle = FlatStyle.Flat, ForeColor = Color.RoyalBlue, Cursor = Cursors.Hand };
+            Button btnGoToReg = new Button() { 
+                Text = "Đăng ký ngay", 
+                Location = new Point(lblAsk.Location.X + lblAsk.PreferredWidth - 5, 338), 
+                AutoSize = true, 
+                FlatStyle = FlatStyle.Flat, 
+                ForeColor = Color.RoyalBlue, 
+                Font = new Font("Segoe UI", 9, FontStyle.Underline),
+                Cursor = Cursors.Hand 
+            };
             btnGoToReg.FlatAppearance.BorderSize = 0;
+            btnGoToReg.FlatAppearance.MouseOverBackColor = Color.Transparent; // Không hiện nền khi di chuột qua
+            btnGoToReg.FlatAppearance.MouseDownBackColor = Color.Transparent;
             btnGoToReg.Click += (s, e) => ChuyenManHinh(false);
 
-            pnlDangNhap.Controls.AddRange(new Control[] { lblTitle, lblInput, txtLoginInput, lblPass, txtLoginPass, btnLogin, lblDivider, lblAsk, btnGoToReg });
+            pnlDangNhap.Controls.AddRange(new Control[] { lblTitle, lblInput, txtLoginInput, lblPass, txtLoginPass, btnLogin, lblAsk, btnGoToReg });
             this.Controls.Add(pnlDangNhap);
         }
 
@@ -72,28 +85,63 @@ namespace Winform
         {
             pnlDangKy = new Panel() { Size = this.ClientSize, Location = new Point(0, 0), Visible = false };
 
-            Label lblTitle = new Label() { Text = "ĐĂNG KÝ KHÁCH HÀNG", Font = new Font("Segoe UI", 16, FontStyle.Bold), ForeColor = Color.Green, Location = new Point(70, 30), AutoSize = true };
+            // Tiêu đề căn giữa chuẩn
+            Label lblTitle = new Label() { 
+                Text = "ĐĂNG KÝ TÀI KHOẢN", 
+                Font = new Font("Segoe UI", 16, FontStyle.Bold), 
+                ForeColor = Color.ForestGreen, 
+                Location = new Point(0, 25), 
+                Size = new Size(this.ClientSize.Width, 40),
+                TextAlign = ContentAlignment.MiddleCenter 
+            };
 
-            // Các trường nhập liệu
+            // Tăng khoảng cách yPos để các trường không dính nhau
             txtRegHoTen = TaoTextBoxLabel("Họ và tên:", 80, pnlDangKy);
-            txtRegSDT = TaoTextBoxLabel("Số điện thoại:", 130, pnlDangKy);
-            txtRegDiaChi = TaoTextBoxLabel("Địa chỉ:", 180, pnlDangKy);
-            txtRegUser = TaoTextBoxLabel("Tên đăng nhập:", 230, pnlDangKy);
+            txtRegSDT = TaoTextBoxLabel("Số điện thoại:", 135, pnlDangKy);
+            txtRegDiaChi = TaoTextBoxLabel("Địa chỉ:", 190, pnlDangKy);
+            txtRegUser = TaoTextBoxLabel("Tên đăng nhập:", 245, pnlDangKy);
             
-            Label lblPass = new Label() { Text = "Mật khẩu:", Location = new Point(50, 280), AutoSize = true };
-            txtRegPass = new TextBox() { Location = new Point(50, 305), Width = 300, PasswordChar = '*', Font = new Font("Segoe UI", 10) };
+            Label lblPass = new Label() { Text = "Mật khẩu:", Location = new Point(50, 300), AutoSize = true, Font = new Font("Segoe UI", 9), ForeColor = Color.DimGray };
+            txtRegPass = new TextBox() { Location = new Point(50, 322), Width = 300, PasswordChar = '*', Font = new Font("Segoe UI", 10) };
             pnlDangKy.Controls.Add(lblPass);
             pnlDangKy.Controls.Add(txtRegPass);
 
-            Button btnRegister = new Button() { Text = "ĐĂNG KÝ", Location = new Point(50, 360), Width = 300, Height = 40, BackColor = Color.ForestGreen, ForeColor = Color.White, Font = new Font("Segoe UI", 10, FontStyle.Bold), FlatStyle = FlatStyle.Flat };
+            Button btnRegister = new Button() { 
+                Text = "TẠO TÀI KHOẢN", 
+                Location = new Point(50, 370), 
+                Width = 300, Height = 45, 
+                BackColor = Color.ForestGreen, 
+                ForeColor = Color.White, 
+                Font = new Font("Segoe UI", 10, FontStyle.Bold), 
+                FlatStyle = FlatStyle.Flat 
+            };
             btnRegister.Click += (s, e) => XuLyDangKy();
 
-            Button btnBack = new Button() { Text = " Quay lại Đăng nhập", Location = new Point(50, 410), Width = 300, FlatStyle = FlatStyle.Flat, ForeColor = Color.Gray };
+            // --- PHẦN NÚT QUAY LẠI KHÔNG BỊ ĐÈ CHỮ ---
+            Label lblAsk = new Label() { 
+                Text = "Đã có tài khoản?", 
+                Location = new Point(105, 435), 
+                AutoSize = true,
+                ForeColor = Color.Gray
+            };
+
+            Button btnBack = new Button() { 
+                Text = "Đăng nhập ngay", 
+                Location = new Point(lblAsk.Location.X + lblAsk.PreferredWidth - 5, 428), 
+                AutoSize = true,
+                FlatStyle = FlatStyle.Flat, 
+                ForeColor = Color.ForestGreen, 
+                Font = new Font("Segoe UI", 9, FontStyle.Underline),
+                Cursor = Cursors.Hand 
+            };
             btnBack.FlatAppearance.BorderSize = 0;
+            btnBack.FlatAppearance.MouseOverBackColor = Color.Transparent;
+            btnBack.FlatAppearance.MouseDownBackColor = Color.Transparent;
             btnBack.Click += (s, e) => ChuyenManHinh(true);
 
             pnlDangKy.Controls.Add(lblTitle);
             pnlDangKy.Controls.Add(btnRegister);
+            pnlDangKy.Controls.Add(lblAsk);
             pnlDangKy.Controls.Add(btnBack);
 
             this.Controls.Add(pnlDangKy);

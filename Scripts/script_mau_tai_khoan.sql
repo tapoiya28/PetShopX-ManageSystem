@@ -1,16 +1,29 @@
 USE PetcareX;
 GO
-
--- 1. XÓA DỮ LIỆU CŨ ĐỂ LÀM SẠCH (TRÁNH TRÙNG LẶP KHÓA CHÍNH)
-DELETE FROM TAIKHOAN WHERE TENDANGNHAP IN ('taikhoanquanli', 'taikhoanbacsi', 'taikhoannhanvien', 'taikhoankhachhang');
-DELETE FROM LAMVIEC WHERE MANV IN (1, 2, 3);
+IF OBJECT_ID('dbo.TAIKHOAN', 'U') IS NOT NULL DROP TABLE dbo.TAIKHOAN;
 GO
 
--- 2. CẬP NHẬT LẠI VAI TRÒ TRONG BẢNG NHANVIEN CHO ĐÚNG LOGIC TEST
--- Chúng ta chọn: MANV 1 làm Quản lý, MANV 2 làm Bác sĩ, MANV 3 làm Nhân viên
-UPDATE NHANVIEN SET VAITRO = 'QL' WHERE MANV = 1; -- Ấu Nhung Lệ -> Quản lý
-UPDATE NHANVIEN SET VAITRO = 'BS' WHERE MANV = 2; -- Đường Chiến Hòa -> Bác sĩ
-UPDATE NHANVIEN SET VAITRO = 'NV' WHERE MANV = 3; -- Doãn Tuyết Tuyền -> Nhân viên
+CREATE TABLE TAIKHOAN (
+    TENDANGNHAP VARCHAR(20) PRIMARY KEY, 
+    MATKHAU     CHAR(32) NOT NULL,       
+    SALT        VARCHAR(36) NOT NULL,    
+    TRANGTHAI   BIT DEFAULT 1,           
+    MANV        INTEGER NULL,
+    MAKH        INTEGER NULL,
+    CONSTRAINT FK_TAIKHOAN_NHANVIEN FOREIGN KEY (MANV) REFERENCES NHANVIEN(MANV),
+    CONSTRAINT FK_TAIKHOAN_KHACHHANG FOREIGN KEY (MAKH) REFERENCES KHACHHANG(MAKH),
+    CONSTRAINT CHK_ValidOwner CHECK (
+        (MANV IS NOT NULL AND MAKH IS NULL) OR 
+        (MANV IS NULL AND MAKH IS NOT NULL)
+    )
+);
+GO
+
+--mat kha
+-- 1. XÓA DỮ LIỆU CŨ ĐỂ LÀM SẠCH (TRÁNH TRÙNG LẶP KHÓA CHÍNH)
+DELETE FROM TAIKHOAN WHERE TENDANGNHAP IN ('taikhoanquanli', 'taikhoanbacsi', 'taikhoannhanvien', 'taikhoankhachhang');
+DELETE FROM LAMVIEC WHERE MANV IN (1, 3, 5);
+
 GO
 
 -- 3. CẤP TÀI KHOẢN (SCRIPT TAIKHOAN)
@@ -19,9 +32,9 @@ DECLARE @Salt CHAR(3) = 'ABC';
 
 INSERT INTO TAIKHOAN (TENDANGNHAP, MATKHAU, SALT, TRANGTHAI, MANV, MAKH)
 VALUES 
-('taikhoanquanli',   @PassHash, @Salt, 1, 1,    NULL), -- MANV 1
-('taikhoanbacsi',    @PassHash, @Salt, 1, 2,    NULL), -- MANV 2
-('taikhoannhanvien', @PassHash, @Salt, 1, 3,    NULL), -- MANV 3
+('taikhoanquanli',   @PassHash, @Salt, 1, 3,    NULL), -- MANV 3
+('taikhoanbacsi',    @PassHash, @Salt, 1, 1,    NULL), -- MANV 1
+('taikhoannhanvien', @PassHash, @Salt, 1, 5,    NULL), -- MANV 5
 ('taikhoankhachhang', @PassHash, @Salt, 1, NULL, 1);    -- MAKH 1
 GO
 
@@ -29,9 +42,9 @@ GO
 -- Giả sử tất cả làm việc tại Chi nhánh 1 (MACN = 1)
 INSERT INTO LAMVIEC (MACN, MANV, NGAYBATDAU, NGAYKETTHUC, VAITRO)
 VALUES 
-(1, 1, '2023-01-01', NULL, 'QL'), -- Khớp với taikhoanquanli
-(1, 2, '2023-01-01', NULL, 'BS'), -- Khớp với taikhoanbacsi
-(1, 3, '2023-01-01', NULL, 'NV'); -- Khớp với taikhoannhanvien
+(1, 3, '2023-01-01', NULL, 'QL'), -- Khớp với taikhoanquanli
+(1, 1, '2023-01-01', NULL, 'BS'), -- Khớp với taikhoanbacsi
+(1, 5, '2023-01-01', NULL, 'NV'); -- Khớp với taikhoannhanvien
 GO
 
 -- 5. KIỂM TRA LẠI SỰ ĐỒNG BỘ
@@ -46,3 +59,4 @@ FROM TAIKHOAN TK
 JOIN NHANVIEN NV ON TK.MANV = NV.MANV
 JOIN LAMVIEC LV ON NV.MANV = LV.MANV
 WHERE TK.TENDANGNHAP != 'taikhoankhachhang';
+

@@ -4,20 +4,20 @@ GO
 -- BÁO CÁO THỐNG KÊ
 -- tính tổng sản phẩm trong 1 hoá đơn
 GO
-CREATE OR ALTER FUNCTION f_TongSanPhamCuaHoaDon(@MAHD INTEGER)
-RETURNS INTEGER
-AS
-BEGIN
-    DECLARE @TONG INTEGER
-
-    SELECT @TONG = SUM(CT.SOLUONG)
-    FROM HOADON HD
-    JOIN CHITIETHOADON CT ON HD.MAHD = CT.MAHD
-    WHERE HD.MAHD = @MAHD
-
-    RETURN @TONG
-END
-GO
+-- CREATE OR ALTER FUNCTION f_TongSanPhamCuaHoaDon(@MAHD INTEGER)
+-- RETURNS INTEGER
+-- AS
+-- BEGIN
+--     DECLARE @TONG INTEGER
+-- 
+--     SELECT @TONG = SUM(CT.SOLUONG)
+--     FROM HOADON HD
+--     JOIN CHITIETHOADON CT ON HD.MAHD = CT.MAHD
+--     WHERE HD.MAHD = @MAHD
+-- 
+--     RETURN @TONG
+-- END
+-- GO
 
 -- tình hình kinh doanh theo tháng/năm
 GO
@@ -343,325 +343,325 @@ END
 GO
 
 GO-- tra cứu thông tin sản phẩm
-CREATE OR ALTER PROCEDURE sp_TraCuuThongTinSanPham
-    @MASP INTEGER
-AS
-BEGIN
-    SET NOCOUNT ON;
-    BEGIN TRY
-        IF NOT EXISTS (
-            SELECT 1 
-            FROM SANPHAM
-            WHERE MASP = @MASP
-        )
-        RAISERROR (N'Mã sản phẩm không tồn tại', 16, 1)
-
-        DECLARE @LOAISP NVARCHAR(10);
-        
-        SELECT 
-            @LOAISP = LOAI
-        FROM SANPHAM
-        WHERE MASP = @MASP;
-        
-        IF @LOAISP = N'Sản phẩm'
-        BEGIN
-            SELECT 
-                MASP AS N'Mã sản phẩm',
-                TENSP AS N'Tên sản phẩm',
-                DONGIA AS N'Đơn giá hiện tại',
-                TONKHO AS N'Số lượng còn lại'
-            FROM SANPHAM 
-            WHERE MASP = @MASP;
-
-            RETURN 1;
-        END
-
-        IF @LOAISP = N'Dịch vụ'
-        BEGIN
-            SELECT 
-                SP.MASP AS N'Mã dịch vụ',
-                SP.TENSP AS N'Tên dịch vụ',
-                SP.DONGIA AS N'Đơn giá hiện tại',
-                DV.THOIGIANTHUCHIEN AS N'Thời gian thực hiện',
-                LDV.TENLOAIDV AS N'Loại dịch vụ'
-            FROM SANPHAM SP
-            JOIN DICHVU DV ON SP.MASP = DV.MADV
-            JOIN LOAIDICHVU LDV ON DV.MALOAIDV = LDV.MALOAIDV
-            WHERE MASP = @MASP;
-
-            RETURN 1;
-        END
-        
-        IF @LOAISP = 'Thuốc'
-        BEGIN
-            SELECT 
-                SP.MASP AS N'Mã thuốc',
-                SP.TENSP AS N'Tên thuốc',
-                SP.DONGIA AS N'Đơn giá hiện tại',
-                TH.DONVI AS N'Đơn vị tính',
-                TH.NGAYSX AS N'Ngày sản xuất',
-                TH.HSD AS N'Hạn sử dụng'
-            FROM SANPHAM SP
-            JOIN THUOC TH ON SP.MASP = TH.MATHUOC
-            WHERE MASP = @MASP;
-
-            RETURN 1;
-        END
-        IF @LOAISP = 'Vacxin'
-        BEGIN
-            SELECT 
-                SP.MASP AS N'Mã vacxin',
-                SP.TENSP AS N'Tên vacxin',
-                SP.DONGIA AS N'Đơn giá hiện tại',
-                VC.DOTUOIAPDUNG AS N'Độ tuổi áp dụng',
-                VC.NGAYSX AS N'Ngày sản xuất',
-                VC.HSD AS N'Hạn sử dụng'
-            FROM SANPHAM SP
-            JOIN VACXIN VC ON SP.MASP = VC.MAVACXIN
-            WHERE MASP = @MASP;
-
-            RETURN 1;
-        END
-        
-        IF @LOAISP = 'Gói tiêm'
-        BEGIN
-            SELECT 
-                SP.MASP AS N'Mã gói tiêm',
-                SP.TENSP AS N'Tên gói tiêm',
-                SP.DONGIA AS N'Đơn giá hiện tại',
-                GT.THOIGIAN AS N'Thời gian',
-                GT.KHUYENMAI AS N'Khuyến mãi',
-                COUNT(CT.SOLUONG) AS N'Tổng mũi tiêm' 
-            FROM SANPHAM SP
-            JOIN GOITIEM GT ON SP.MASP = GT.MAGOITIEM
-            JOIN CHITIETGOITIEM CT ON GT.MAGOITIEM = CT.MAGOITIEM
-            WHERE MASP = @MASP
-            GROUP BY SP.MASP, SP.TENSP, SP.DONGIA, GT.THOIGIAN, GT.KHUYENMAI;
-
-            RETURN 1;
-        END
-    END TRY
-    BEGIN CATCH
-        PRINT 'Lỗi: ' + ERROR_MESSAGE()
-        RETURN -1;
-    END CATCH
-END
-GO
+-- CREATE OR ALTER PROCEDURE sp_TraCuuThongTinSanPham
+--     @MASP INTEGER
+-- AS
+-- BEGIN
+--     SET NOCOUNT ON;
+--     BEGIN TRY
+--         IF NOT EXISTS (
+--             SELECT 1 
+--             FROM SANPHAM
+--             WHERE MASP = @MASP
+--         )
+--         RAISERROR (N'Mã sản phẩm không tồn tại', 16, 1)
+-- 
+--         DECLARE @LOAISP NVARCHAR(10);
+--         
+--         SELECT 
+--             @LOAISP = LOAI
+--         FROM SANPHAM
+--         WHERE MASP = @MASP;
+--         
+--         IF @LOAISP = N'Sản phẩm'
+--         BEGIN
+--             SELECT 
+--                 MASP AS N'Mã sản phẩm',
+--                 TENSP AS N'Tên sản phẩm',
+--                 DONGIA AS N'Đơn giá hiện tại',
+--                 TONKHO AS N'Số lượng còn lại'
+--             FROM SANPHAM 
+--             WHERE MASP = @MASP;
+-- 
+--             RETURN 1;
+--         END
+-- 
+--         IF @LOAISP = N'Dịch vụ'
+--         BEGIN
+--             SELECT 
+--                 SP.MASP AS N'Mã dịch vụ',
+--                 SP.TENSP AS N'Tên dịch vụ',
+--                 SP.DONGIA AS N'Đơn giá hiện tại',
+--                 DV.THOIGIANTHUCHIEN AS N'Thời gian thực hiện',
+--                 LDV.TENLOAIDV AS N'Loại dịch vụ'
+--             FROM SANPHAM SP
+--             JOIN DICHVU DV ON SP.MASP = DV.MADV
+--             JOIN LOAIDICHVU LDV ON DV.MALOAIDV = LDV.MALOAIDV
+--             WHERE MASP = @MASP;
+-- 
+--             RETURN 1;
+--         END
+--         
+--         IF @LOAISP = 'Thuốc'
+--         BEGIN
+--             SELECT 
+--                 SP.MASP AS N'Mã thuốc',
+--                 SP.TENSP AS N'Tên thuốc',
+--                 SP.DONGIA AS N'Đơn giá hiện tại',
+--                 TH.DONVI AS N'Đơn vị tính',
+--                 TH.NGAYSX AS N'Ngày sản xuất',
+--                 TH.HSD AS N'Hạn sử dụng'
+--             FROM SANPHAM SP
+--             JOIN THUOC TH ON SP.MASP = TH.MATHUOC
+--             WHERE MASP = @MASP;
+-- 
+--             RETURN 1;
+--         END
+--         IF @LOAISP = 'Vacxin'
+--         BEGIN
+--             SELECT 
+--                 SP.MASP AS N'Mã vacxin',
+--                 SP.TENSP AS N'Tên vacxin',
+--                 SP.DONGIA AS N'Đơn giá hiện tại',
+--                 VC.DOTUOIAPDUNG AS N'Độ tuổi áp dụng',
+--                 VC.NGAYSX AS N'Ngày sản xuất',
+--                 VC.HSD AS N'Hạn sử dụng'
+--             FROM SANPHAM SP
+--             JOIN VACXIN VC ON SP.MASP = VC.MAVACXIN
+--             WHERE MASP = @MASP;
+-- 
+--             RETURN 1;
+--         END
+--         
+--         IF @LOAISP = 'Gói tiêm'
+--         BEGIN
+--             SELECT 
+--                 SP.MASP AS N'Mã gói tiêm',
+--                 SP.TENSP AS N'Tên gói tiêm',
+--                 SP.DONGIA AS N'Đơn giá hiện tại',
+--                 GT.THOIGIAN AS N'Thời gian',
+--                 GT.KHUYENMAI AS N'Khuyến mãi',
+--                 COUNT(CT.SOLUONG) AS N'Tổng mũi tiêm' 
+--             FROM SANPHAM SP
+--             JOIN GOITIEM GT ON SP.MASP = GT.MAGOITIEM
+--             JOIN CHITIETGOITIEM CT ON GT.MAGOITIEM = CT.MAGOITIEM
+--             WHERE MASP = @MASP
+--             GROUP BY SP.MASP, SP.TENSP, SP.DONGIA, GT.THOIGIAN, GT.KHUYENMAI;
+-- 
+--             RETURN 1;
+--         END
+--     END TRY
+--     BEGIN CATCH
+--         PRINT 'Lỗi: ' + ERROR_MESSAGE()
+--         RETURN -1;
+--     END CATCH
+-- END
+-- GO
 
 -- QuanLyHeThong - toan
-CREATE OR ALTER PROCEDURE sp_Sub_NhanVien_Xem
-    @MANV INT = NULL
-AS
-BEGIN
-    SET NOCOUNT ON;
+-- CREATE OR ALTER PROCEDURE sp_Sub_NhanVien_Xem
+--     @MANV INT = NULL
+-- AS
+-- BEGIN
+--     SET NOCOUNT ON;
+-- 
+--     IF @MANV IS NULL
+--     BEGIN
+--         SELECT NV.MANV, NV.HOTEN, NV.SDT, NV.GIOITINH, NV.LUONGCOBAN, NV.VAITRO,
+--                BS.BANGCAP, BS.KINHNGHIEM, QL.NGAYBONHIEM, QL.MACN AS MaChiNhanhQuanLy
+--         FROM NHANVIEN NV 
+--         LEFT JOIN BACSI BS ON NV.MANV = BS.MANV 
+--         LEFT JOIN QUANLY QL ON NV.MANV = QL.MANV;
+--         RETURN 0;
+--     END
+-- 
+--     IF NOT EXISTS (SELECT 1 FROM NHANVIEN WHERE MANV = @MANV)
+--         THROW 50016, N'Nhân viên không tồn tại.', 1;
+-- 
+--     DECLARE @ROLE VARCHAR(2);
+--     SELECT @ROLE = VAITRO FROM NHANVIEN WHERE MANV = @MANV;
+-- 
+--     IF @ROLE = 'BS'
+--     BEGIN
+--         SELECT NV.MANV, NV.HOTEN, NV.SDT, NV.GIOITINH, NV.LUONGCOBAN, NV.VAITRO,
+--                BS.BANGCAP, BS.KINHNGHIEM
+--         FROM NHANVIEN NV
+--         JOIN BACSI BS ON NV.MANV = BS.MANV
+--         WHERE NV.MANV = @MANV;
+--     END
+--     ELSE IF @ROLE = 'QL'
+--     BEGIN
+--         SELECT NV.MANV, NV.HOTEN, NV.SDT, NV.GIOITINH, NV.LUONGCOBAN, NV.VAITRO,
+--                QL.NGAYBONHIEM, QL.MACN AS MaChiNhanhQuanLy
+--         FROM NHANVIEN NV
+--         JOIN QUANLY QL ON NV.MANV = QL.MANV
+--         WHERE NV.MANV = @MANV;
+--     END
+--     ELSE
+--     BEGIN
+--         SELECT NV.MANV, NV.HOTEN, NV.SDT, NV.GIOITINH, NV.LUONGCOBAN, NV.VAITRO
+--         FROM NHANVIEN NV
+--         WHERE NV.MANV = @MANV;
+--     END
+-- END;
+-- GO
 
-    IF @MANV IS NULL
-    BEGIN
-        SELECT NV.MANV, NV.HOTEN, NV.SDT, NV.GIOITINH, NV.LUONGCOBAN, NV.VAITRO,
-               BS.BANGCAP, BS.KINHNGHIEM, QL.NGAYBONHIEM, QL.MACN AS MaChiNhanhQuanLy
-        FROM NHANVIEN NV 
-        LEFT JOIN BACSI BS ON NV.MANV = BS.MANV 
-        LEFT JOIN QUANLY QL ON NV.MANV = QL.MANV;
-        RETURN 0;
-    END
+-- CREATE OR ALTER PROCEDURE sp_Sub_NhanVien_Them
+--     @HOTEN NVARCHAR(50), @NGAYSINH DATE, @GIOITINH NVARCHAR(5), @SDT CHAR(10), @LUONGCOBAN INT,
+--     @VAITRO VARCHAR(2), @BANGCAP NVARCHAR(50) = NULL, @KINHNGHIEM INT = 0, @MACN_QUANLY INT = NULL
+-- AS
+-- BEGIN
+--     IF @VAITRO = 'BS' AND @BANGCAP IS NULL THROW 50001, N'Thiếu bằng cấp bác sĩ.', 1;
+--     IF @VAITRO = 'QL' AND @MACN_QUANLY IS NULL THROW 50002, N'Thiếu mã chi nhánh quản lý.', 1;
+--     IF EXISTS (SELECT 1 FROM NHANVIEN WHERE SDT = @SDT) THROW 50003, N'SĐT đã được sử dụng.', 1;
+-- 
+--     INSERT INTO NHANVIEN (HOTEN, NGAYSINH, GIOITINH, SDT, LUONGCOBAN, VAITRO)
+--     VALUES (@HOTEN, @NGAYSINH, @GIOITINH, @SDT, @LUONGCOBAN, @VAITRO);
+-- 
+--     DECLARE @NewMANV INT = SCOPE_IDENTITY();
+-- 
+--     IF @VAITRO = 'BS' INSERT INTO BACSI (MANV, BANGCAP, KINHNGHIEM) VALUES (@NewMANV, @BANGCAP, @KINHNGHIEM);
+--     ELSE IF @VAITRO = 'QL' INSERT INTO QUANLY (MANV, NGAYBONHIEM, MACN) VALUES (@NewMANV, GETDATE(), @MACN_QUANLY);
+--     PRINT N'Đã thêm thành công. Mã: ' + CAST(@NewMANV AS NVARCHAR(20));
+-- END;
+-- GO
 
-    IF NOT EXISTS (SELECT 1 FROM NHANVIEN WHERE MANV = @MANV)
-        THROW 50016, N'Nhân viên không tồn tại.', 1;
-
-    DECLARE @ROLE VARCHAR(2);
-    SELECT @ROLE = VAITRO FROM NHANVIEN WHERE MANV = @MANV;
-
-    IF @ROLE = 'BS'
-    BEGIN
-        SELECT NV.MANV, NV.HOTEN, NV.SDT, NV.GIOITINH, NV.LUONGCOBAN, NV.VAITRO,
-               BS.BANGCAP, BS.KINHNGHIEM
-        FROM NHANVIEN NV
-        JOIN BACSI BS ON NV.MANV = BS.MANV
-        WHERE NV.MANV = @MANV;
-    END
-    ELSE IF @ROLE = 'QL'
-    BEGIN
-        SELECT NV.MANV, NV.HOTEN, NV.SDT, NV.GIOITINH, NV.LUONGCOBAN, NV.VAITRO,
-               QL.NGAYBONHIEM, QL.MACN AS MaChiNhanhQuanLy
-        FROM NHANVIEN NV
-        JOIN QUANLY QL ON NV.MANV = QL.MANV
-        WHERE NV.MANV = @MANV;
-    END
-    ELSE
-    BEGIN
-        SELECT NV.MANV, NV.HOTEN, NV.SDT, NV.GIOITINH, NV.LUONGCOBAN, NV.VAITRO
-        FROM NHANVIEN NV
-        WHERE NV.MANV = @MANV;
-    END
-END;
-GO
-
-CREATE OR ALTER PROCEDURE sp_Sub_NhanVien_Them
-    @HOTEN NVARCHAR(50), @NGAYSINH DATE, @GIOITINH NVARCHAR(5), @SDT CHAR(10), @LUONGCOBAN INT,
-    @VAITRO VARCHAR(2), @BANGCAP NVARCHAR(50) = NULL, @KINHNGHIEM INT = 0, @MACN_QUANLY INT = NULL
-AS
-BEGIN
-    IF @VAITRO = 'BS' AND @BANGCAP IS NULL THROW 50001, N'Thiếu bằng cấp bác sĩ.', 1;
-    IF @VAITRO = 'QL' AND @MACN_QUANLY IS NULL THROW 50002, N'Thiếu mã chi nhánh quản lý.', 1;
-    IF EXISTS (SELECT 1 FROM NHANVIEN WHERE SDT = @SDT) THROW 50003, N'SĐT đã được sử dụng.', 1;
-
-    INSERT INTO NHANVIEN (HOTEN, NGAYSINH, GIOITINH, SDT, LUONGCOBAN, VAITRO)
-    VALUES (@HOTEN, @NGAYSINH, @GIOITINH, @SDT, @LUONGCOBAN, @VAITRO);
-
-    DECLARE @NewMANV INT = SCOPE_IDENTITY();
-
-    IF @VAITRO = 'BS' INSERT INTO BACSI (MANV, BANGCAP, KINHNGHIEM) VALUES (@NewMANV, @BANGCAP, @KINHNGHIEM);
-    ELSE IF @VAITRO = 'QL' INSERT INTO QUANLY (MANV, NGAYBONHIEM, MACN) VALUES (@NewMANV, GETDATE(), @MACN_QUANLY);
-    PRINT N'Đã thêm thành công. Mã: ' + CAST(@NewMANV AS NVARCHAR(20));
-END;
-GO
-
-CREATE OR ALTER PROCEDURE sp_Sub_NhanVien_Sua
-    @MANV INT, @HOTEN NVARCHAR(50), @NGAYSINH DATE, @GIOITINH NVARCHAR(5), @SDT CHAR(10), @LUONGCOBAN INT,
-    @BANGCAP NVARCHAR(50) = NULL, @KINHNGHIEM INT = 0, @MACN_QUANLY INT = NULL
-AS
-BEGIN
-    IF @MANV IS NULL THROW 50005, N'Thiếu mã NV.', 1;
-
-    UPDATE NHANVIEN 
-    SET 
-        HOTEN = ISNULL(@HOTEN, HOTEN),
-        NGAYSINH = ISNULL(@NGAYSINH, NGAYSINH), 
-        GIOITINH = ISNULL(@GIOITINH, GIOITINH), 
-        SDT = ISNULL(@SDT, SDT), 
-        LUONGCOBAN = ISNULL(@LUONGCOBAN, LUONGCOBAN) 
-    WHERE MANV = @MANV;
-
-    IF EXISTS (SELECT 1 FROM BACSI WHERE MANV = @MANV)
-        UPDATE BACSI 
-        SET 
-            BANGCAP = ISNULL(@BANGCAP, BANGCAP), 
-            KINHNGHIEM = ISNULL(@KINHNGHIEM, KINHNGHIEM) 
-            WHERE MANV = @MANV;
-    ELSE IF EXISTS (SELECT 1 FROM QUANLY WHERE MANV = @MANV) AND @MACN_QUANLY IS NOT NULL
-        UPDATE QUANLY 
-        SET 
-            MACN = ISNULL(@MACN_QUANLY, MACN) 
-        WHERE MANV = @MANV;
-
-    PRINT N'Đã cập nhật thông tin.';
-END;
-GO
+-- CREATE OR ALTER PROCEDURE sp_Sub_NhanVien_Sua
+--     @MANV INT, @HOTEN NVARCHAR(50), @NGAYSINH DATE, @GIOITINH NVARCHAR(5), @SDT CHAR(10), @LUONGCOBAN INT,
+--     @BANGCAP NVARCHAR(50) = NULL, @KINHNGHIEM INT = 0, @MACN_QUANLY INT = NULL
+-- AS
+-- BEGIN
+--     IF @MANV IS NULL THROW 50005, N'Thiếu mã NV.', 1;
+-- 
+--     UPDATE NHANVIEN 
+--     SET 
+--         HOTEN = ISNULL(@HOTEN, HOTEN),
+--         NGAYSINH = ISNULL(@NGAYSINH, NGAYSINH), 
+--         GIOITINH = ISNULL(@GIOITINH, GIOITINH), 
+--         SDT = ISNULL(@SDT, SDT), 
+--         LUONGCOBAN = ISNULL(@LUONGCOBAN, LUONGCOBAN) 
+--     WHERE MANV = @MANV;
+-- 
+--     IF EXISTS (SELECT 1 FROM BACSI WHERE MANV = @MANV)
+--         UPDATE BACSI 
+--         SET 
+--             BANGCAP = ISNULL(@BANGCAP, BANGCAP), 
+--             KINHNGHIEM = ISNULL(@KINHNGHIEM, KINHNGHIEM) 
+--             WHERE MANV = @MANV;
+--     ELSE IF EXISTS (SELECT 1 FROM QUANLY WHERE MANV = @MANV) AND @MACN_QUANLY IS NOT NULL
+--         UPDATE QUANLY 
+--         SET 
+--             MACN = ISNULL(@MACN_QUANLY, MACN) 
+--         WHERE MANV = @MANV;
+-- 
+--     PRINT N'Đã cập nhật thông tin.';
+-- END;
+-- GO
 
 --- QuanLyChiNhanh
-CREATE OR ALTER PROCEDURE sp_Sub_ChiNhanh_Xem AS 
-BEGIN SELECT * FROM CHINHANH; END;
-GO
+-- CREATE OR ALTER PROCEDURE sp_Sub_ChiNhanh_Xem AS 
+-- BEGIN SELECT * FROM CHINHANH; END;
+-- GO
 
-CREATE OR ALTER PROCEDURE sp_Sub_ChiNhanh_Them
-    @TENCN NVARCHAR(50), @DIACHI NVARCHAR(100), @SDT CHAR(10), 
-    @GIODM TIME, @GIODONGCUA TIME
-AS
-BEGIN
-    IF EXISTS (SELECT 1 FROM CHINHANH WHERE SDT = @SDT) 
-        THROW 50006, N'SĐT chi nhánh đã tồn tại.', 1;
+-- CREATE OR ALTER PROCEDURE sp_Sub_ChiNhanh_Them
+--     @TENCN NVARCHAR(50), @DIACHI NVARCHAR(100), @SDT CHAR(10), 
+--     @GIODM TIME, @GIODONGCUA TIME
+-- AS
+-- BEGIN
+--     IF EXISTS (SELECT 1 FROM CHINHANH WHERE SDT = @SDT) 
+--         THROW 50006, N'SĐT chi nhánh đã tồn tại.', 1;
+-- 
+--     INSERT INTO CHINHANH (TENCN, DIACHI, SDT, GIODM, GIODONGCUA) 
+--     VALUES (@TENCN, @DIACHI, @SDT, @GIODM, @GIODONGCUA);
+-- 
+--     DECLARE @NewMACN INT = SCOPE_IDENTITY();
+--     PRINT N'Đã thêm CN: ' + CAST(@NewMACN AS NVARCHAR(20));
+-- END;
+-- GO
 
-    INSERT INTO CHINHANH (TENCN, DIACHI, SDT, GIODM, GIODONGCUA) 
-    VALUES (@TENCN, @DIACHI, @SDT, @GIODM, @GIODONGCUA);
-
-    DECLARE @NewMACN INT = SCOPE_IDENTITY();
-    PRINT N'Đã thêm CN: ' + CAST(@NewMACN AS NVARCHAR(20));
-END;
-GO
-
-CREATE OR ALTER PROCEDURE sp_Sub_ChiNhanh_Sua
-    @MACN INT, @TENCN NVARCHAR(50), @DIACHI NVARCHAR(100), 
-    @SDT CHAR(10), @GIODM TIME, @GIODONGCUA TIME
-AS
-BEGIN
-    IF @MACN IS NULL THROW 50008, N'Thiếu mã CN.', 1;
-
-    IF NOT EXISTS (SELECT 1 FROM CHINHANH WHERE MACN = @MACN) 
-    THROW 50009, N'Chi nhánh không tồn tại.', 1;
-
-    IF EXISTS (SELECT 1 FROM CHINHANH WHERE SDT = @SDT AND MACN <> @MACN) 
-    THROW 50010, N'SĐT đã được sử dụng bởi chi nhánh khác.', 1;
-
-    UPDATE CHINHANH 
-    SET 
-        TENCN = ISNULL(@TENCN, TENCN), 
-        DIACHI = ISNULL(@DIACHI, DIACHI), 
-        SDT = ISNULL(@SDT, SDT), 
-        GIODM = ISNULL(@GIODM, GIODM), 
-        GIODONGCUA = ISNULL(@GIODONGCUA, GIODONGCUA) 
-    WHERE MACN = @MACN;
-    PRINT N'Đã cập nhật CN: ' + CAST(@MACN AS NVARCHAR(20));
-END;
-GO
+-- CREATE OR ALTER PROCEDURE sp_Sub_ChiNhanh_Sua
+--     @MACN INT, @TENCN NVARCHAR(50), @DIACHI NVARCHAR(100), 
+--     @SDT CHAR(10), @GIODM TIME, @GIODONGCUA TIME
+-- AS
+-- BEGIN
+--     IF @MACN IS NULL THROW 50008, N'Thiếu mã CN.', 1;
+-- 
+--     IF NOT EXISTS (SELECT 1 FROM CHINHANH WHERE MACN = @MACN) 
+--     THROW 50009, N'Chi nhánh không tồn tại.', 1;
+-- 
+--     IF EXISTS (SELECT 1 FROM CHINHANH WHERE SDT = @SDT AND MACN <> @MACN) 
+--     THROW 50010, N'SĐT đã được sử dụng bởi chi nhánh khác.', 1;
+-- 
+--     UPDATE CHINHANH 
+--     SET 
+--         TENCN = ISNULL(@TENCN, TENCN), 
+--         DIACHI = ISNULL(@DIACHI, DIACHI), 
+--         SDT = ISNULL(@SDT, SDT), 
+--         GIODM = ISNULL(@GIODM, GIODM), 
+--         GIODONGCUA = ISNULL(@GIODONGCUA, GIODONGCUA) 
+--     WHERE MACN = @MACN;
+--     PRINT N'Đã cập nhật CN: ' + CAST(@MACN AS NVARCHAR(20));
+-- END;
+-- GO
 
 -- QuanLyLichSuPhanCong
-CREATE OR ALTER PROCEDURE sp_Sub_LichSu_PhanCong
-    @MACN INT, 
-    @MANV INT, 
-    @NGAYBATDAU DATE, 
-    @NGAYKETTHUC DATE
-AS
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM CHINHANH WHERE MACN = @MACN) THROW 50011, N'CN không tồn tại.', 1;
-    IF NOT EXISTS (SELECT 1 FROM NHANVIEN WHERE MANV = @MANV) THROW 50012, N'NV không tồn tại.', 1;
+-- CREATE OR ALTER PROCEDURE sp_Sub_LichSu_PhanCong
+--     @MACN INT, 
+--     @MANV INT, 
+--     @NGAYBATDAU DATE, 
+--     @NGAYKETTHUC DATE
+-- AS
+-- BEGIN
+--     IF NOT EXISTS (SELECT 1 FROM CHINHANH WHERE MACN = @MACN) THROW 50011, N'CN không tồn tại.', 1;
+--     IF NOT EXISTS (SELECT 1 FROM NHANVIEN WHERE MANV = @MANV) THROW 50012, N'NV không tồn tại.', 1;
+-- 
+--     IF @NGAYKETTHUC IS NOT NULL
+--     BEGIN
+--         DECLARE @LatestStartDate DATE;
+--         SELECT TOP 1 @LatestStartDate = NGAYBATDAU 
+--         FROM LAMVIEC 
+--         WHERE MACN = @MACN AND MANV = @MANV 
+--         ORDER BY NGAYBATDAU DESC;
+--         
+--         IF @LatestStartDate IS NULL THROW 50013, N'Không tìm thấy lịch sử.', 1;
+--         IF @NGAYKETTHUC < @LatestStartDate THROW 50014, N'Ngày kết thúc lỗi.', 1;
+--         
+--         UPDATE LAMVIEC SET NGAYKETTHUC = @NGAYKETTHUC 
+--         WHERE MACN = @MACN AND MANV = @MANV AND NGAYBATDAU = @LatestStartDate;
+--         PRINT N'Đã cập nhật ngày kết thúc.';
+--     END
+--     ELSE
+--     BEGIN
+--         IF @NGAYBATDAU IS NULL SET @NGAYBATDAU = GETDATE();
+--         IF EXISTS (SELECT 1 FROM LAMVIEC WHERE MANV = @MANV AND NGAYKETTHUC IS NULL)
+--         BEGIN
+--             UPDATE LAMVIEC 
+--             SET NGAYKETTHUC = @NGAYBATDAU 
+--             WHERE MANV = @MANV 
+--                 AND NGAYKETTHUC IS NULL;
+--             PRINT N'Đã đóng công việc cũ.';
+--         END
+--         INSERT INTO LAMVIEC (MACN, MANV, NGAYBATDAU, NGAYKETTHUC) VALUES (@MACN, @MANV, @NGAYBATDAU, NULL);
+--         PRINT N'Đã phân công mới.';
+--     END
+-- END;
+-- GO
 
-    IF @NGAYKETTHUC IS NOT NULL
-    BEGIN
-        DECLARE @LatestStartDate DATE;
-        SELECT TOP 1 @LatestStartDate = NGAYBATDAU 
-        FROM LAMVIEC 
-        WHERE MACN = @MACN AND MANV = @MANV 
-        ORDER BY NGAYBATDAU DESC;
-        
-        IF @LatestStartDate IS NULL THROW 50013, N'Không tìm thấy lịch sử.', 1;
-        IF @NGAYKETTHUC < @LatestStartDate THROW 50014, N'Ngày kết thúc lỗi.', 1;
-        
-        UPDATE LAMVIEC SET NGAYKETTHUC = @NGAYKETTHUC 
-        WHERE MACN = @MACN AND MANV = @MANV AND NGAYBATDAU = @LatestStartDate;
-        PRINT N'Đã cập nhật ngày kết thúc.';
-    END
-    ELSE
-    BEGIN
-        IF @NGAYBATDAU IS NULL SET @NGAYBATDAU = GETDATE();
-        IF EXISTS (SELECT 1 FROM LAMVIEC WHERE MANV = @MANV AND NGAYKETTHUC IS NULL)
-        BEGIN
-            UPDATE LAMVIEC 
-            SET NGAYKETTHUC = @NGAYBATDAU 
-            WHERE MANV = @MANV 
-                AND NGAYKETTHUC IS NULL;
-            PRINT N'Đã đóng công việc cũ.';
-        END
-        INSERT INTO LAMVIEC (MACN, MANV, NGAYBATDAU, NGAYKETTHUC) VALUES (@MACN, @MANV, @NGAYBATDAU, NULL);
-        PRINT N'Đã phân công mới.';
-    END
-END;
-GO
+-- CREATE OR ALTER PROCEDURE sp_Sub_LichSu_XemNV @MANV INT 
+-- AS
+-- BEGIN
+--     SELECT LV.MANV, NV.HOTEN, LV.MACN, CN.TENCN, LV.NGAYBATDAU,
+--            CASE WHEN LV.NGAYKETTHUC IS NULL OR LV.NGAYKETTHUC >= GETDATE() THEN N'Đang làm việc' 
+--            ELSE N'Đã nghỉ' END AS TRANGTHAI,
+--            LV.NGAYKETTHUC
+--     FROM LAMVIEC LV JOIN NHANVIEN NV ON LV.MANV = NV.MANV JOIN CHINHANH CN ON LV.MACN = CN.MACN
+--     WHERE LV.MANV = @MANV ORDER BY LV.NGAYBATDAU DESC;
+-- END;
+-- GO
 
-CREATE OR ALTER PROCEDURE sp_Sub_LichSu_XemNV @MANV INT 
-AS
-BEGIN
-    SELECT LV.MANV, NV.HOTEN, LV.MACN, CN.TENCN, LV.NGAYBATDAU,
-           CASE WHEN LV.NGAYKETTHUC IS NULL OR LV.NGAYKETTHUC >= GETDATE() THEN N'Đang làm việc' 
-           ELSE N'Đã nghỉ' END AS TRANGTHAI,
-           LV.NGAYKETTHUC
-    FROM LAMVIEC LV JOIN NHANVIEN NV ON LV.MANV = NV.MANV JOIN CHINHANH CN ON LV.MACN = CN.MACN
-    WHERE LV.MANV = @MANV ORDER BY LV.NGAYBATDAU DESC;
-END;
-GO
-
-CREATE OR ALTER PROCEDURE sp_Sub_LichSu_XemCN @MACN INT 
-AS
-BEGIN
-    SELECT LV.MACN, CN.TENCN, LV.MANV, NV.HOTEN, NV.SDT, NV.LUONGCOBAN, LV.NGAYBATDAU,
-           CASE WHEN LV.NGAYKETTHUC IS NULL OR LV.NGAYKETTHUC >= GETDATE() 
-           THEN N'Đang làm việc' ELSE N'Đã nghỉ việc' END AS TRANGTHAI
-    FROM LAMVIEC LV 
-    JOIN CHINHANH CN ON LV.MACN = CN.MACN 
-    JOIN NHANVIEN NV ON LV.MANV = NV.MANV
-    WHERE LV.MACN = @MACN AND (LV.NGAYKETTHUC IS NULL OR LV.NGAYKETTHUC >= GETDATE())
-    ORDER BY LV.NGAYBATDAU DESC;
-END;
-GO
+-- CREATE OR ALTER PROCEDURE sp_Sub_LichSu_XemCN @MACN INT 
+-- AS
+-- BEGIN
+--     SELECT LV.MACN, CN.TENCN, LV.MANV, NV.HOTEN, NV.SDT, NV.LUONGCOBAN, LV.NGAYBATDAU,
+--            CASE WHEN LV.NGAYKETTHUC IS NULL OR LV.NGAYKETTHUC >= GETDATE() 
+--            THEN N'Đang làm việc' ELSE N'Đã nghỉ việc' END AS TRANGTHAI
+--     FROM LAMVIEC LV 
+--     JOIN CHINHANH CN ON LV.MACN = CN.MACN 
+--     JOIN NHANVIEN NV ON LV.MANV = NV.MANV
+--     WHERE LV.MACN = @MACN AND (LV.NGAYKETTHUC IS NULL OR LV.NGAYKETTHUC >= GETDATE())
+--     ORDER BY LV.NGAYBATDAU DESC;
+-- END;
+-- GO
 
 --- QuanLyLuongChiNhanh
 CREATE OR ALTER PROCEDURE sp_Sub_TinhLuong @MACN INT = NULL
@@ -739,57 +739,57 @@ END;
 GO
 
 -- hao
-CREATE OR ALTER PROCEDURE sp_KhachHang_Them
-    @TENKH NVARCHAR(50),
-    @SDT CHAR(10),
-    @DIACHI NVARCHAR(100),
-    @NewID INT OUTPUT 
-AS
-BEGIN
-    IF EXISTS (SELECT 1 FROM KHACHHANG WHERE SDT = @SDT)
-        THROW 50001, N'Số điện thoại này đã được sử dụng bởi khách hàng khác.', 1;
+-- CREATE OR ALTER PROCEDURE sp_KhachHang_Them
+--     @TENKH NVARCHAR(50),
+--     @SDT CHAR(10),
+--     @DIACHI NVARCHAR(100),
+--     @NewID INT OUTPUT 
+-- AS
+-- BEGIN
+--     IF EXISTS (SELECT 1 FROM KHACHHANG WHERE SDT = @SDT)
+--         THROW 50001, N'Số điện thoại này đã được sử dụng bởi khách hàng khác.', 1;
+-- 
+--     INSERT INTO KHACHHANG (TENKH, SDT, DIACHI, TENCAPBAC)
+--     VALUES (@TENKH, @SDT, @DIACHI, N'Đồng');
+-- 
+--     SET @NewID = SCOPE_IDENTITY();
+-- END;
+-- GO
 
-    INSERT INTO KHACHHANG (TENKH, SDT, DIACHI, TENCAPBAC)
-    VALUES (@TENKH, @SDT, @DIACHI, N'Đồng');
+-- CREATE OR ALTER PROCEDURE sp_KhachHang_Sua
+--     @MAKH INT, 
+--     @TENKH NVARCHAR(50),
+--     @SDT CHAR(10),
+--     @DIACHI NVARCHAR(100)
+-- AS
+-- BEGIN
+--     IF NOT EXISTS (SELECT 1 FROM KHACHHANG WHERE MAKH = @MAKH)
+--         THROW 50002, N'Khách hàng không tồn tại.', 1;
+-- 
+--     IF EXISTS (SELECT 1 FROM KHACHHANG WHERE SDT = @SDT AND MAKH <> @MAKH)
+--         THROW 50003, N'Số điện thoại này đã thuộc về khách hàng khác.', 1;
+-- 
+--     UPDATE KHACHHANG
+--     SET TENKH = @TENKH,
+--         SDT = @SDT,
+--         DIACHI = @DIACHI
+--     WHERE MAKH = @MAKH;
+-- END;
+-- GO
 
-    SET @NewID = SCOPE_IDENTITY();
-END;
-GO
-
-CREATE OR ALTER PROCEDURE sp_KhachHang_Sua
-    @MAKH INT, 
-    @TENKH NVARCHAR(50),
-    @SDT CHAR(10),
-    @DIACHI NVARCHAR(100)
-AS
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM KHACHHANG WHERE MAKH = @MAKH)
-        THROW 50002, N'Khách hàng không tồn tại.', 1;
-
-    IF EXISTS (SELECT 1 FROM KHACHHANG WHERE SDT = @SDT AND MAKH <> @MAKH)
-        THROW 50003, N'Số điện thoại này đã thuộc về khách hàng khác.', 1;
-
-    UPDATE KHACHHANG
-    SET TENKH = @TENKH,
-        SDT = @SDT,
-        DIACHI = @DIACHI
-    WHERE MAKH = @MAKH;
-END;
-GO
-
-CREATE OR ALTER PROCEDURE sp_KhachHang_Xoa
-    @MAKH INT
-AS
-BEGIN
-    IF EXISTS (SELECT 1 FROM HOADON WHERE MAKH = @MAKH)
-        THROW 50004, N'Không thể xóa: Khách hàng này đã có hóa đơn giao dịch.', 1;
-
-    IF EXISTS (SELECT 1 FROM THUCUNG WHERE MAKH = @MAKH)
-        THROW 50005, N'Không thể xóa: Khách hàng này đang sở hữu thú cưng trên hệ thống.', 1;
-
-    DELETE FROM KHACHHANG WHERE MAKH = @MAKH;
-END;
-GO
+-- CREATE OR ALTER PROCEDURE sp_KhachHang_Xoa
+--     @MAKH INT
+-- AS
+-- BEGIN
+--     IF EXISTS (SELECT 1 FROM HOADON WHERE MAKH = @MAKH)
+--         THROW 50004, N'Không thể xóa: Khách hàng này đã có hóa đơn giao dịch.', 1;
+-- 
+--     IF EXISTS (SELECT 1 FROM THUCUNG WHERE MAKH = @MAKH)
+--         THROW 50005, N'Không thể xóa: Khách hàng này đang sở hữu thú cưng trên hệ thống.', 1;
+-- 
+--     DELETE FROM KHACHHANG WHERE MAKH = @MAKH;
+-- END;
+-- GO
 
 CREATE OR ALTER PROCEDURE sp_KhachHang_XemChiTiet
     @MAKH INT
@@ -837,47 +837,47 @@ BEGIN
 END;
 GO
 
-CREATE OR ALTER PROCEDURE sp_ThuCung_Them
-    @MAKH INT,              
-    @TENTC NVARCHAR(50),    
-    @LOAI NVARCHAR(20),    
-    @TUOI TINYINT,         
-    @GIOITINH NVARCHAR(5), 
-    @NewID INT OUTPUT       
-AS
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM KHACHHANG WHERE MAKH = @MAKH)
-        THROW 50001, N'Khách hàng không tồn tại trong hệ thống.', 1;
+-- CREATE OR ALTER PROCEDURE sp_ThuCung_Them
+--     @MAKH INT,              
+--     @TENTC NVARCHAR(50),    
+--     @LOAI NVARCHAR(20),    
+--     @TUOI TINYINT,         
+--     @GIOITINH NVARCHAR(5), 
+--     @NewID INT OUTPUT       
+-- AS
+-- BEGIN
+--     IF NOT EXISTS (SELECT 1 FROM KHACHHANG WHERE MAKH = @MAKH)
+--         THROW 50001, N'Khách hàng không tồn tại trong hệ thống.', 1;
+-- 
+--     INSERT INTO THUCUNG (MAKH, TENTC, LOAI, TUOI, GIOITINH, TINHTRANG)
+--     VALUES (@MAKH, @TENTC, @LOAI, @TUOI, @GIOITINH, N'Bình thường');
+-- 
+--     SET @NewID = SCOPE_IDENTITY();
+-- END;
+-- GO
 
-    INSERT INTO THUCUNG (MAKH, TENTC, LOAI, TUOI, GIOITINH, TINHTRANG)
-    VALUES (@MAKH, @TENTC, @LOAI, @TUOI, @GIOITINH, N'Bình thường');
-
-    SET @NewID = SCOPE_IDENTITY();
-END;
-GO
-
-CREATE OR ALTER PROCEDURE sp_ThuCung_Sua
-    @MATC INT,              
-    @TENTC NVARCHAR(50),
-    @LOAI NVARCHAR(20),
-    @TUOI TINYINT,
-    @GIOITINH NVARCHAR(5),
-    @TINHTRANG NVARCHAR(20) 
-AS
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM THUCUNG WHERE MATC = @MATC)
-        THROW 50002, N'Thú cưng không tồn tại hoặc đã bị xóa.', 1;
-
-    UPDATE THUCUNG
-    SET 
-        TENTC = ISNULL(@TENTC, TENTC),
-        LOAI = ISNULL(@LOAI, LOAI),
-        TUOI = ISNULL(@TUOI, TUOI),
-        GIOITINH = ISNULL(@GIOITINH, GIOITINH),
-        TINHTRANG = ISNULL(@TINHTRANG, TINHTRANG)
-    WHERE MATC = @MATC;
-END;
-GO
+-- CREATE OR ALTER PROCEDURE sp_ThuCung_Sua
+--     @MATC INT,              
+--     @TENTC NVARCHAR(50),
+--     @LOAI NVARCHAR(20),
+--     @TUOI TINYINT,
+--     @GIOITINH NVARCHAR(5),
+--     @TINHTRANG NVARCHAR(20) 
+-- AS
+-- BEGIN
+--     IF NOT EXISTS (SELECT 1 FROM THUCUNG WHERE MATC = @MATC)
+--         THROW 50002, N'Thú cưng không tồn tại hoặc đã bị xóa.', 1;
+-- 
+--     UPDATE THUCUNG
+--     SET 
+--         TENTC = ISNULL(@TENTC, TENTC),
+--         LOAI = ISNULL(@LOAI, LOAI),
+--         TUOI = ISNULL(@TUOI, TUOI),
+--         GIOITINH = ISNULL(@GIOITINH, GIOITINH),
+--         TINHTRANG = ISNULL(@TINHTRANG, TINHTRANG)
+--     WHERE MATC = @MATC;
+-- END;
+-- GO
 
 CREATE OR ALTER PROCEDURE sp_ThuCung_LichSuKham
     @MATC INT
@@ -922,32 +922,32 @@ BEGIN
 END;
 GO
 
-CREATE OR ALTER PROCEDURE sp_ThuCung_XemChiTiet
-    @MATC INT
-AS
-BEGIN
-    SET NOCOUNT ON;
-    IF NOT EXISTS (SELECT 1 FROM THUCUNG WHERE MATC = @MATC)
-    BEGIN
-        RETURN;
-    END
-
-    SELECT 
-        TC.MATC,
-        ISNULL(TC.TENTC, N'Chưa đặt tên') AS TENTC,
-        TC.LOAI,
-        TC.TUOI,
-        TC.GIOITINH,
-        TC.TINHTRANG, 
-        KH.MAKH,
-        KH.TENKH AS ChuSoHuu,
-        KH.SDT AS SDTLienHe,
-        KH.DIACHI
-    FROM THUCUNG TC
-    JOIN KHACHHANG KH ON TC.MAKH = KH.MAKH
-    WHERE TC.MATC = @MATC;
-END;
-GO
+-- CREATE OR ALTER PROCEDURE sp_ThuCung_XemChiTiet
+--     @MATC INT
+-- AS
+-- BEGIN
+--     SET NOCOUNT ON;
+--     IF NOT EXISTS (SELECT 1 FROM THUCUNG WHERE MATC = @MATC)
+--     BEGIN
+--         RETURN;
+--     END
+-- 
+--     SELECT 
+--         TC.MATC,
+--         ISNULL(TC.TENTC, N'Chưa đặt tên') AS TENTC,
+--         TC.LOAI,
+--         TC.TUOI,
+--         TC.GIOITINH,
+--         TC.TINHTRANG, 
+--         KH.MAKH,
+--         KH.TENKH AS ChuSoHuu,
+--         KH.SDT AS SDTLienHe,
+--         KH.DIACHI
+--     FROM THUCUNG TC
+--     JOIN KHACHHANG KH ON TC.MAKH = KH.MAKH
+--     WHERE TC.MATC = @MATC;
+-- END;
+-- GO
 
 CREATE OR ALTER PROCEDURE sp_HoaDon_XemChiTiet
     @MAHD INT
@@ -1010,37 +1010,38 @@ BEGIN
 END;
 GO
 
-CREATE OR ALTER PROCEDURE sp_ThuCung_TheoDoiGoiTiem
-    @MATC INT
-AS
-BEGIN
-    SET NOCOUNT ON;
-    IF NOT EXISTS (SELECT 1 FROM DANGKYGOITIEM WHERE MATC = @MATC)
-    BEGIN
-        RETURN;
-    END
+-- CREATE OR ALTER PROCEDURE sp_ThuCung_TheoDoiGoiTiem
+--     @MATC INT
+-- AS
+-- BEGIN
+--     SET NOCOUNT ON;
+--     IF NOT EXISTS (SELECT 1 FROM DANGKYGOITIEM WHERE MATC = @MATC)
+--     BEGIN
+--         RETURN;
+--     END
+-- 
+--     SELECT 
+--         SP_Goi.MASP AS MaGoi,
+--         SP_Goi.TENSP AS TenGoiTiem, 
+--         GT.KHUYENMAI AS MucGiamGia, 
+--         SP_VX.MASP AS MaVacXin,
+--         SP_VX.TENSP AS TenVacXin,   
+--         VX.DOTUOIAPDUNG,          
+--         CTGT.SOLUONG AS TongSoMui  
+--         
+--     FROM DANGKYGOITIEM DK
+--     JOIN GOITIEM GT ON DK.MAGOITIEM = GT.MAGOITIEM
+--     JOIN SANPHAM SP_Goi ON GT.MAGOITIEM = SP_Goi.MASP
+--     
+--     JOIN CHITIETGOITIEM CTGT ON GT.MAGOITIEM = CTGT.MAGOITIEM
+--     JOIN VACXIN VX ON CTGT.MAVACXIN = VX.MAVACXIN
+--     JOIN SANPHAM SP_VX ON VX.MAVACXIN = SP_VX.MASP
+--     
+--     WHERE DK.MATC = @MATC
+--     ORDER BY SP_Goi.TENSP, VX.DOTUOIAPDUNG;
+-- END;
+-- go
 
-    SELECT 
-        SP_Goi.MASP AS MaGoi,
-        SP_Goi.TENSP AS TenGoiTiem, 
-        GT.KHUYENMAI AS MucGiamGia, 
-        SP_VX.MASP AS MaVacXin,
-        SP_VX.TENSP AS TenVacXin,   
-        VX.DOTUOIAPDUNG,          
-        CTGT.SOLUONG AS TongSoMui  
-        
-    FROM DANGKYGOITIEM DK
-    JOIN GOITIEM GT ON DK.MAGOITIEM = GT.MAGOITIEM
-    JOIN SANPHAM SP_Goi ON GT.MAGOITIEM = SP_Goi.MASP
-    
-    JOIN CHITIETGOITIEM CTGT ON GT.MAGOITIEM = CTGT.MAGOITIEM
-    JOIN VACXIN VX ON CTGT.MAVACXIN = VX.MAVACXIN
-    JOIN SANPHAM SP_VX ON VX.MAVACXIN = SP_VX.MASP
-    
-    WHERE DK.MATC = @MATC
-    ORDER BY SP_Goi.TENSP, VX.DOTUOIAPDUNG;
-END;
-go
 -- cap nhat vao 1/1 hang nam 
 CREATE OR ALTER PROCEDURE sp_CapBac_CapNhatHangNam 
 AS
@@ -1110,53 +1111,55 @@ BEGIN
     DEALLOCATE cur_KhachHang;
 END;
 GO
-CREATE OR ALTER PROCEDURE sp_HoaDon_LayThongTinChung
-    @MAHD INT
-AS
-BEGIN
-    SET NOCOUNT ON;
-    IF NOT EXISTS (SELECT 1 FROM HOADON WHERE MAHD = @MAHD)
-    BEGIN
-        PRINT N'Hóa đơn không tồn tại';
-        RETURN;
-    END
-    SELECT 
-        HD.MAHD,
-        HD.NGAYLAP,
-        KH.TENKH,
-        KH.SDT AS SDTKhachHang,
-        KH.DIACHI AS DiaChiKhachHang,
-        NV.HOTEN AS NhanVienLap,
-        CN.TENCN AS TaiChiNhanh,
-        CN.DIACHI AS DiaChiChiNhanh,
-        HD.TONGTIEN,
-        ISNULL(HD.KHUYENMAI, 0) AS KhuyenMai,
-        (HD.TONGTIEN - ISNULL(HD.KHUYENMAI, 0)) AS ThucThu 
-    FROM HOADON HD
-    JOIN KHACHHANG KH ON HD.MAKH = KH.MAKH
-    JOIN NHANVIEN NV ON HD.MANV = NV.MANV
-    JOIN CHINHANH CN ON HD.MACN = CN.MACN
-    WHERE HD.MAHD = @MAHD;
-END;
-GO
-CREATE OR ALTER PROCEDURE sp_HoaDon_LayChiTietHangHoa
-    @MAHD INT
-AS
-BEGIN
-    SET NOCOUNT ON;
-    SELECT 
-        ROW_NUMBER() OVER(ORDER BY SP.TENSP) AS STT,
-        SP.MASP,
-        SP.TENSP,
-        SP.LOAI,        
-        SP.DONGIA,
-        CT.SOLUONG,
-        (SP.DONGIA * CT.SOLUONG) AS ThanhTien
-    FROM CHITIETHOADON CT
-    JOIN SANPHAM SP ON CT.MASP = SP.MASP
-    WHERE CT.MAHD = @MAHD;
-END;
-GO
+
+-- CREATE OR ALTER PROCEDURE sp_HoaDon_LayThongTinChung
+--     @MAHD INT
+-- AS
+-- BEGIN
+--     SET NOCOUNT ON;
+--     IF NOT EXISTS (SELECT 1 FROM HOADON WHERE MAHD = @MAHD)
+--     BEGIN
+--         PRINT N'Hóa đơn không tồn tại';
+--         RETURN;
+--     END
+--     SELECT 
+--         HD.MAHD,
+--         HD.NGAYLAP,
+--         KH.TENKH,
+--         KH.SDT AS SDTKhachHang,
+--         KH.DIACHI AS DiaChiKhachHang,
+--         NV.HOTEN AS NhanVienLap,
+--         CN.TENCN AS TaiChiNhanh,
+--         CN.DIACHI AS DiaChiChiNhanh,
+--         HD.TONGTIEN,
+--         ISNULL(HD.KHUYENMAI, 0) AS KhuyenMai,
+--         (HD.TONGTIEN - ISNULL(HD.KHUYENMAI, 0)) AS ThucThu 
+--     FROM HOADON HD
+--     JOIN KHACHHANG KH ON HD.MAKH = KH.MAKH
+--     JOIN NHANVIEN NV ON HD.MANV = NV.MANV
+--     JOIN CHINHANH CN ON HD.MACN = CN.MACN
+--     WHERE HD.MAHD = @MAHD;
+-- END;
+-- GO
+
+-- CREATE OR ALTER PROCEDURE sp_HoaDon_LayChiTietHangHoa
+--     @MAHD INT
+-- AS
+-- BEGIN
+--     SET NOCOUNT ON;
+--     SELECT 
+--         ROW_NUMBER() OVER(ORDER BY SP.TENSP) AS STT,
+--         SP.MASP,
+--         SP.TENSP,
+--         SP.LOAI,        
+--         SP.DONGIA,
+--         CT.SOLUONG,
+--         (SP.DONGIA * CT.SOLUONG) AS ThanhTien
+--     FROM CHITIETHOADON CT
+--     JOIN SANPHAM SP ON CT.MASP = SP.MASP
+--     WHERE CT.MAHD = @MAHD;
+-- END;
+-- GO
 
 --- hieu
 /* Bảng cho chi tiết hoá đơn (khi dùng tham số bảng)
@@ -1225,126 +1228,77 @@ BEGIN
     END CATCH
 END;
 GO
-CREATE OR ALTER PROCEDURE sp_TaoHoaDonMoi
-(
-    @NgayLap   DATETIME,
-    @MaKH      INT,
-    @MaCN      INT,
-    @MaNV      INT,
-    @KhuyenMai INT = 0,
-    @MaHD      INT OUTPUT
-)
-AS
-BEGIN
-    SET NOCOUNT ON;
-    SET XACT_ABORT ON;
-
-    BEGIN TRY
-        -- Kiểm tra input
-        IF NOT EXISTS (SELECT 1 FROM KHACHHANG WHERE MAKH = @MaKH)
-            RAISERROR(N'Khách hàng không tồn tại', 16, 1);
-
-        IF NOT EXISTS (SELECT 1 FROM CHINHANH WHERE MACN = @MaCN)
-            RAISERROR(N'Chi nhánh không tồn tại', 16, 1);
-
-        IF NOT EXISTS (SELECT 1 FROM NHANVIEN WHERE MANV = @MaNV)
-            RAISERROR(N'Nhân viên không tồn tại', 16, 1);
-
-        -- Nhân viên phải làm tại chi nhánh vào ngày lập hóa đơn
-        IF NOT EXISTS (
-            SELECT 1
-            FROM LAMVIEC
-            WHERE MANV = @MaNV
-              AND MACN = @MaCN
-              AND NGAYBATDAU <= CONVERT(DATE, @NgayLap)
-              AND (NGAYKETTHUC IS NULL OR NGAYKETTHUC >= CONVERT(DATE, @NgayLap))
-        )
-            RAISERROR(N'Nhân viên không làm tại chi nhánh này vào ngày lập hóa đơn', 16, 1);
-
-        -- Insert HOADON, trạng thái mặc định 'Chưa hoàn thành'
-        INSERT INTO HOADON (NGAYLAP, KHUYENMAI, TONGTIEN, MACN, MAKH, TRANGTHAI, MANV)
-        VALUES (@NgayLap, @KhuyenMai, NULL, @MaCN, @MaKH, N'Chưa hoàn thành', @MaNV);
-
-        SET @MaHD = SCOPE_IDENTITY();
-    END TRY
-    BEGIN CATCH
-        DECLARE @ErrMsg NVARCHAR(4000) = ERROR_MESSAGE(),
-                @ErrSeverity INT = ERROR_SEVERITY();
-        RAISERROR(@ErrMsg, @ErrSeverity, 1);
-    END CATCH
-END;
-GO
-
 
 -- Procedure cập nhật lịch hẹn
-CREATE OR ALTER PROCEDURE sp_CapNhatLichHen
-(
-    @MaLichHen   INT,
-    @NgayHenMoi  DATE,
-    @ThoiGianMoi TIME,
-    @NoiDungMoi  NVARCHAR(200) = NULL,
-    @MaCNMoi     INT,
-    @MaLoaiDVMoi INT
-)
-AS
-BEGIN
-    SET NOCOUNT ON;
-    SET XACT_ABORT ON;
+-- CREATE OR ALTER PROCEDURE sp_CapNhatLichHen
+-- (
+--     @MaLichHen   INT,
+--     @NgayHenMoi  DATE,
+--     @ThoiGianMoi TIME,
+--     @NoiDungMoi  NVARCHAR(200) = NULL,
+--     @MaCNMoi     INT,
+--     @MaLoaiDVMoi INT
+-- )
+-- AS
+-- BEGIN
+--     SET NOCOUNT ON;
+--     SET XACT_ABORT ON;
+-- 
+--     DECLARE @MaKH INT;
+-- 
+--     BEGIN TRY
+--         -- Lấy khách của lịch
+--         SELECT @MaKH = MAKH
+--         FROM LICHHEN
+--         WHERE MALICHHEN = @MaLichHen;
+-- 
+--         IF @MaKH IS NULL
+--             RAISERROR(N'Không tìm thấy lịch hẹn', 16, 1);
+-- 
+--         -- Kiểm tra tham số đầu vào
+--         IF NOT EXISTS (SELECT 1 FROM CHINHANH WHERE MACN = @MaCNMoi)
+--             RAISERROR(N'Chi nhánh mới không tồn tại', 16, 1);
+-- 
+--         IF NOT EXISTS (SELECT 1 FROM LOAIDICHVU WHERE MALOAIDV = @MaLoaiDVMoi)
+--             RAISERROR(N'Loại dịch vụ mới không tồn tại', 16, 1);
+-- 
+--         IF NOT EXISTS (
+--             SELECT 1
+--             FROM CUNGCAP
+--             WHERE MACN = @MaCNMoi AND MALOAIDV = @MaLoaiDVMoi
+--         )
+--             RAISERROR(N'Dịch vụ mới không được cung cấp tại chi nhánh này', 16, 1);
+-- 
+--         -- Kiểm tra trùng slot với lịch khác
+--         IF EXISTS (
+--             SELECT 1
+--             FROM LICHHEN
+--             WHERE NGAYHEN = @NgayHenMoi
+--               AND THOIGIAN = @ThoiGianMoi
+--               AND MACN = @MaCNMoi
+--               AND MAKH = @MaKH
+--               AND MALICHHEN <> @MaLichHen
+--         )
+--             RAISERROR(N'Đã có lịch hẹn khác trùng slot', 16, 1);
+-- 
+--         -- Cập nhật
+--         UPDATE LICHHEN
+--         SET NGAYHEN  = @NgayHenMoi,
+--             THOIGIAN = @ThoiGianMoi,
+--             NOIDUNG  = @NoiDungMoi,
+--             MACN     = @MaCNMoi,
+--             MALOAIDV = @MaLoaiDVMoi
+--         WHERE MALICHHEN = @MaLichHen;
+--     END TRY
+--     BEGIN CATCH
+--         DECLARE @ErrMsg NVARCHAR(4000) = ERROR_MESSAGE(),
+--                 @ErrSeverity INT = ERROR_SEVERITY();
+-- 
+--         RAISERROR(@ErrMsg, @ErrSeverity, 1);
+--     END CATCH
+-- END;
+-- GO
 
-    DECLARE @MaKH INT;
-
-    BEGIN TRY
-        -- Lấy khách của lịch
-        SELECT @MaKH = MAKH
-        FROM LICHHEN
-        WHERE MALICHHEN = @MaLichHen;
-
-        IF @MaKH IS NULL
-            RAISERROR(N'Không tìm thấy lịch hẹn', 16, 1);
-
-        -- Kiểm tra tham số đầu vào
-        IF NOT EXISTS (SELECT 1 FROM CHINHANH WHERE MACN = @MaCNMoi)
-            RAISERROR(N'Chi nhánh mới không tồn tại', 16, 1);
-
-        IF NOT EXISTS (SELECT 1 FROM LOAIDICHVU WHERE MALOAIDV = @MaLoaiDVMoi)
-            RAISERROR(N'Loại dịch vụ mới không tồn tại', 16, 1);
-
-        IF NOT EXISTS (
-            SELECT 1
-            FROM CUNGCAP
-            WHERE MACN = @MaCNMoi AND MALOAIDV = @MaLoaiDVMoi
-        )
-            RAISERROR(N'Dịch vụ mới không được cung cấp tại chi nhánh này', 16, 1);
-
-        -- Kiểm tra trùng slot với lịch khác
-        IF EXISTS (
-            SELECT 1
-            FROM LICHHEN
-            WHERE NGAYHEN = @NgayHenMoi
-              AND THOIGIAN = @ThoiGianMoi
-              AND MACN = @MaCNMoi
-              AND MAKH = @MaKH
-              AND MALICHHEN <> @MaLichHen
-        )
-            RAISERROR(N'Đã có lịch hẹn khác trùng slot', 16, 1);
-
-        -- Cập nhật
-        UPDATE LICHHEN
-        SET NGAYHEN  = @NgayHenMoi,
-            THOIGIAN = @ThoiGianMoi,
-            NOIDUNG  = @NoiDungMoi,
-            MACN     = @MaCNMoi,
-            MALOAIDV = @MaLoaiDVMoi
-        WHERE MALICHHEN = @MaLichHen;
-    END TRY
-    BEGIN CATCH
-        DECLARE @ErrMsg NVARCHAR(4000) = ERROR_MESSAGE(),
-                @ErrSeverity INT = ERROR_SEVERITY();
-
-        RAISERROR(@ErrMsg, @ErrSeverity, 1);
-    END CATCH
-END;
-GO
 -- PRocedure tạo hóa đơn
 CREATE OR ALTER PROCEDURE sp_TaoHoaDonMoi
 (
@@ -1703,7 +1657,7 @@ GO
 
 CREATE OR ALTER PROCEDURE sp_NhanVien_XemLichHen
     @MaCN INT,
-    @SdtKhachHang VARCHAR(20) = NULL -- Nếu NULL thì hiện tất cả hôm nay
+    @SdtKhachHang VARCHAR(20) = NULL
 AS
 BEGIN
     SELECT 
@@ -1715,13 +1669,15 @@ BEGIN
         KH.SDT,
         LDV.MALOAIDV,
         LDV.TENLOAIDV,
-        LH.NOIDUNG AS GhiChu
-    FROM LICHHEN LH
+        LH.NOIDUNG AS GhiChu,
+        LH.TRANGTHAI
+    FROM LICHHEN LH WITH (NOLOCK)
     JOIN KHACHHANG KH ON LH.MAKH = KH.MAKH
     JOIN LOAIDICHVU LDV ON LH.MALOAIDV = LDV.MALOAIDV
-    WHERE LH.MACN = @MaCN -- Chỉ hiện lịch của chi nhánh nhân viên đang làm
+    WHERE LH.MACN = @MaCN 
+      AND LH.TRANGTHAI = N'Chưa xác nhận' -- CHỈ LẤY LỊCH CHƯA XÁC NHẬN
       AND (@SdtKhachHang IS NULL OR KH.SDT LIKE '%' + @SdtKhachHang + '%')
-    ORDER BY LH.NGAYHEN, LH.THOIGIAN;
+    ORDER BY LH.NGAYHEN ASC, LH.THOIGIAN ASC;
 END;
 GO
 
@@ -1737,21 +1693,13 @@ BEGIN
 
     BEGIN TRY
         BEGIN TRAN;
-
-        -- A. Lấy thông tin loại dịch vụ từ lịch hẹn
         DECLARE @MaLoaiDV INT;
         SELECT @MaLoaiDV = MALOAIDV FROM LICHHEN WHERE MALICHHEN = @MaLichHen;
-
-        -- B. Cập nhật trạng thái lịch hẹn -> "Đã đến" (Hoặc Đã hoàn thành)
-        -- Tùy quy trình bên bạn, ở đây tôi set là Đã hoàn thành để ẩn khỏi danh sách chờ
-        -- UPDATE LICHHEN SET TRANGTHAI = N'Đã hoàn thành' WHERE MALICHHEN = @MaLichHen;
-        -- Tuy nhiên trong bảng DDL của bạn check constraint là: 'Chưa thanh toán', 'Đã thanh toán', 'Đã hủy'
-        -- Nên tạm thời ta không update trạng thái hoàn thành ở đây mà để quy trình thanh toán lo, 
-        -- hoặc ta coi việc tạo hồ sơ là bước đầu tiên. 
-        -- Ở đây tôi giữ nguyên hoặc bạn có thể thêm trạng thái 'Đang khám' vào Check Constraint sau.
-
-        -- C. Tạo hồ sơ dựa trên loại dịch vụ
         
+        UPDATE LICHHEN 
+        SET TRANGTHAI = N'Đã xác nhận' 
+        WHERE MALICHHEN = @MaLichHen;
+    
         -- Nếu là KHÁM BỆNH
         IF @MaLoaiDV = 3
         BEGIN
@@ -1774,7 +1722,7 @@ BEGIN
     END CATCH
 END;
 go
-CREATE OR ALTER PROCEDURE sp_ChiNhanh_DanhSach
+CREATE PROCEDURE sp_ChiNhanh_DanhSach
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -1784,7 +1732,7 @@ GO
 
 -- 2. Procedure: Tra cứu bác sĩ
 -- Đảm bảo bảng NHANVIEN, BACSI, LAMVIEC, CHINHANH đã tồn tại
-CREATE OR ALTER PROCEDURE sp_TraCuu_BacSi
+CREATE PROCEDURE sp_TraCuu_BacSi
     @MaCN INT = NULL,
     @TenBS NVARCHAR(50) = NULL
 AS
@@ -1807,7 +1755,7 @@ END;
 GO
 
 -- 3. Procedure: Tìm kiếm sản phẩm Online
-CREATE OR ALTER PROCEDURE sp_SanPham_TimKiemOnline
+CREATE PROCEDURE sp_SanPham_TimKiemOnline
     @TuKhoa NVARCHAR(50) = NULL,
     @Loai NVARCHAR(10) = NULL -- Sửa từ CHAR(2) thành NVARCHAR(10)
 AS
@@ -1831,7 +1779,7 @@ END;
 GO
 
 -- 4. Procedure: Tạo đơn hàng Online
-CREATE OR ALTER PROCEDURE sp_DonHangOnline_Tao
+CREATE PROCEDURE sp_DonHangOnline_Tao
     @MaKH INT,
     @TongTien DECIMAL(12, 2),
     @MaHD INT OUTPUT
@@ -1855,7 +1803,7 @@ END;
 GO
 
 -- 5. Procedure: Thêm chi tiết đơn hàng
-CREATE OR ALTER PROCEDURE sp_DonHangOnline_ThemChiTiet
+CREATE PROCEDURE sp_DonHangOnline_ThemChiTiet
     @MaHD INT,
     @MaSP INT,
     @SoLuong INT
@@ -1871,7 +1819,7 @@ BEGIN
 END;
 GO
 
-CREATE OR ALTER PROCEDURE sp_NhanVien_TraCuuThuCungToanHeThong
+CREATE PROCEDURE sp_NhanVien_TraCuuThuCungToanHeThong
     @Keyword NVARCHAR(100) = NULL,
     @FilterType NVARCHAR(20) = N'Tất cả'
 AS
@@ -1940,31 +1888,31 @@ BEGIN
 END;
 
 GO
-CREATE OR ALTER PROCEDURE sp_CaKham_Tao
-    @MATC INT,
-    @MANV INT,
-    @NGAYKHAM DATE,
-    @MAKB INT OUTPUT
-AS
-BEGIN
-    SET NOCOUNT ON;
-    BEGIN TRY
-        IF NOT EXISTS (SELECT 1 FROM THUCUNG WHERE MATC = @MATC)
-            THROW 50001, N'Thú cưng không tồn tại', 1;
-            
-        IF NOT EXISTS (SELECT 1 FROM NHANVIEN WHERE MANV = @MANV)
-            THROW 50002, N'Nhân viên không tồn tại', 1;
-
-        INSERT INTO CAKHAMBENH (MATC, MANV, NGAYKHAM)
-        VALUES (@MATC, @MANV, @NGAYKHAM);
-        
-        SET @MAKB = SCOPE_IDENTITY();
-    END TRY
-    BEGIN CATCH
-        THROW;
-    END CATCH
-END;
-GO
+-- CREATE OR ALTER PROCEDURE sp_CaKham_Tao
+--     @MATC INT,
+--     @MANV INT,
+--     @NGAYKHAM DATE,
+--     @MAKB INT OUTPUT
+-- AS
+-- BEGIN
+--     SET NOCOUNT ON;
+--     BEGIN TRY
+--         IF NOT EXISTS (SELECT 1 FROM THUCUNG WHERE MATC = @MATC)
+--             THROW 50001, N'Thú cưng không tồn tại', 1;
+--             
+--         IF NOT EXISTS (SELECT 1 FROM NHANVIEN WHERE MANV = @MANV)
+--             THROW 50002, N'Nhân viên không tồn tại', 1;
+-- 
+--         INSERT INTO CAKHAMBENH (MATC, MANV, NGAYKHAM)
+--         VALUES (@MATC, @MANV, @NGAYKHAM);
+--         
+--         SET @MAKB = SCOPE_IDENTITY();
+--     END TRY
+--     BEGIN CATCH
+--         THROW;
+--     END CATCH
+-- END;
+-- GO
 
 -- Thêm triệu chứng
 GO
@@ -2133,15 +2081,15 @@ GO
 
 -- Lấy danh sách khách hàng
 GO
-CREATE OR ALTER PROCEDURE sp_KhachHang_DanhSach
-AS
-BEGIN
-    SET NOCOUNT ON;
-    SELECT MAKH, TENKH + ' - ' + SDT AS Display, TENKH, SDT
-    FROM KHACHHANG 
-    ORDER BY TENKH;
-END;
-GO
+-- CREATE OR ALTER PROCEDURE sp_KhachHang_DanhSach
+-- AS
+-- BEGIN
+--     SET NOCOUNT ON;
+--     SELECT MAKH, TENKH + ' - ' + SDT AS Display, TENKH, SDT
+--     FROM KHACHHANG 
+--     ORDER BY TENKH;
+-- END;
+-- GO
 
 -- Lấy danh sách thú cưng theo khách hàng
 GO
@@ -2259,39 +2207,88 @@ BEGIN
 END;
 GO
 -- Procedure lấy danh sách chờ khám của một Bác sĩ cụ thể trong ngày
-CREATE OR ALTER PROCEDURE sp_BacSi_LayDanhSachCho
+-- CREATE OR ALTER PROCEDURE sp_BacSi_LayDanhSachCho
+--     @MaBS INT
+-- AS
+-- BEGIN
+--     SELECT 
+--         KB.MAKB, KB.NGAYKHAM, 
+--         TC.TENTC, TC.LOAI, 
+--         KH.TENKH, KH.SDT
+--     FROM CAKHAMBENH KB
+--     JOIN THUCUNG TC ON KB.MATC = TC.MATC
+--     JOIN KHACHHANG KH ON TC.MAKH = KH.MAKH
+--     WHERE KB.MANV = @MaBS 
+--       AND NOT EXISTS (SELECT 1 FROM TOATHUOC WHERE MAKB = KB.MAKB) -- Chưa có toa thuốc là đang khám/chờ
+--     ORDER BY KB.NGAYKHAM DESC;
+-- END;
+-- GO
+-- CREATE OR ALTER PROCEDURE sp_Thuoc_TraCuuGiaoDien
+--     @Keyword NVARCHAR(100) = NULL
+-- AS
+-- BEGIN
+--     SET NOCOUNT ON;
+--     SELECT 
+--         S.MASP AS [Mã Thuốc], 
+--         S.TENSP AS [Tên Thuốc], 
+--         T.DONVI AS [Đơn Vị], 
+--         T.NGAYSX AS [Ngày Sản Xuất],
+--         T.HSD AS [Hạn Dùng (Tháng)],
+--         S.DONGIA AS [Giá Bán], 
+--         S.TONKHO AS [Tồn Kho]
+--     FROM SANPHAM S
+--     JOIN THUOC T ON S.MASP = T.MATHUOC
+--     WHERE S.LOAI = 'Th'
+--       AND (@Keyword IS NULL OR S.TENSP LIKE N'%' + @Keyword + N'%')
+--     ORDER BY S.TONKHO DESC; -- Ưu tiên thuốc còn nhiều hàng lên đầu
+-- END;
+-- GO
+CREATE PROCEDURE sp_BacSi_LayDanhSachBenhNhanCho
     @MaBS INT
 AS
 BEGIN
+    SET NOCOUNT ON;
+    
     SELECT 
-        KB.MAKB, KB.NGAYKHAM, 
-        TC.TENTC, TC.LOAI, 
-        KH.TENKH, KH.SDT
+        KB.MAKB,
+        KH.MAKH,
+        TC.MATC,
+        -- Hiển thị tên khách + tên thú cưng + giờ để dễ chọn
+        KH.TENKH + N' - Pet: ' + TC.TENTC + N' (' + TC.LOAI + N')' AS Display,
+        KH.TENKH,
+        KH.SDT,
+        TC.TENTC,
+        KB.NGAYKHAM
     FROM CAKHAMBENH KB
     JOIN THUCUNG TC ON KB.MATC = TC.MATC
     JOIN KHACHHANG KH ON TC.MAKH = KH.MAKH
-    WHERE KB.MANV = @MaBS 
-      AND NOT EXISTS (SELECT 1 FROM TOATHUOC WHERE MAKB = KB.MAKB) -- Chưa có toa thuốc là đang khám/chờ
-    ORDER BY KB.NGAYKHAM DESC;
+    WHERE KB.MANV = @MaBS
+      -- Chỉ lấy lịch của hôm nay
+      AND CAST(KB.NGAYKHAM AS DATE) = CAST(GETDATE() AS DATE)
+      -- Chỉ lấy ca chưa hoàn thành (ví dụ: chưa có toa thuốc)
+      AND NOT EXISTS (SELECT 1 FROM TOATHUOC TT WHERE TT.MAKB = KB.MAKB)
+    ORDER BY KB.NGAYKHAM ASC;
 END;
 GO
-CREATE OR ALTER PROCEDURE sp_Thuoc_TraCuuGiaoDien
-    @Keyword NVARCHAR(100) = NULL
+CREATE PROCEDURE sp_ChiNhanh_LayDanhSachBacSi
+    @MaCN INT
 AS
 BEGIN
-    SET NOCOUNT ON;
-    SELECT 
-        S.MASP AS [Mã Thuốc], 
-        S.TENSP AS [Tên Thuốc], 
-        T.DONVI AS [Đơn Vị], 
-        T.NGAYSX AS [Ngày Sản Xuất],
-        T.HSD AS [Hạn Dùng (Tháng)],
-        S.DONGIA AS [Giá Bán], 
-        S.TONKHO AS [Tồn Kho]
-    FROM SANPHAM S
-    JOIN THUOC T ON S.MASP = T.MATHUOC
-    WHERE S.LOAI = 'Th'
-      AND (@Keyword IS NULL OR S.TENSP LIKE N'%' + @Keyword + N'%')
-    ORDER BY S.TONKHO DESC; -- Ưu tiên thuốc còn nhiều hàng lên đầu
-END;
+    SELECT NV.MANV, NV.HOTEN
+    FROM NHANVIEN NV
+    JOIN LAMVIEC LV ON NV.MANV = LV.MANV
+    WHERE LV.MACN = @MaCN 
+      AND LV.VAITRO = 'BS' -- Chỉ lấy bác sĩ
+      AND (LV.NGAYKETTHUC IS NULL OR LV.NGAYKETTHUC >= CAST(GETDATE() AS DATE))
+END
 GO
+CREATE PROCEDURE sp_NhanVien_TimKhachHang
+    @TuKhoa NVARCHAR(100)
+AS
+BEGIN
+    SELECT MAKH, TENKH, SDT, DIACHI
+    FROM KHACHHANG
+    WHERE TENKH LIKE N'%' + @TuKhoa + N'%'
+       OR SDT LIKE '%' + @TuKhoa + '%'
+    ORDER BY TENKH ASC;
+END;

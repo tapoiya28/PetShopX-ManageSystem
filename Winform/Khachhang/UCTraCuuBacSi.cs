@@ -23,52 +23,83 @@ namespace Winform
         }
 
         private void TaoGiaoDien()
-        {
-            Label lblTitle = new Label() { 
-                Text = "👨‍⚕️ TRA CỨU ĐỘI NGŨ BÁC SĨ", 
-                Font = new Font("Segoe UI", 20, FontStyle.Bold), 
-                ForeColor = Color.FromArgb(51, 102, 255), 
-                Location = new Point(30, 20), 
-                AutoSize = true 
-            };
+    {
+        // Tiêu đề chính
+        Label lblTitle = new Label() { 
+            Text = "👨‍⚕️ TRA CỨU ĐỘI NGŨ BÁC SĨ", 
+            Font = new Font("Segoe UI", 20, FontStyle.Bold), 
+            ForeColor = Color.FromArgb(44, 62, 80), 
+            Location = new Point(30, 20), 
+            AutoSize = true 
+        };
 
-            // Panel bộ lọc
-            Panel pnlFilter = new Panel() { Location = new Point(30, 80), Size = new Size(1040, 70), BackColor = Color.WhiteSmoke };
-            
-            Label lblCN = new Label() { Text = "Chi nhánh:", Location = new Point(20, 25), AutoSize = true, Font = new Font("Segoe UI", 10) };
-            cboChiNhanh = new ComboBox() { Location = new Point(100, 22), Width = 250, DropDownStyle = ComboBoxStyle.DropDownList, Font = new Font("Segoe UI", 10) };
-            
-            Label lblTen = new Label() { Text = "Tên Bác sĩ:", Location = new Point(400, 25), AutoSize = true, Font = new Font("Segoe UI", 10) };
-            txtTenBS = new TextBox() { Location = new Point(490, 22), Width = 250, Font = new Font("Segoe UI", 10) };
+        // Panel bộ lọc (Tăng chiều cao lên 80 để không bị chật chội)
+        Panel pnlFilter = new Panel() { 
+            Location = new Point(30, 85), 
+            Size = new Size(1040, 80), 
+            BackColor = Color.WhiteSmoke,
+            BorderStyle = BorderStyle.FixedSingle 
+        };
+        
+        // Tính toán tọa độ Y trung tâm cho các thành phần trong Panel (Y=25 là đẹp)
+        int labelY = 28;
+        int controlY = 24;
 
-            btnTim = new Button() { 
-                Text = "🔍 Tìm kiếm", 
-                Location = new Point(780, 20), 
-                Size = new Size(120, 32), 
-                BackColor = Color.FromArgb(51, 102, 255), 
-                ForeColor = Color.White, 
-                FlatStyle = FlatStyle.Flat,
-                Font = new Font("Segoe UI", 9, FontStyle.Bold)
-            };
-            btnTim.Click += (s, e) => LoadDanhSachBacSi();
+        Label lblCN = new Label() { 
+            Text = "Chi nhánh:", 
+            Location = new Point(20, controlY), 
+            Size = new Size(100, 28),
+            TextAlign = ContentAlignment.MiddleLeft, 
+            Font = new Font("Segoe UI", 10) 
+        };
+        cboChiNhanh = new ComboBox() { 
+            Location = new Point(130, controlY), 
+            Width = 250, 
+            DropDownStyle = ComboBoxStyle.DropDownList, 
+            Font = new Font("Segoe UI", 10) 
+        };
+        
+        Label lblTen = new Label() { Text = "Tên Bác sĩ:", Location = new Point(380, labelY), AutoSize = true, Font = new Font("Segoe UI", 10) };
+        txtTenBS = new TextBox() { Location = new Point(475, controlY), Width = 250, Font = new Font("Segoe UI", 10) };
 
-            pnlFilter.Controls.AddRange(new Control[] { lblCN, cboChiNhanh, lblTen, txtTenBS, btnTim });
+        btnTim = new Button() { 
+            Text = "🔍 Tìm kiếm", 
+            Location = new Point(760, 20), 
+            Size = new Size(130, 38), 
+            BackColor = Color.FromArgb(52, 152, 219), 
+            ForeColor = Color.White, 
+            FlatStyle = FlatStyle.Flat,
+            Font = new Font("Segoe UI", 10, FontStyle.Bold),
+            Cursor = Cursors.Hand
+        };
+        btnTim.FlatAppearance.BorderSize = 0;
+        btnTim.Click += (s, e) => LoadDanhSachBacSi();
 
-            // Grid hiển thị
-            dgvBacSi = new DataGridView()
-            {
-                Location = new Point(30, 170),
-                Size = new Size(1040, 480),
-                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
-                BackgroundColor = Color.White,
-                ReadOnly = true,
-                SelectionMode = DataGridViewSelectionMode.FullRowSelect,
-                AllowUserToAddRows = false,
-                RowTemplate = { Height = 35 }
-            };
+        pnlFilter.Controls.AddRange(new Control[] { lblCN, cboChiNhanh, lblTen, txtTenBS, btnTim });
 
-            this.Controls.AddRange(new Control[] { lblTitle, pnlFilter, dgvBacSi });
-        }
+        // Cấu hình DataGridView
+        dgvBacSi = new DataGridView() {
+            Location = new Point(30, 185),
+            Size = new Size(1040, 480),
+            AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
+            BackgroundColor = Color.White,
+            BorderStyle = BorderStyle.None,
+            ReadOnly = true,
+            SelectionMode = DataGridViewSelectionMode.FullRowSelect,
+            AllowUserToAddRows = false,
+            RowHeadersVisible = false
+        };
+
+        // Đảm bảo Header không đè chữ
+        dgvBacSi.EnableHeadersVisualStyles = false;
+        dgvBacSi.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(44, 62, 80);
+        dgvBacSi.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
+        dgvBacSi.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 10, FontStyle.Bold);
+        dgvBacSi.ColumnHeadersHeight = 45; // Chiều cao dư dả cho tiêu đề
+        dgvBacSi.RowTemplate.Height = 35;
+
+        this.Controls.AddRange(new Control[] { lblTitle, pnlFilter, dgvBacSi });
+    }
 
         private void LoadChiNhanh()
         {

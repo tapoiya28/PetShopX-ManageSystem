@@ -21,13 +21,13 @@ namespace Winform
 
         // Controls
         private Label lblTitle;
-        
+
         // Controls Tạo ca khám mới
         private ComboBox cboKhachHang;
         private ComboBox cboThuCung;
         private DateTimePicker dtpNgayKhamMoi;
         private Button btnLuuCaKham;
-        
+
         // Thông tin Ca khám hiện tại
         private Label lblMaKB;
         private Label lblTenThuCung;
@@ -39,19 +39,19 @@ namespace Winform
         private TextBox txtLoai;
         private TextBox txtChuSoHuu;
         private DateTimePicker dtpNgayKhamInfo;
-        
+
         // Triệu chứng
         private DataGridView dgvTrieuChung;
         private TextBox txtTrieuChung;
         private Button btnThemTrieuChung;
         private Button btnXoaTrieuChung;
-        
+
         // Chẩn đoán
         private DataGridView dgvChanDoan;
         private TextBox txtChanDoan;
         private Button btnThemChanDoan;
         private Button btnXoaChanDoan;
-        
+
         // Toa thuốc
         private DataGridView dgvToaThuoc;
         private ComboBox cboThuoc;
@@ -60,7 +60,7 @@ namespace Winform
         private Button btnThemThuoc;
         private Button btnXoaThuoc;
         private Button btnLuuToaThuoc;
-        
+
         // Biến lưu trạng thái
         private int maKBHienTai = -1;
         private int maTCHienTai = -1;
@@ -70,9 +70,9 @@ namespace Winform
             this.Size = new Size(1100, 750);
             this.BackColor = Color.FromArgb(236, 240, 245);
             this.AutoScroll = true;
-            
+
             TaoGiaoDien();
-            
+
             // Chỉ Bác sĩ mới có quyền tạo ca khám
             if (!UserSession.IsBacSi())
             {
@@ -90,7 +90,7 @@ namespace Winform
                 lblThongBao.BringToFront();
                 return;
             }
-            
+
             TaiDanhSachThuoc();
             LoadKhachHang();
         }
@@ -106,24 +106,24 @@ namespace Winform
                 Location = new Point(30, 15),
                 AutoSize = true
             };
-            
+
             // ==== PANEL TẠO CA KHÁM MỚI ====
             pnlTaoMoi = TaoPanelTaoMoi();
-            
+
             // ==== PANEL THÔNG TIN CA KHÁM ====
             pnlThongTinKham = TaoPanelThongTin();
-            
+
             // ==== PANEL TRIỆU CHỨNG ====
             pnlTrieuChung = TaoPanelTrieuChung();
-            
+
             // ==== PANEL CHẨN ĐOÁN ====
             pnlChanDoan = TaoPanelChanDoan();
-            
+
             // ==== PANEL TOA THUỐC ====
             pnlToaThuoc = TaoPanelToaThuoc();
-            
+
             this.Controls.AddRange(new Control[] { lblTitle, pnlTaoMoi, pnlThongTinKham, pnlTrieuChung, pnlChanDoan, pnlToaThuoc });
-            
+
             // Khóa các panel chỉnh sửa ban đầu
             KhoaChinhSua(true);
         }
@@ -138,7 +138,7 @@ namespace Winform
             btnThemThuoc.Enabled = !khoa;
             btnXoaThuoc.Enabled = !khoa;
             btnLuuToaThuoc.Enabled = !khoa;
-            
+
             txtTrieuChung.Enabled = !khoa;
             txtChanDoan.Enabled = !khoa;
             cboThuoc.Enabled = !khoa;
@@ -155,49 +155,49 @@ namespace Winform
                 BackColor = Color.FromArgb(255, 250, 240),
                 BorderStyle = BorderStyle.FixedSingle
             };
-            
-            Label lblSection = new Label() 
-            { 
-                Text = "✨ THÔNG TIN CA KHÁM MỚI", 
-                Location = new Point(15, 10), 
-                AutoSize = true, 
-                Font = new Font("Segoe UI", 11, FontStyle.Bold), 
-                ForeColor = Color.FromArgb(230, 126, 34) 
+
+            Label lblSection = new Label()
+            {
+                Text = "✨ THÔNG TIN CA KHÁM MỚI",
+                Location = new Point(15, 10),
+                AutoSize = true,
+                Font = new Font("Segoe UI", 11, FontStyle.Bold),
+                ForeColor = Color.FromArgb(230, 126, 34)
             };
-            
-            Label lblKH = new Label() 
-            { 
-                Text = "Chọn khách hàng:", 
-                Location = new Point(30, 45), 
-                AutoSize = true, 
-                Font = new Font("Segoe UI", 9) 
+
+            Label lblKH = new Label()
+            {
+                Text = "Chọn khách hàng:",
+                Location = new Point(30, 45),
+                AutoSize = true,
+                Font = new Font("Segoe UI", 9)
             };
-            
-            cboKhachHang = new ComboBox() 
-            { 
-                Location = new Point(160, 42), 
-                Width = 300, 
+
+            cboKhachHang = new ComboBox()
+            {
+                Location = new Point(160, 42),
+                Width = 300,
                 DropDownStyle = ComboBoxStyle.DropDownList,
-                Font = new Font("Segoe UI", 9) 
+                Font = new Font("Segoe UI", 9)
             };
             cboKhachHang.SelectedIndexChanged += CboKhachHang_SelectedIndexChanged;
-            
-            Label lblTC = new Label() 
-            { 
-                Text = "Chọn thú cưng:", 
-                Location = new Point(520, 45), 
-                AutoSize = true, 
-                Font = new Font("Segoe UI", 9) 
+
+            Label lblTC = new Label()
+            {
+                Text = "Chọn thú cưng:",
+                Location = new Point(520, 45),
+                AutoSize = true,
+                Font = new Font("Segoe UI", 9)
             };
-            
-            cboThuCung = new ComboBox() 
-            { 
-                Location = new Point(640, 42), 
-                Width = 300, 
+
+            cboThuCung = new ComboBox()
+            {
+                Location = new Point(640, 42),
+                Width = 300,
                 DropDownStyle = ComboBoxStyle.DropDownList,
-                Font = new Font("Segoe UI", 9) 
+                Font = new Font("Segoe UI", 9)
             };
-            
+
             Label lblNgay = new Label()
             {
                 Text = "Ngày khám:",
@@ -205,7 +205,7 @@ namespace Winform
                 AutoSize = true,
                 Font = new Font("Segoe UI", 9)
             };
-            
+
             dtpNgayKhamMoi = new DateTimePicker()
             {
                 Location = new Point(160, 82),
@@ -214,7 +214,7 @@ namespace Winform
                 Font = new Font("Segoe UI", 9),
                 Value = DateTime.Now
             };
-            
+
             btnLuuCaKham = new Button()
             {
                 Text = "💾 Lưu Ca Khám & Bắt Đầu Khám",
@@ -228,9 +228,9 @@ namespace Winform
             };
             btnLuuCaKham.FlatAppearance.BorderSize = 0;
             btnLuuCaKham.Click += BtnLuuCaKham_Click;
-            
+
             panel.Controls.AddRange(new Control[] { lblSection, lblKH, cboKhachHang, lblTC, cboThuCung, lblNgay, dtpNgayKhamMoi, btnLuuCaKham });
-            
+
             return panel;
         }
 
@@ -243,33 +243,33 @@ namespace Winform
                 BackColor = Color.White,
                 BorderStyle = BorderStyle.FixedSingle
             };
-            
+
             Label lblSectionTitle = new Label() { Text = "📋 THÔNG TIN CA KHÁM", Location = new Point(15, 10), AutoSize = true, Font = new Font("Segoe UI", 11, FontStyle.Bold), ForeColor = Color.FromArgb(44, 62, 80) };
-            
+
             lblMaKB = new Label() { Text = "Mã khám:", Location = new Point(30, 45), AutoSize = true, Font = new Font("Segoe UI", 9) };
             txtMaKB = new TextBox() { Location = new Point(120, 42), Width = 120, ReadOnly = true, BackColor = Color.WhiteSmoke, Font = new Font("Segoe UI", 9) };
-            
+
             lblTenThuCung = new Label() { Text = "Tên thú cưng:", Location = new Point(270, 45), AutoSize = true, Font = new Font("Segoe UI", 9) };
             txtTenTC = new TextBox() { Location = new Point(380, 42), Width = 150, ReadOnly = true, BackColor = Color.WhiteSmoke, Font = new Font("Segoe UI", 9) };
-            
+
             lblLoaiThuCung = new Label() { Text = "Loại:", Location = new Point(560, 45), AutoSize = true, Font = new Font("Segoe UI", 9) };
             txtLoai = new TextBox() { Location = new Point(610, 42), Width = 120, ReadOnly = true, BackColor = Color.WhiteSmoke, Font = new Font("Segoe UI", 9) };
-            
+
             lblChuSoHuu = new Label() { Text = "Chủ sở hữu:", Location = new Point(30, 80), AutoSize = true, Font = new Font("Segoe UI", 9) };
             txtChuSoHuu = new TextBox() { Location = new Point(120, 77), Width = 200, ReadOnly = true, BackColor = Color.WhiteSmoke, Font = new Font("Segoe UI", 9) };
-            
+
             lblNgayKham = new Label() { Text = "Ngày khám:", Location = new Point(350, 80), AutoSize = true, Font = new Font("Segoe UI", 9) };
             dtpNgayKhamInfo = new DateTimePicker() { Location = new Point(450, 77), Width = 150, Enabled = false, Format = DateTimePickerFormat.Short, Font = new Font("Segoe UI", 9) };
-            
-            panel.Controls.AddRange(new Control[] { 
-                lblSectionTitle, 
-                lblMaKB, txtMaKB, 
-                lblTenThuCung, txtTenTC, 
+
+            panel.Controls.AddRange(new Control[] {
+                lblSectionTitle,
+                lblMaKB, txtMaKB,
+                lblTenThuCung, txtTenTC,
                 lblLoaiThuCung, txtLoai,
-                lblChuSoHuu, txtChuSoHuu, 
-                lblNgayKham, dtpNgayKhamInfo 
+                lblChuSoHuu, txtChuSoHuu,
+                lblNgayKham, dtpNgayKhamInfo
             });
-            
+
             return panel;
         }
 
@@ -282,9 +282,9 @@ namespace Winform
                 BackColor = Color.White,
                 BorderStyle = BorderStyle.FixedSingle
             };
-            
+
             Label lblSection = new Label() { Text = "🩺 TRIỆU CHỨNG", Location = new Point(15, 10), AutoSize = true, Font = new Font("Segoe UI", 11, FontStyle.Bold), ForeColor = Color.FromArgb(192, 57, 43) };
-            
+
             dgvTrieuChung = new DataGridView()
             {
                 Location = new Point(15, 45),
@@ -296,9 +296,9 @@ namespace Winform
                 AllowUserToAddRows = false,
                 AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
             };
-            
+
             txtTrieuChung = new TextBox() { Location = new Point(15, 210), Width = 380, PlaceholderText = "Nhập triệu chứng...", Font = new Font("Segoe UI", 9) };
-            
+
             btnThemTrieuChung = new Button()
             {
                 Text = "Thêm",
@@ -312,7 +312,7 @@ namespace Winform
             };
             btnThemTrieuChung.FlatAppearance.BorderSize = 0;
             btnThemTrieuChung.Click += BtnThemTrieuChung_Click;
-            
+
             btnXoaTrieuChung = new Button()
             {
                 Text = "Xóa",
@@ -326,7 +326,7 @@ namespace Winform
             };
             btnXoaTrieuChung.FlatAppearance.BorderSize = 0;
             btnXoaTrieuChung.Click += BtnXoaTrieuChung_Click;
-            
+
             panel.Controls.AddRange(new Control[] { lblSection, dgvTrieuChung, txtTrieuChung, btnThemTrieuChung, btnXoaTrieuChung });
             return panel;
         }
@@ -340,9 +340,9 @@ namespace Winform
                 BackColor = Color.White,
                 BorderStyle = BorderStyle.FixedSingle
             };
-            
+
             Label lblSection = new Label() { Text = "📝 CHẨN ĐOÁN", Location = new Point(15, 10), AutoSize = true, Font = new Font("Segoe UI", 11, FontStyle.Bold), ForeColor = Color.FromArgb(142, 68, 173) };
-            
+
             dgvChanDoan = new DataGridView()
             {
                 Location = new Point(15, 45),
@@ -354,9 +354,9 @@ namespace Winform
                 AllowUserToAddRows = false,
                 AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
             };
-            
+
             txtChanDoan = new TextBox() { Location = new Point(15, 210), Width = 380, PlaceholderText = "Nhập chẩn đoán...", Font = new Font("Segoe UI", 9) };
-            
+
             btnThemChanDoan = new Button()
             {
                 Text = "Thêm",
@@ -370,7 +370,7 @@ namespace Winform
             };
             btnThemChanDoan.FlatAppearance.BorderSize = 0;
             btnThemChanDoan.Click += BtnThemChanDoan_Click;
-            
+
             btnXoaChanDoan = new Button()
             {
                 Text = "Xóa",
@@ -384,7 +384,7 @@ namespace Winform
             };
             btnXoaChanDoan.FlatAppearance.BorderSize = 0;
             btnXoaChanDoan.Click += BtnXoaChanDoan_Click;
-            
+
             panel.Controls.AddRange(new Control[] { lblSection, dgvChanDoan, txtChanDoan, btnThemChanDoan, btnXoaChanDoan });
             return panel;
         }
@@ -398,9 +398,9 @@ namespace Winform
                 BackColor = Color.White,
                 BorderStyle = BorderStyle.FixedSingle
             };
-            
+
             Label lblSection = new Label() { Text = "💊 TOA THUỐC", Location = new Point(15, 10), AutoSize = true, Font = new Font("Segoe UI", 11, FontStyle.Bold), ForeColor = Color.FromArgb(39, 174, 96) };
-            
+
             dgvToaThuoc = new DataGridView()
             {
                 Location = new Point(15, 45),
@@ -412,14 +412,14 @@ namespace Winform
                 AllowUserToAddRows = false,
                 AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
             };
-            
+
             // Controls thêm thuốc
             Label lblThuoc = new Label() { Text = "Thuốc:", Location = new Point(15, 210), AutoSize = true, Font = new Font("Segoe UI", 9) };
             cboThuoc = new ComboBox() { Location = new Point(80, 207), Width = 250, DropDownStyle = ComboBoxStyle.DropDownList, Font = new Font("Segoe UI", 9) };
-            
+
             Label lblSoLuong = new Label() { Text = "SL:", Location = new Point(350, 210), AutoSize = true, Font = new Font("Segoe UI", 9) };
             nudSoLuong = new NumericUpDown() { Location = new Point(390, 207), Width = 70, Minimum = 1, Maximum = 999, Value = 1, Font = new Font("Segoe UI", 9) };
-            
+
             btnThemThuoc = new Button()
             {
                 Text = "➕ Thêm",
@@ -433,7 +433,7 @@ namespace Winform
             };
             btnThemThuoc.FlatAppearance.BorderSize = 0;
             btnThemThuoc.Click += BtnThemThuoc_Click;
-            
+
             btnXoaThuoc = new Button()
             {
                 Text = "➖ Xóa",
@@ -447,10 +447,10 @@ namespace Winform
             };
             btnXoaThuoc.FlatAppearance.BorderSize = 0;
             btnXoaThuoc.Click += BtnXoaThuoc_Click;
-            
+
             Label lblGhiChu = new Label() { Text = "Lời dặn BS:", Location = new Point(15, 250), AutoSize = true, Font = new Font("Segoe UI", 9) };
             txtGhiChuToa = new TextBox() { Location = new Point(110, 247), Width = 530, Height = 60, Multiline = true, PlaceholderText = "Ghi chú cho toa thuốc...", Font = new Font("Segoe UI", 9) };
-            
+
             btnLuuToaThuoc = new Button()
             {
                 Text = "💾 LƯU TOA THUỐC",
@@ -464,16 +464,16 @@ namespace Winform
             };
             btnLuuToaThuoc.FlatAppearance.BorderSize = 0;
             btnLuuToaThuoc.Click += BtnLuuToaThuoc_Click;
-            
-            panel.Controls.AddRange(new Control[] { 
-                lblSection, dgvToaThuoc, 
-                lblThuoc, cboThuoc, 
-                lblSoLuong, nudSoLuong, 
+
+            panel.Controls.AddRange(new Control[] {
+                lblSection, dgvToaThuoc,
+                lblThuoc, cboThuoc,
+                lblSoLuong, nudSoLuong,
                 btnThemThuoc, btnXoaThuoc,
                 lblGhiChu, txtGhiChuToa,
-                btnLuuToaThuoc 
+                btnLuuToaThuoc
             });
-            
+
             return panel;
         }
 
@@ -489,11 +489,11 @@ namespace Winform
                     string query = "SELECT ROW_NUMBER() OVER(ORDER BY TENTRIEUCHUNG) AS [STT], TENTRIEUCHUNG AS [Triệu Chứng] FROM TRIEUCHUNG WHERE MAKB = @MAKB";
                     SqlDataAdapter da = new SqlDataAdapter(query, conn);
                     da.SelectCommand.Parameters.AddWithValue("@MAKB", maKBHienTai);
-                    
+
                     DataTable dt = new DataTable();
                     da.Fill(dt);
                     dgvTrieuChung.DataSource = dt;
-                    
+
                     if (dgvTrieuChung.Columns.Contains("STT"))
                         dgvTrieuChung.Columns["STT"].Width = 50;
                 }
@@ -514,11 +514,11 @@ namespace Winform
                     string query = "SELECT ROW_NUMBER() OVER(ORDER BY TENCHANDOAN) AS [STT], TENCHANDOAN AS [Chẩn Đoán] FROM CHANDOAN WHERE MAKB = @MAKB";
                     SqlDataAdapter da = new SqlDataAdapter(query, conn);
                     da.SelectCommand.Parameters.AddWithValue("@MAKB", maKBHienTai);
-                    
+
                     DataTable dt = new DataTable();
                     da.Fill(dt);
                     dgvChanDoan.DataSource = dt;
-                    
+
                     if (dgvChanDoan.Columns.Contains("STT"))
                         dgvChanDoan.Columns["STT"].Width = 50;
                 }
@@ -547,17 +547,17 @@ namespace Winform
                         JOIN THUOC T ON CTT.MATHUOC = T.MATHUOC
                         JOIN SANPHAM SP ON T.MATHUOC = SP.MASP
                         WHERE TT.MAKB = @MAKB";
-                    
+
                     SqlDataAdapter da = new SqlDataAdapter(query, conn);
                     da.SelectCommand.Parameters.AddWithValue("@MAKB", maKBHienTai);
-                    
+
                     DataTable dt = new DataTable();
                     da.Fill(dt);
                     dgvToaThuoc.DataSource = dt;
-                    
+
                     if (dgvToaThuoc.Columns.Contains("MATT"))
                         dgvToaThuoc.Columns["MATT"].Visible = false;
-                        
+
                     // Load ghi chú toa thuốc
                     string queryGhiChu = "SELECT TOP 1 GHICHU FROM TOATHUOC WHERE MAKB = @MAKB";
                     using (SqlCommand cmd = new SqlCommand(queryGhiChu, conn))
@@ -587,7 +587,7 @@ namespace Winform
                         SqlDataAdapter da = new SqlDataAdapter(cmd);
                         DataTable dt = new DataTable();
                         da.Fill(dt);
-                        
+
                         cboThuoc.DataSource = dt;
                         cboThuoc.DisplayMember = "TENSP";
                         cboThuoc.ValueMember = "MATHUOC";
@@ -607,7 +607,7 @@ namespace Winform
                 MessageBox.Show("Vui lòng chọn ca khám!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            
+
             string trieuChung = txtTrieuChung.Text.Trim();
             if (string.IsNullOrEmpty(trieuChung))
             {
@@ -628,7 +628,7 @@ namespace Winform
                         cmd.ExecuteNonQuery();
                     }
                 }
-                
+
                 txtTrieuChung.Clear();
                 LoadTrieuChung();
                 MessageBox.Show("Đã thêm triệu chứng!", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -642,9 +642,9 @@ namespace Winform
         private void BtnXoaTrieuChung_Click(object sender, EventArgs e)
         {
             if (dgvTrieuChung.SelectedRows.Count == 0) return;
-            
+
             string trieuChung = dgvTrieuChung.SelectedRows[0].Cells["Triệu Chứng"].Value.ToString();
-            
+
             try
             {
                 using (SqlConnection conn = Connection.GetConnection())
@@ -658,7 +658,7 @@ namespace Winform
                         cmd.ExecuteNonQuery();
                     }
                 }
-                
+
                 LoadTrieuChung();
                 MessageBox.Show("Đã xóa triệu chứng!", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
@@ -675,7 +675,7 @@ namespace Winform
                 MessageBox.Show("Vui lòng chọn ca khám!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            
+
             string chanDoan = txtChanDoan.Text.Trim();
             if (string.IsNullOrEmpty(chanDoan))
             {
@@ -696,7 +696,7 @@ namespace Winform
                         cmd.ExecuteNonQuery();
                     }
                 }
-                
+
                 txtChanDoan.Clear();
                 LoadChanDoan();
                 MessageBox.Show("Đã thêm chẩn đoán!", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -710,9 +710,9 @@ namespace Winform
         private void BtnXoaChanDoan_Click(object sender, EventArgs e)
         {
             if (dgvChanDoan.SelectedRows.Count == 0) return;
-            
+
             string chanDoan = dgvChanDoan.SelectedRows[0].Cells["Chẩn Đoán"].Value.ToString();
-            
+
             try
             {
                 using (SqlConnection conn = Connection.GetConnection())
@@ -726,7 +726,7 @@ namespace Winform
                         cmd.ExecuteNonQuery();
                     }
                 }
-                
+
                 LoadChanDoan();
                 MessageBox.Show("Đã xóa chẩn đoán!", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
@@ -743,7 +743,7 @@ namespace Winform
                 MessageBox.Show("Vui lòng chọn ca khám!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            
+
             if (cboThuoc.SelectedValue == null)
             {
                 MessageBox.Show("Vui lòng chọn thuốc!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -755,7 +755,7 @@ namespace Winform
                 using (SqlConnection conn = Connection.GetConnection())
                 {
                     conn.Open();
-                    
+
                     // Tạo hoặc lấy toa thuốc
                     int maToa;
                     using (SqlCommand cmd = new SqlCommand("sp_ToaThuoc_TaoHoacLay", conn))
@@ -763,17 +763,17 @@ namespace Winform
                         cmd.CommandType = CommandType.StoredProcedure;
                         cmd.Parameters.AddWithValue("@MAKB", maKBHienTai);
                         cmd.Parameters.AddWithValue("@GHICHU", txtGhiChuToa.Text.Trim());
-                        
+
                         SqlParameter outParam = new SqlParameter("@MATT", SqlDbType.Int)
                         {
                             Direction = ParameterDirection.Output
                         };
                         cmd.Parameters.Add(outParam);
-                        
+
                         cmd.ExecuteNonQuery();
                         maToa = Convert.ToInt32(outParam.Value);
                     }
-                    
+
                     // Thêm thuốc vào toa
                     using (SqlCommand cmd = new SqlCommand("sp_ToaThuoc_ThemThuoc", conn))
                     {
@@ -784,7 +784,7 @@ namespace Winform
                         cmd.ExecuteNonQuery();
                     }
                 }
-                
+
                 LoadToaThuoc();
                 MessageBox.Show("Đã thêm thuốc vào toa!", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
@@ -797,10 +797,10 @@ namespace Winform
         private void BtnXoaThuoc_Click(object sender, EventArgs e)
         {
             if (dgvToaThuoc.SelectedRows.Count == 0) return;
-            
+
             int matt = Convert.ToInt32(dgvToaThuoc.SelectedRows[0].Cells["MATT"].Value);
             string tenThuoc = dgvToaThuoc.SelectedRows[0].Cells["Tên Thuốc"].Value.ToString();
-            
+
             try
             {
                 using (SqlConnection conn = Connection.GetConnection())
@@ -811,7 +811,7 @@ namespace Winform
                     SqlCommand getCmd = new SqlCommand(getMaThuoc, conn);
                     getCmd.Parameters.AddWithValue("@TENSP", tenThuoc);
                     int maThuoc = Convert.ToInt32(getCmd.ExecuteScalar());
-                    
+
                     using (SqlCommand cmd = new SqlCommand("sp_ToaThuoc_XoaThuoc", conn))
                     {
                         cmd.CommandType = CommandType.StoredProcedure;
@@ -820,7 +820,7 @@ namespace Winform
                         cmd.ExecuteNonQuery();
                     }
                 }
-                
+
                 LoadToaThuoc();
                 MessageBox.Show("Đã xóa thuốc khỏi toa!", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
@@ -851,7 +851,7 @@ namespace Winform
                         cmd.ExecuteNonQuery();
                     }
                 }
-                
+
                 MessageBox.Show("Đã lưu toa thuốc thành công!", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
@@ -866,18 +866,33 @@ namespace Winform
         {
             try
             {
+                // Lấy ID bác sĩ đang đăng nhập
+                int maBS = UserSession.UserId;
+
                 using (SqlConnection conn = Connection.GetConnection())
                 {
                     conn.Open();
-                    using (SqlCommand cmd = new SqlCommand("sp_KhachHang_DanhSach", conn))
+                    // GỌI SP MỚI: sp_BacSi_LayDanhSachBenhNhanCho
+                    using (SqlCommand cmd = new SqlCommand("sp_BacSi_LayDanhSachBenhNhanCho", conn))
                     {
                         cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.AddWithValue("@MaBS", maBS);
+
                         SqlDataAdapter da = new SqlDataAdapter(cmd);
                         DataTable dt = new DataTable();
                         da.Fill(dt);
-                        
+
+                        if (dt.Rows.Count == 0)
+                        {
+                            // Nếu không có khách nào, có thể thông báo nhỏ hoặc để trống
+                            // MessageBox.Show("Hiện chưa có bệnh nhân nào được phân công cho bạn hôm nay.");
+                        }
+
                         cboKhachHang.DataSource = dt;
                         cboKhachHang.DisplayMember = "Display";
+
+                        // Mẹo: ValueMember vẫn để MAKH để tương thích logic cũ, 
+                        // nhưng ta sẽ lấy MAKB và MATC từ DataRowView sau.
                         cboKhachHang.ValueMember = "MAKH";
                         cboKhachHang.SelectedIndex = -1;
                     }
@@ -885,127 +900,101 @@ namespace Winform
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi load khách hàng: " + ex.Message);
+                MessageBox.Show("Lỗi load danh sách chờ khám: " + ex.Message);
             }
         }
 
         private void CboKhachHang_SelectedIndexChanged(object sender, EventArgs e)
         {
-            // Kiểm tra SelectedIndex trước
             if (cboKhachHang.SelectedIndex == -1) return;
-            
-            // Kiểm tra SelectedItem
-            if (cboKhachHang.SelectedItem == null) return;
-            
+
             try
             {
-                // Sử dụng SelectedItem với DataRowView thay vì SelectedValue
-                int maKH = 0;
                 if (cboKhachHang.SelectedItem is DataRowView drv)
                 {
-                    maKH = Convert.ToInt32(drv["MAKH"]);
-                }
-                else
-                {
-                    return; // Nếu không phải DataRowView thì bỏ qua
-                }
-                
-                using (SqlConnection conn = Connection.GetConnection())
-                {
-                    conn.Open();
-                    using (SqlCommand cmd = new SqlCommand("sp_ThuCung_DanhSachTheoKH", conn))
+                    // 1. Lấy thông tin từ dòng đã chọn
+                    int maKH = Convert.ToInt32(drv["MAKH"]);
+                    int maTC = Convert.ToInt32(drv["MATC"]);
+                    int maKB = Convert.ToInt32(drv["MAKB"]); // Lấy luôn MAKB có sẵn từ Database
+
+                    // 2. Load danh sách thú cưng của khách đó (để hiển thị đúng trong cboThuCung)
+                    // (Code cũ của bạn giữ nguyên phần load cboThuCung để fill data)
+                    using (SqlConnection conn = Connection.GetConnection())
                     {
-                        cmd.CommandType = CommandType.StoredProcedure;
-                        cmd.Parameters.AddWithValue("@MAKH", maKH);
-                        
-                        SqlDataAdapter da = new SqlDataAdapter(cmd);
-                        DataTable dt = new DataTable();
-                        da.Fill(dt);
-                        
-                        cboThuCung.DataSource = dt;
-                        cboThuCung.DisplayMember = "Display";
-                        cboThuCung.ValueMember = "MATC";
-                        cboThuCung.SelectedIndex = -1;
+                        conn.Open();
+                        using (SqlCommand cmd = new SqlCommand("sp_ThuCung_DanhSachTheoKH", conn))
+                        {
+                            cmd.CommandType = CommandType.StoredProcedure;
+                            cmd.Parameters.AddWithValue("@MAKH", maKH);
+
+                            SqlDataAdapter da = new SqlDataAdapter(cmd);
+                            DataTable dt = new DataTable();
+                            da.Fill(dt);
+
+                            cboThuCung.DataSource = dt;
+                            cboThuCung.DisplayMember = "Display";
+                            cboThuCung.ValueMember = "MATC";
+
+                            // 3. QUAN TRỌNG: Tự động chọn đúng thú cưng của ca khám này
+                            cboThuCung.SelectedValue = maTC;
+                        }
                     }
+
+                    // 4. Cập nhật biến toàn cục và giao diện ngay lập tức
+                    maKBHienTai = maKB;
+                    maTCHienTai = maTC;
+
+                    // Đổi text nút bấm để bác sĩ hiểu là đang mở ca có sẵn
+                    btnLuuCaKham.Text = "📂 Mở Hồ Sơ Bệnh Án";
+                    btnLuuCaKham.BackColor = Color.Orange; // Đổi màu để gây chú ý
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi load thú cưng: " + ex.Message);
+                MessageBox.Show("Lỗi chọn bệnh nhân: " + ex.Message);
             }
         }
 
         private void BtnLuuCaKham_Click(object sender, EventArgs e)
         {
-            // Kiểm tra quyền Bác sĩ
-            if (!UserSession.IsBacSi())
-            {
-                MessageBox.Show("Chỉ Bác Sĩ mới có quyền tạo ca khám!", "Không có quyền", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-            
+            // Kiểm tra quyền
+            if (!UserSession.IsBacSi()) return;
+
             if (cboKhachHang.SelectedIndex == -1 || cboThuCung.SelectedIndex == -1)
             {
-                MessageBox.Show("Vui lòng chọn khách hàng và thú cưng!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Vui lòng chọn bệnh nhân từ danh sách chờ!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
             try
             {
-                // Sử dụng SelectedItem với DataRowView
-                if (cboThuCung.SelectedItem is DataRowView drvTC)
+                // TRƯỜNG HỢP 1: Đã có mã khám (do chọn từ danh sách chờ)
+                if (maKBHienTai != -1)
                 {
-                    maTCHienTai = Convert.ToInt32(drvTC["MATC"]);
+                    // Chỉ cần load thông tin chi tiết để bác sĩ bắt đầu nhập liệu
+                    LoadThongTinCaKham();
+                    LoadTrieuChung(); // Load nếu đã có nhập trước đó
+                    LoadChanDoan();
+                    LoadToaThuoc();
+
+                    KhoaChinhSua(false); // Mở khóa các ô nhập liệu
+                    pnlTaoMoi.Visible = false; // Ẩn panel chọn để bác sĩ tập trung khám
+
+                    MessageBox.Show("Đã mở hồ sơ bệnh án thành công!", "Bắt đầu khám", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
+                // TRƯỜNG HỢP 2: Tạo mới (Nếu bác sĩ muốn khám "ngang" không qua tiếp tân - tùy chọn)
                 else
                 {
-                    MessageBox.Show("Lỗi đọc thông tin thú cưng!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
-                }
-                
-                int maNV = UserSession.UserId;
-                
-                using (SqlConnection conn = Connection.GetConnection())
-                {
-                    conn.Open();
-                    
-                    // Tạo ca khám mới bằng stored procedure
-                    using (SqlCommand cmd = new SqlCommand("sp_CaKham_Tao", conn))
-                    {
-                        cmd.CommandType = CommandType.StoredProcedure;
-                        cmd.Parameters.AddWithValue("@MATC", maTCHienTai);
-                        cmd.Parameters.AddWithValue("@MANV", maNV);
-                        cmd.Parameters.AddWithValue("@NGAYKHAM", dtpNgayKhamMoi.Value.Date);
-                        
-                        SqlParameter outParam = new SqlParameter("@MAKB", SqlDbType.Int)
-                        {
-                            Direction = ParameterDirection.Output
-                        };
-                        cmd.Parameters.Add(outParam);
-                        
-                        cmd.ExecuteNonQuery();
-                        maKBHienTai = Convert.ToInt32(outParam.Value);
-                    }
-                    
-                    // Load thông tin ca khám
-                    LoadThongTinCaKham();
-                    
-                    // Mở khóa chỉnh sửa
-                    KhoaChinhSua(false);
-                    
-                    // Ẩn panel tạo mới
-                    pnlTaoMoi.Visible = false;
-                    
-                    MessageBox.Show("Đã tạo ca khám mới thành công! Bây giờ có thể thêm triệu chứng, chẩn đoán và toa thuốc.", 
-                        "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    // ... (Giữ lại logic INSERT cũ của bạn nếu muốn hỗ trợ trường hợp này)
+                    // Tuy nhiên, theo quy trình chuẩn thì nên chặn trường hợp này hoặc cảnh báo.
+                    MessageBox.Show("Vui lòng chọn bệnh nhân từ danh sách được phân công.", "Thông báo");
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi tạo ca khám: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Lỗi xử lý ca khám: " + ex.Message, "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-
         private void LoadThongTinCaKham()
         {
             try
@@ -1017,9 +1006,9 @@ namespace Winform
                     {
                         cmd.CommandType = CommandType.StoredProcedure;
                         cmd.Parameters.AddWithValue("@MAKB", maKBHienTai);
-                        
+
                         SqlDataReader reader = cmd.ExecuteReader();
-                        
+
                         if (reader.Read())
                         {
                             txtMaKB.Text = reader["MAKB"].ToString();

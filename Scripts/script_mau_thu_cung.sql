@@ -20,6 +20,7 @@ DELETE FROM THUCUNG WHERE MAKH = @MaKH_Test;
 INSERT INTO THUCUNG (MAKH, TENTC, LOAI, TUOI, GIOITINH, TINHTRANG)
 VALUES 
 (@MaKH_Test, N'Miu Miu', N'Mèo', 2, N'Cái', N'Bình thường'),
+(@MaKH_Test, N'Ni Ni', N'Vẹt', 2, N'Cái', N'Bình thường'),
 (@MaKH_Test, N'Lu Lu', N'Chó', 3, N'Đực', N'Đang điều trị');
 
 -- Lấy ID của 2 thú cưng vừa tạo

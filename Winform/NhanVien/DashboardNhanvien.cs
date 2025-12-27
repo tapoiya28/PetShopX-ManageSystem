@@ -44,9 +44,13 @@ namespace Winform
             {
                 ChuyenTrang(new UCKhamBenh()); // Bác sĩ vào thẳng ca khám
             }
-            else 
+            if (UserSession.IsNhanVien())
             {
                 ChuyenTrang(new UCLichHen()); // Nhân viên vào quản lý lịch hẹn
+            }
+            if (UserSession.IsQuanLy())
+            {
+                ChuyenTrang(new UCThongKe()); // Quản lí vào thống kê
             }
         }
 

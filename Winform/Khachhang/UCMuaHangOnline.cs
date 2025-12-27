@@ -48,20 +48,34 @@ namespace Winform
             // === CỘT TRÁI: DANH SÁCH SẢN PHẨM ===
             GroupBox grpSanPham = new GroupBox() { Text = "Danh sách sản phẩm", Location = new Point(20, 60), Size = new Size(650, 600), Font = new Font("Segoe UI", 10) };
             
-            cboLoaiHang = new ComboBox() { Location = new Point(10, 30), Width = 120, DropDownStyle = ComboBoxStyle.DropDownList };
+            // Căn chỉnh lại Combo và TextBox tìm kiếm
+            cboLoaiHang = new ComboBox() { Location = new Point(15, 30), Width = 110, DropDownStyle = ComboBoxStyle.DropDownList };
             cboLoaiHang.Items.AddRange(new string[] { "Tất cả", "Sản phẩm", "Thuốc", "Vacxin", "Gói tiêm" });
             cboLoaiHang.SelectedIndex = 0;
             cboLoaiHang.SelectedIndexChanged += (s, e) => LoadSanPham();
 
-            txtTimKiem = new TextBox() { Location = new Point(140, 30), Width = 380, PlaceholderText = "Tìm tên sản phẩm..." };
+            // Tăng khoảng cách X để không dính vào Combo
+            txtTimKiem = new TextBox() { Location = new Point(135, 30), Width = 385, PlaceholderText = "Tìm tên sản phẩm..." };
             txtTimKiem.KeyDown += (s, e) => { if (e.KeyCode == Keys.Enter) LoadSanPham(); };
 
-            Button btnTim = new Button() { Text = "Tìm", Location = new Point(530, 28), Width = 100, BackColor = Color.FromArgb(51, 102, 255), ForeColor = Color.White, FlatStyle = FlatStyle.Flat };
+            // Nút Tìm: Đặt tại X = 530, Width = 100 (Tổng 630, vẫn nằm trong GroupBox 650)
+            Button btnTim = new Button() { 
+                Text = "🔍 Tìm", 
+                Location = new Point(530, 28), 
+                Width = 100, 
+                Height = 32, // Tăng nhẹ chiều cao để cân đối với TextBox
+                BackColor = Color.FromArgb(51, 102, 255), 
+                ForeColor = Color.White, 
+                FlatStyle = FlatStyle.Flat,
+                Font = new Font("Segoe UI", 9, FontStyle.Bold),
+                Cursor = Cursors.Hand
+            };
+            btnTim.FlatAppearance.BorderSize = 0;
             btnTim.Click += (s, e) => LoadSanPham();
 
             dgvSanPham = new DataGridView() { 
-                Location = new Point(10, 70), 
-                Size = new Size(630, 520), 
+                Location = new Point(10, 75), // Dịch xuống một chút để không dính thanh tìm kiếm
+                Size = new Size(630, 510), 
                 AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill, 
                 ReadOnly = true, 
                 AllowUserToAddRows = false, 
@@ -82,18 +96,31 @@ namespace Winform
                 AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill, 
                 AllowUserToAddRows = false, 
                 BackgroundColor = Color.White,
-                RowHeadersVisible = false
+                RowHeadersVisible = false,
+                BorderStyle = BorderStyle.FixedSingle
             };
             dgvGioHang.DataSource = dtGioHang;
             
-            // Xử lý ẩn cột an toàn sau khi gán DataSource
             dgvGioHang.DataBindingComplete += (s, e) => {
                 if (dgvGioHang.Columns.Contains("MASP")) dgvGioHang.Columns["MASP"].Visible = false;
             };
 
+            // Label tổng tiền sử dụng AutoSize
             lblTongTien = new Label() { Text = "Tổng tiền: 0 đ", Location = new Point(10, 465), Font = new Font("Segoe UI", 14, FontStyle.Bold), ForeColor = Color.Red, AutoSize = true };
 
-            Button btnXoa = new Button() { Text = "Xóa món", Location = new Point(290, 460), Width = 100, BackColor = Color.Salmon, FlatStyle = FlatStyle.Flat, ForeColor = Color.White };
+            // Nút Xóa món: Đặt sát lề phải của GroupBox (X=280, W=105)
+            Button btnXoa = new Button() { 
+                Text = "🗑 Xóa món", 
+                Location = new Point(280, 460), 
+                Width = 105, 
+                Height = 35,
+                BackColor = Color.Salmon, 
+                FlatStyle = FlatStyle.Flat, 
+                ForeColor = Color.White,
+                Font = new Font("Segoe UI", 9, FontStyle.Bold),
+                Cursor = Cursors.Hand
+            };
+            btnXoa.FlatAppearance.BorderSize = 0;
             btnXoa.Click += (s, e) => {
                 if(dgvGioHang.CurrentRow != null) {
                     dtGioHang.Rows.RemoveAt(dgvGioHang.CurrentRow.Index);
