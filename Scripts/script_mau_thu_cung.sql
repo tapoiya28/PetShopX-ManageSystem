@@ -3,7 +3,6 @@ GO
 
 -- 1. XÁC ĐỊNH KHÁCH HÀNG CẦN BƠM DỮ LIỆU (ID = 1)
 DECLARE @MaKH_Test INT = 1;
-
 -- Đảm bảo Khách hàng số 1 tồn tại (Nếu chưa có thì tạo lại)
 IF NOT EXISTS (SELECT 1 FROM KHACHHANG WHERE MAKH = @MaKH_Test)
 BEGIN
@@ -19,8 +18,10 @@ DELETE FROM THUCUNG WHERE MAKH = @MaKH_Test;
 
 INSERT INTO THUCUNG (MAKH, TENTC, LOAI, TUOI, GIOITINH, TINHTRANG)
 VALUES 
+(@MaKH_Test, N'Bo', N'Mèo', 2, N'Đực', N'Bình thường'),
 (@MaKH_Test, N'Miu Miu', N'Mèo', 2, N'Cái', N'Bình thường'),
 (@MaKH_Test, N'Ni Ni', N'Vẹt', 2, N'Cái', N'Bình thường'),
+(@MaKH_Test, N'Bi', N'Hamster', 1, N'Cái', N'Bình thường'),
 (@MaKH_Test, N'Lu Lu', N'Chó', 3, N'Đực', N'Đang điều trị');
 
 -- Lấy ID của 2 thú cưng vừa tạo

@@ -236,6 +236,8 @@ GO
 -- thống kê đánh giá khách hàng 
 GO
 CREATE OR ALTER PROCEDURE sp_ThongKeDanhGia
+    @Thang INTEGER = NULL, 
+    @Nam INTEGER = NULL    
 AS 
 BEGIN
     SET NOCOUNT ON;
@@ -256,6 +258,9 @@ BEGIN
             FROM HOADON HD
             JOIN DANHGIA DG ON HD.MAHD = DG.MAHD
             WHERE DG.DIEMDICHVU IS NOT NULL
+              -- THÊM LOGIC LỌC THEO THỜI GIAN
+              AND (@Nam IS NULL OR YEAR(HD.NGAYLAP) = @Nam)
+              AND (@Thang IS NULL OR MONTH(HD.NGAYLAP) = @Thang)
             GROUP BY HD.MACN, DG.DIEMDICHVU
         ),
         DiemHaiLong AS (
@@ -266,6 +271,9 @@ BEGIN
             FROM HOADON HD
             JOIN DANHGIA DG ON HD.MAHD = DG.MAHD
             WHERE DG.MUCDOHAILONG IS NOT NULL
+              -- THÊM LOGIC LỌC THEO THỜI GIAN
+              AND (@Nam IS NULL OR YEAR(HD.NGAYLAP) = @Nam)
+              AND (@Thang IS NULL OR MONTH(HD.NGAYLAP) = @Thang)
             GROUP BY HD.MACN, DG.MUCDOHAILONG
         ),
         Branches AS (
@@ -664,15 +672,28 @@ GO-- tra cứu thông tin sản phẩm
 -- GO
 
 --- QuanLyLuongChiNhanh
-CREATE OR ALTER PROCEDURE sp_Sub_TinhLuong @MACN INT = NULL
+CREATE OR ALTER PROCEDURE sp_Sub_TinhLuong
+    @MANV INT,    -- Khớp với C#
+    @Nam INT,     -- Khớp với C#
+    @Thang INT    -- Khớp với C#
 AS
 BEGIN
-    SELECT CN.MACN, CN.TENCN, COUNT(NV.MANV) AS SoLuongNhanVien, ISNULL(SUM(NV.LUONGCOBAN), 0) AS TongLuongPhaiTra
-    FROM CHINHANH CN
-    LEFT JOIN LAMVIEC LV ON CN.MACN = LV.MACN
-    LEFT JOIN NHANVIEN NV ON LV.MANV = NV.MANV
-    WHERE (LV.NGAYKETTHUC IS NULL OR LV.NGAYKETTHUC >= GETDATE()) AND (@MACN IS NULL OR CN.MACN = @MACN)
-    GROUP BY CN.MACN, CN.TENCN ORDER BY TongLuongPhaiTra DESC;
+    SET NOCOUNT ON;
+    IF NOT EXISTS (SELECT 1 FROM NHANVIEN WHERE MANV = @MANV)
+    BEGIN
+        PRINT N'Nhân viên không tồn tại';
+        RETURN;
+    END
+    SELECT 
+        NV.MANV,
+        NV.HOTEN,
+        NV.LUONGCOBAN,
+        @Thang AS ThangTinhLuong,
+        @Nam AS NamTinhLuong,
+        NV.LUONGCOBAN AS LuongThucNhan 
+    FROM NHANVIEN NV
+    WHERE NV.MANV = @MANV;
+    PRINT N'Đã tính lương cho nhân viên ' + CAST(@MANV AS NVARCHAR(10));
 END;
 GO
 

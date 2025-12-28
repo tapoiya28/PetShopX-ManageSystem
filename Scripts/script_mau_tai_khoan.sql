@@ -19,27 +19,22 @@ CREATE TABLE TAIKHOAN (
 );
 GO
 
---mat kha
--- 1. XÓA DỮ LIỆU CŨ ĐỂ LÀM SẠCH (TRÁNH TRÙNG LẶP KHÓA CHÍNH)
 DELETE FROM TAIKHOAN WHERE TENDANGNHAP IN ('taikhoanquanli', 'taikhoanbacsi', 'taikhoannhanvien', 'taikhoankhachhang');
 DELETE FROM LAMVIEC WHERE MANV IN (1, 3, 5);
 
 GO
 
--- 3. CẤP TÀI KHOẢN (SCRIPT TAIKHOAN)
 DECLARE @PassHash CHAR(32) = 'fb276fb0ed6cdd1639bd678d3ace8614'; -- mật khẩu 123456
 DECLARE @Salt CHAR(3) = 'ABC';
 
 INSERT INTO TAIKHOAN (TENDANGNHAP, MATKHAU, SALT, TRANGTHAI, MANV, MAKH)
 VALUES 
-('taikhoanquanli',   @PassHash, @Salt, 1, 3,    NULL), -- MANV 3
 ('taikhoanbacsi',    @PassHash, @Salt, 1, 1,    NULL), -- MANV 1
+('taikhoanquanli',   @PassHash, @Salt, 1, 3,    NULL), -- MANV 3
 ('taikhoannhanvien', @PassHash, @Salt, 1, 5,    NULL), -- MANV 5
 ('taikhoankhachhang', @PassHash, @Salt, 1, NULL, 1);    -- MAKH 1
 GO
 
--- 4. PHÂN CÔNG CÔNG TÁC (SCRIPT LAMVIEC) - Đảm bảo VAITRO khớp với bảng NHANVIEN và TAIKHOAN
--- Giả sử tất cả làm việc tại Chi nhánh 1 (MACN = 1)
 INSERT INTO LAMVIEC (MACN, MANV, NGAYBATDAU, NGAYKETTHUC, VAITRO)
 VALUES 
 (1, 3, '2023-01-01', NULL, 'QL'), -- Khớp với taikhoanquanli

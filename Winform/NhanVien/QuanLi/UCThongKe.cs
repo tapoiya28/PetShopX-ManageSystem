@@ -1,64 +1,48 @@
 using System;
 using System.Drawing;
-using System.Drawing.Drawing2D; // Thêm thư viện vẽ đồ họa
+using System.Drawing.Drawing2D;
 using System.Data;
 using System.Data.SqlClient;
 using System.Windows.Forms;
 
 namespace Winform
 {
-    /// <summary>
-    /// UC Thống Kê - Đã được làm đẹp giao diện (UI)
-    /// </summary>
     public class UCThongKe : UserControl
     {
-        // Tab control chính
         private TabControl tabMain;
 
-        // Tab 1: Tình hình kinh doanh
+        // Tab 1
         private TabPage tabKinhDoanh;
-        private ComboBox cboNam1;
-        private ComboBox cboThang1;
+        private ComboBox cboNam1, cboThang1;
         private Button btnXemKinhDoanh;
         private DataGridView dgvKinhDoanh;
-        private Label lblTongDoanhThu;
-        private Label lblTongDon;
+        private Label lblTongDoanhThu, lblTongDon;
 
-        // Tab 2: Thống kê sản phẩm
+        // Tab 2
         private TabPage tabSanPham;
-        private ComboBox cboNam2;
-        private ComboBox cboThang2;
-        private Button btnXemSanPham;
-        private DataGridView dgvSanPham;
-        private Button btnSanPhamBanChay;
-        private DataGridView dgvSanPhamBanChay;
+        private ComboBox cboNam2, cboThang2;
+        private Button btnXemSanPham, btnSanPhamBanChay;
+        private DataGridView dgvSanPham, dgvSanPhamBanChay;
 
-        // Tab 3: Phân tích khách hàng
+        // Tab 3
         private TabPage tabKhachHang;
         private ComboBox cboNam3;
-        private Button btnThongKeKH;
-        private DataGridView dgvKhachHang;
-        private Button btnPhanTichKH;
-        private DataGridView dgvPhanTich;
-        private Button btnThongKeCapBac;
-        private DataGridView dgvCapBac;
+        private Button btnThongKeKH, btnPhanTichKH, btnThongKeCapBac;
+        private DataGridView dgvKhachHang, dgvPhanTich, dgvCapBac;
 
-        // Tab 4: Thống kê nhân viên
+        // Tab 4
         private TabPage tabNhanVien;
-        private ComboBox cboNam4;
-        private ComboBox cboThang4;
-        private Button btnThongKeNV;
+        private ComboBox cboNam4, cboThang4;
+        private Button btnThongKeNV, btnTinhLuong;
         private DataGridView dgvNhanVien;
-        private Button btnTinhLuong;
 
-        // Tab 5: Thống kê đánh giá
+        // Tab 5
         private TabPage tabDanhGia;
-        private ComboBox cboNam5;
-        private ComboBox cboThang5;
+        private ComboBox cboNam5, cboThang5;
         private Button btnXemDanhGia;
         private DataGridView dgvDanhGia;
 
-        // Tab 6: Tồn kho thấp
+        // Tab 6
         private TabPage tabTonKho;
         private Button btnXemTonKho;
         private DataGridView dgvTonKho;
@@ -66,19 +50,19 @@ namespace Winform
         public UCThongKe()
         {
             this.Size = new Size(1100, 750);
-            this.BackColor = Color.FromArgb(240, 242, 245); // Màu nền xám nhạt hiện đại
+            this.BackColor = Color.FromArgb(240, 242, 245);
             this.AutoScroll = true;
-
             TaoGiaoDien();
         }
 
         private void TaoGiaoDien()
         {
             // --- HEADER ---
+            // Tăng Height lên 95 để subtitle không bị đè
             Panel pnlHeader = new Panel()
             {
                 Location = new Point(0, 0),
-                Size = new Size(1100, 70), // Tăng chiều cao header
+                Size = new Size(1100, 95),
                 BackColor = Color.FromArgb(41, 128, 185),
                 Dock = DockStyle.Top
             };
@@ -86,7 +70,7 @@ namespace Winform
             Label lblTitle = new Label()
             {
                 Text = "BÁO CÁO & THỐNG KÊ HỆ THỐNG",
-                Font = new Font("Segoe UI", 16, FontStyle.Bold),
+                Font = new Font("Segoe UI", 18, FontStyle.Bold),
                 ForeColor = Color.White,
                 Location = new Point(20, 15),
                 AutoSize = true
@@ -95,50 +79,36 @@ namespace Winform
             Label lblSubtitle = new Label()
             {
                 Text = "Dữ liệu được cập nhật theo thời gian thực",
-                Font = new Font("Segoe UI", 9, FontStyle.Regular),
-                ForeColor = Color.FromArgb(200, 230, 255),
-                Location = new Point(22, 45),
+                Font = new Font("Segoe UI", 9, FontStyle.Italic), // Chỉnh nghiêng cho đẹp
+                ForeColor = Color.FromArgb(210, 235, 255),
+                Location = new Point(22, 55), // Đẩy xuống so với Title
                 AutoSize = true
             };
-
             pnlHeader.Controls.AddRange(new Control[] { lblTitle, lblSubtitle });
 
-            // --- TAB CONTROL (Đã Custom lại cho đẹp) ---
+            // --- TAB CONTROL ---
+            // Đẩy tabMain xuống Y=105 để tách biệt hoàn toàn với Header
             tabMain = new TabControl()
             {
-                Location = new Point(10, 80),
-                Size = new Size(1080, 660),
-                Font = new Font("Segoe UI", 10, FontStyle.Regular),
-                Padding = new Point(15, 8),
-                DrawMode = TabDrawMode.OwnerDrawFixed, // QUAN TRỌNG: Để tự vẽ màu
+                Location = new Point(10, 105),
+                Size = new Size(1080, 630),
+                Font = new Font("Segoe UI", 10),
+                DrawMode = TabDrawMode.OwnerDrawFixed,
                 SizeMode = TabSizeMode.Fixed,
-                ItemSize = new Size(140, 40) // Kích thước mỗi tab
+                ItemSize = new Size(150, 40)
             };
 
-            // Sự kiện vẽ lại Tab cho đẹp (Phẳng, không viền lồi lõm)
-            tabMain.DrawItem += (s, e) =>
-            {
+            tabMain.DrawItem += (s, e) => {
                 TabControl tc = (TabControl)s;
                 TabPage page = tc.TabPages[e.Index];
                 Rectangle r = tc.GetTabRect(e.Index);
-
-                // Tô nền Tab
                 bool isSelected = (e.State == DrawItemState.Selected);
-                e.Graphics.FillRectangle(new SolidBrush(isSelected ? Color.White : Color.FromArgb(230, 230, 230)), r);
-
-                // Vẽ text
-                Color textColor = isSelected ? Color.FromArgb(41, 128, 185) : Color.DimGray;
-                Font tabFont = isSelected ? new Font(tc.Font, FontStyle.Bold) : tc.Font;
-                TextRenderer.DrawText(e.Graphics, page.Text, tabFont, r, textColor, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
-
-                // Vẽ vạch màu dưới chân tab đang chọn
-                if (isSelected)
-                {
-                    e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(41, 128, 185)), r.X, r.Bottom - 3, r.Width, 3);
-                }
+                e.Graphics.FillRectangle(new SolidBrush(isSelected ? Color.White : Color.FromArgb(235, 235, 235)), r);
+                Color textColor = isSelected ? Color.FromArgb(41, 128, 185) : Color.FromArgb(100, 100, 100);
+                TextRenderer.DrawText(e.Graphics, page.Text, tc.Font, r, textColor, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
+                if (isSelected) e.Graphics.FillRectangle(new SolidBrush(Color.FromArgb(41, 128, 185)), r.X, r.Bottom - 3, r.Width, 3);
             };
 
-            // Tạo các tab con
             TaoTabKinhDoanh();
             TaoTabSanPham();
             TaoTabKhachHang();
@@ -146,38 +116,36 @@ namespace Winform
             TaoTabDanhGia();
             TaoTabTonKho();
 
-            this.Controls.Add(pnlHeader);
             this.Controls.Add(tabMain);
+            this.Controls.Add(pnlHeader);
         }
 
-        // ============ TAB 1: TÌNH HÌNH KINH DOANH (ĐÃ SỬA UI) ============
         private void TaoTabKinhDoanh()
         {
             tabKinhDoanh = new TabPage("💰 Kinh Doanh");
             tabKinhDoanh.BackColor = Color.White;
 
-            // Panel filter
             Panel pnlFilter = CreateFilterPanel(out cboNam1, out cboThang1, out btnXemKinhDoanh, true);
             btnXemKinhDoanh.Click += BtnXemKinhDoanh_Click;
 
-            // Grid
-            dgvKinhDoanh = TaoDataGridView(new Point(20, 100), new Size(1030, 310));
+            // Thu nhỏ Grid một chút (Height 280) để Card không bị đè lên dữ liệu
+            dgvKinhDoanh = TaoDataGridView(new Point(20, 90), new Size(1030, 280));
 
-            // --- CARD 1: DOANH THU (Dùng RoundedPanel và TableLayout để không mất chữ) ---
+            // Card Doanh Thu - Tăng chiều ngang (Width 480) để chứa số tiền lớn
             RoundedPanel pnlCardDoanhThu = new RoundedPanel()
             {
-                Location = new Point(50, 430),
-                Size = new Size(450, 100), // Tăng chiều cao
+                Location = new Point(30, 400),
+                Size = new Size(490, 110),
                 BackColor = Color.FromArgb(46, 204, 113),
                 Radius = 20
             };
             pnlCardDoanhThu.Controls.Add(CreateCardContent("💰", "TỔNG DOANH THU", out lblTongDoanhThu, "0 đ"));
 
-            // --- CARD 2: ĐƠN HÀNG ---
+            // Card Đơn Hàng
             RoundedPanel pnlCardDon = new RoundedPanel()
             {
-                Location = new Point(550, 430),
-                Size = new Size(450, 100),
+                Location = new Point(540, 400),
+                Size = new Size(490, 110),
                 BackColor = Color.FromArgb(52, 152, 219),
                 Radius = 20
             };
@@ -187,267 +155,64 @@ namespace Winform
             tabMain.TabPages.Add(tabKinhDoanh);
         }
 
-        // ============ CÁC TAB KHÁC (GIỮ NGUYÊN LOGIC, CHỈNH UI) ============
+        // ============ HELPER UI (Sửa lỗi khoảng cách và tràn chữ) ============
 
-        private void TaoTabSanPham()
+        private Panel CreateFilterPanel(out ComboBox cboNam, out ComboBox cboThang, out Button btnAction, bool hasMonth, int x = 20, int y = 15)
         {
-            tabSanPham = new TabPage("📦 Sản Phẩm");
-            tabSanPham.BackColor = Color.White;
-
-            // Phần 1
-            Label lbl1 = CreateSectionTitle("THỐNG KÊ SẢN PHẨM BÁN RA", 20, 15);
-            Panel pnlFilter = CreateFilterPanel(out cboNam2, out cboThang2, out btnXemSanPham, true, 20, 45);
-            btnXemSanPham.Click += BtnXemSanPham_Click;
-            dgvSanPham = TaoDataGridView(new Point(20, 120), new Size(1030, 200));
-
-            // Phần 2
-            Label lbl2 = CreateSectionTitle("🔥 TOP SẢN PHẨM BÁN CHẠY", 20, 340);
-            btnSanPhamBanChay = CreateButton("Xem Top Bán Chạy", new Point(20, 370), Color.FromArgb(230, 126, 34));
-            btnSanPhamBanChay.Click += BtnSanPhamBanChay_Click;
-            dgvSanPhamBanChay = TaoDataGridView(new Point(20, 415), new Size(1030, 190));
-
-            tabSanPham.Controls.AddRange(new Control[] { lbl1, pnlFilter, dgvSanPham, lbl2, btnSanPhamBanChay, dgvSanPhamBanChay });
-            tabMain.TabPages.Add(tabSanPham);
-        }
-
-        private void TaoTabKhachHang()
-        {
-            tabKhachHang = new TabPage("👥 Khách Hàng");
-            tabKhachHang.BackColor = Color.White;
-            tabKhachHang.AutoScroll = true;
-
-            // Phần 1
-            Label lbl1 = CreateSectionTitle("THỐNG KÊ KHÁCH HÀNG MỚI", 20, 15);
-            Panel pnlFilter = CreateFilterPanel(out cboNam3, out _, out btnThongKeKH, false, 20, 45);
-            btnThongKeKH.Click += BtnThongKeKH_Click;
-            dgvKhachHang = TaoDataGridView(new Point(20, 120), new Size(1030, 150));
-
-            // Phần 2
-            Label lbl2 = CreateSectionTitle("PHÂN TÍCH TIỀM NĂNG", 20, 290);
-            btnPhanTichKH = CreateButton("Phân tích ngay", new Point(20, 320), Color.FromArgb(142, 68, 173));
-            btnPhanTichKH.Click += BtnPhanTichKH_Click;
-            dgvPhanTich = TaoDataGridView(new Point(20, 365), new Size(1030, 150));
-
-            // Phần 3
-            Label lbl3 = CreateSectionTitle("CƠ CẤU CẤP BẬC (VIP/MEMBER)", 20, 535);
-            btnThongKeCapBac = CreateButton("Xem tỷ lệ", new Point(20, 565), Color.FromArgb(39, 174, 96));
-            btnThongKeCapBac.Click += BtnThongKeCapBac_Click;
-            dgvCapBac = TaoDataGridView(new Point(20, 610), new Size(1030, 150));
-
-            tabKhachHang.Controls.AddRange(new Control[] { lbl1, pnlFilter, dgvKhachHang, lbl2, btnPhanTichKH, dgvPhanTich, lbl3, btnThongKeCapBac, dgvCapBac });
-            tabMain.TabPages.Add(tabKhachHang);
-        }
-
-        private void TaoTabNhanVien()
-        {
-            tabNhanVien = new TabPage("👨‍💼 Nhân Viên");
-            tabNhanVien.BackColor = Color.White;
-
-            Label lbl1 = CreateSectionTitle("HIỆU SUẤT NHÂN VIÊN", 20, 15);
-            Panel pnlFilter = CreateFilterPanel(out cboNam4, out cboThang4, out btnThongKeNV, true, 20, 45);
-            btnThongKeNV.Click += BtnThongKeNV_Click;
-            dgvNhanVien = TaoDataGridView(new Point(20, 120), new Size(1030, 250));
-
-            Label lbl2 = CreateSectionTitle("TÍNH LƯƠNG & HOA HỒNG", 20, 390);
-            btnTinhLuong = CreateButton("💰 Tính lương tháng này", new Point(20, 420), Color.FromArgb(46, 204, 113));
-            btnTinhLuong.Size = new Size(200, 40);
-            btnTinhLuong.Click += BtnTinhLuong_Click;
-
-            tabNhanVien.Controls.AddRange(new Control[] { lbl1, pnlFilter, dgvNhanVien, lbl2, btnTinhLuong });
-            tabMain.TabPages.Add(tabNhanVien);
-        }
-
-        private void TaoTabDanhGia()
-        {
-            tabDanhGia = new TabPage("⭐ Đánh Giá");
-            tabDanhGia.BackColor = Color.White;
-
-            Label lbl1 = CreateSectionTitle("PHẢN HỒI KHÁCH HÀNG", 20, 15);
-            Panel pnlFilter = CreateFilterPanel(out cboNam5, out cboThang5, out btnXemDanhGia, true, 20, 45);
-            btnXemDanhGia.Click += BtnXemDanhGia_Click;
-            dgvDanhGia = TaoDataGridView(new Point(20, 120), new Size(1030, 480));
-
-            tabDanhGia.Controls.AddRange(new Control[] { lbl1, pnlFilter, dgvDanhGia });
-            tabMain.TabPages.Add(tabDanhGia);
-        }
-
-        private void TaoTabTonKho()
-        {
-            tabTonKho = new TabPage("📉 Tồn Kho");
-            tabTonKho.BackColor = Color.White;
-
-            Label lbl1 = CreateSectionTitle("⚠️ CẢNH BÁO TỒN KHO THẤP", 20, 15);
-            lbl1.ForeColor = Color.FromArgb(231, 76, 60);
-
-            Label lblNote = new Label()
-            {
-                Text = "Danh sách các sản phẩm cần nhập thêm hàng ngay lập tức",
-                Location = new Point(22, 45),
-                AutoSize = true,
-                Font = new Font("Segoe UI", 9, FontStyle.Italic),
-                ForeColor = Color.Gray
-            };
-
-            btnXemTonKho = CreateButton("🔍 Quét kho hàng", new Point(20, 70), Color.FromArgb(231, 76, 60));
-            btnXemTonKho.Click += BtnXemTonKho_Click;
-
-            dgvTonKho = TaoDataGridView(new Point(20, 120), new Size(1030, 480));
-
-            tabTonKho.Controls.AddRange(new Control[] { lbl1, lblNote, btnXemTonKho, dgvTonKho });
-            tabMain.TabPages.Add(tabTonKho);
-        }
-
-        // ============ HÀM HỖ TRỢ UI (HELPER) ============
-
-        private DataGridView TaoDataGridView(Point location, Size size)
-        {
-            DataGridView dgv = new DataGridView()
-            {
-                Location = location,
-                Size = size,
-                BackgroundColor = Color.White,
-                BorderStyle = BorderStyle.None, // Bỏ viền xấu
-                CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal, // Chỉ kẻ ngang
-                SelectionMode = DataGridViewSelectionMode.FullRowSelect,
-                RowHeadersVisible = false, // Ẩn cột đầu dòng
-                AllowUserToAddRows = false,
-                AllowUserToResizeRows = false,
-                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
-                EnableHeadersVisualStyles = false,
-                RowTemplate = { Height = 40 } // Tăng chiều cao dòng cho thoáng
-            };
-
-            // Header đẹp
-            dgv.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(245, 246, 247);
-            dgv.ColumnHeadersDefaultCellStyle.ForeColor = Color.Black;
-            dgv.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 10, FontStyle.Bold);
-            dgv.ColumnHeadersDefaultCellStyle.SelectionBackColor = Color.FromArgb(245, 246, 247);
-            dgv.ColumnHeadersHeight = 45;
-            dgv.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
-
-            // Dòng dữ liệu
-            dgv.DefaultCellStyle.Font = new Font("Segoe UI", 10);
-            dgv.DefaultCellStyle.ForeColor = Color.FromArgb(64, 64, 64);
-            dgv.DefaultCellStyle.SelectionBackColor = Color.FromArgb(235, 245, 255); // Xanh rất nhạt
-            dgv.DefaultCellStyle.SelectionForeColor = Color.Black;
-            dgv.DefaultCellStyle.Padding = new Padding(10, 0, 0, 0);
-
-            return dgv;
-        }
-
-        // Hàm tạo Panel lọc (Năm/Tháng) dùng chung
-        private Panel CreateFilterPanel(out ComboBox cboNam, out ComboBox cboThang, out Button btnAction, bool hasMonth, int x = 20, int y = 20)
-        {
-            Panel pnl = new Panel()
-            {
-                Location = new Point(x, y),
-                Size = new Size(1020, 60),
-                BackColor = Color.FromArgb(248, 249, 250), // Xám rất nhạt
-            };
-            // Tạo đường viền dưới nhẹ cho panel
-            pnl.Paint += (s, e) => { ControlPaint.DrawBorder(e.Graphics, pnl.ClientRectangle, Color.Transparent, 0, ButtonBorderStyle.None, Color.Transparent, 0, ButtonBorderStyle.None, Color.Transparent, 0, ButtonBorderStyle.None, Color.LightGray, 1, ButtonBorderStyle.Solid); };
-
-            Label lblN = new Label() { Text = "Năm:", Location = new Point(15, 20), AutoSize = true, Font = new Font("Segoe UI", 10) };
-            cboNam = new ComboBox() { Location = new Point(60, 17), Width = 100, DropDownStyle = ComboBoxStyle.DropDownList, Font = new Font("Segoe UI", 10), FlatStyle = FlatStyle.Flat };
+            Panel pnl = new Panel() { Location = new Point(x, y), Size = new Size(1020, 65), BackColor = Color.FromArgb(248, 249, 250) };
+            
+            // Căn chỉnh label và combo rộng ra (tăng X)
+            Label lblN = new Label() { Text = "Năm:", Location = new Point(15, 23), AutoSize = true };
+            cboNam = new ComboBox() { Location = new Point(65, 20), Width = 100, DropDownStyle = ComboBoxStyle.DropDownList, FlatStyle = FlatStyle.Flat };
             TaiDanhSachNam(cboNam);
-
-            pnl.Controls.Add(lblN);
-            pnl.Controls.Add(cboNam);
+            pnl.Controls.AddRange(new Control[] { lblN, cboNam });
 
             cboThang = null;
             int btnX = 180;
 
             if (hasMonth)
             {
-                Label lblT = new Label() { Text = "Tháng:", Location = new Point(180, 20), AutoSize = true, Font = new Font("Segoe UI", 10) };
-                cboThang = new ComboBox() { Location = new Point(235, 17), Width = 100, DropDownStyle = ComboBoxStyle.DropDownList, Font = new Font("Segoe UI", 10), FlatStyle = FlatStyle.Flat };
+                Label lblT = new Label() { Text = "Tháng:", Location = new Point(190, 23), AutoSize = true };
+                cboThang = new ComboBox() { Location = new Point(255, 20), Width = 100, DropDownStyle = ComboBoxStyle.DropDownList, FlatStyle = FlatStyle.Flat };
                 cboThang.Items.Add("Tất cả");
                 for (int i = 1; i <= 12; i++) cboThang.Items.Add(i);
                 cboThang.SelectedIndex = 0;
-                pnl.Controls.Add(lblT);
-                pnl.Controls.Add(cboThang);
-                btnX = 360;
+                pnl.Controls.AddRange(new Control[] { lblT, cboThang });
+                btnX = 380; // Đẩy nút ra xa hơn
             }
 
-            btnAction = CreateButton("Xem báo cáo", new Point(btnX, 15), Color.FromArgb(41, 128, 185));
+            btnAction = CreateButton("Xem báo cáo", new Point(btnX, 17), Color.FromArgb(41, 128, 185));
             pnl.Controls.Add(btnAction);
-
             return pnl;
         }
 
-        private Button CreateButton(string text, Point loc, Color bg)
-        {
-            return new Button()
-            {
-                Text = text,
-                Location = loc,
-                Size = new Size(140, 32),
-                BackColor = bg,
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat,
-                Font = new Font("Segoe UI", 9, FontStyle.Bold),
-                Cursor = Cursors.Hand,
-                FlatAppearance = { BorderSize = 0 }
-            };
-        }
-
-        private Label CreateSectionTitle(string text, int x, int y)
-        {
-            return new Label()
-            {
-                Text = text,
-                Location = new Point(x, y),
-                AutoSize = true,
-                Font = new Font("Segoe UI", 11, FontStyle.Bold),
-                ForeColor = Color.FromArgb(64, 64, 64)
-            };
-        }
-
-        // Tạo nội dung bên trong Card (Icon + Text + Số liệu)
         private Control CreateCardContent(string icon, string title, out Label lblValue, string defaultVal)
         {
-            TableLayoutPanel tbl = new TableLayoutPanel()
-            {
-                Dock = DockStyle.Fill,
-                ColumnCount = 2,
-                BackColor = Color.Transparent,
-                Padding = new Padding(15, 10, 10, 10)
-            };
-            tbl.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 30F));
-            tbl.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 70F));
+            TableLayoutPanel tbl = new TableLayoutPanel() { Dock = DockStyle.Fill, ColumnCount = 2, BackColor = Color.Transparent, Padding = new Padding(10) };
+            tbl.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25F));
+            tbl.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 75F));
 
-            Label lblIcon = new Label() { Text = icon, Font = new Font("Segoe UI", 32), ForeColor = Color.White, AutoSize = true, Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter };
-
-            Label lblTitle = new Label() { Text = title, Font = new Font("Segoe UI", 10, FontStyle.Regular), ForeColor = Color.FromArgb(230, 230, 230), AutoSize = true, Dock = DockStyle.Bottom };
+            Label lblIcon = new Label() { Text = icon, Font = new Font("Segoe UI", 35), ForeColor = Color.White, Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter };
+            Label lblT = new Label() { Text = title, Font = new Font("Segoe UI", 10, FontStyle.Bold), ForeColor = Color.FromArgb(230, 230, 230), Dock = DockStyle.Bottom, AutoSize = true };
 
             lblValue = new Label()
             {
                 Text = defaultVal,
-                Font = new Font("Segoe UI", 20, FontStyle.Bold),
+                Font = new Font("Segoe UI", 22, FontStyle.Bold), // Tăng nhẹ font
                 ForeColor = Color.White,
-                AutoSize = true,
-                Dock = DockStyle.Top
+                AutoSize = false,       // QUAN TRỌNG: Tắt AutoSize để tránh tràn
+                Dock = DockStyle.Fill,
+                TextAlign = ContentAlignment.MiddleLeft,
+                AutoEllipsis = true     // Nếu dài quá hiện dấu ...
             };
 
-            tbl.Controls.Add(lblIcon, 0, 0);
-            tbl.SetRowSpan(lblIcon, 2);
-            tbl.Controls.Add(lblTitle, 1, 0);
+            tbl.Controls.Add(lblIcon, 0, 0); tbl.SetRowSpan(lblIcon, 2);
+            tbl.Controls.Add(lblT, 1, 0);
             tbl.Controls.Add(lblValue, 1, 1);
-
             return tbl;
         }
 
-        private void TaiDanhSachNam(ComboBox cbo)
-        {
-            int namHienTai = DateTime.Now.Year;
-            for (int i = namHienTai; i >= namHienTai - 4; i--)
-            {
-                cbo.Items.Add(i);
-            }
-            if (cbo.Items.Count > 0) cbo.SelectedIndex = 0;
-        }
-
-        // ============ SỰ KIỆN LOGIC (GIỮ NGUYÊN CODE CŨ CỦA BẠN NHƯNG CHUẨN HÓA) ============
+        // ============ LOGIC XỬ LÝ (Format tiền tỷ) ============
 
         private void BtnXemKinhDoanh_Click(object sender, EventArgs e)
         {
@@ -470,179 +235,168 @@ namespace Winform
                         da.Fill(dt);
                         dgvKinhDoanh.DataSource = dt;
 
-                        decimal tongDoanhThu = 0;
-                        int tongDon = 0;
-                        if (dt.Rows.Count > 0)
+                        decimal tongTien = 0; int tongDon = 0;
+                        foreach (DataRow row in dt.Rows)
                         {
-                            foreach (DataRow row in dt.Rows)
-                            {
-                                if (row["Tổng Doanh thu"] != DBNull.Value)
-                                    tongDoanhThu += Convert.ToDecimal(row["Tổng Doanh thu"]);
-                                if (row["Số lượng đơn"] != DBNull.Value)
-                                    tongDon += Convert.ToInt32(row["Số lượng đơn"]);
-                            }
+                            if (row["Tổng Doanh thu"] != DBNull.Value) tongTien += Convert.ToDecimal(row["Tổng Doanh thu"]);
+                            if (row["Số lượng đơn"] != DBNull.Value) tongDon += Convert.ToInt32(row["Số lượng đơn"]);
                         }
-                        lblTongDoanhThu.Text = $"{tongDoanhThu:N0} đ";
-                        lblTongDon.Text = $"{tongDon}";
+
+                        // Format số tiền (Nếu > 1 Tỷ thì ghi rút gọn)
+                        if (tongTien >= 1000000000)
+                            lblTongDoanhThu.Text = string.Format("{0:0.##} Tỷ VNĐ", (double)tongTien / 1000000000);
+                        else
+                            lblTongDoanhThu.Text = tongTien.ToString("N0") + " đ";
+
+                        lblTongDon.Text = tongDon.ToString("N0");
                     }
                 }
             }
-            catch (Exception ex) { MessageBox.Show("Lỗi: " + ex.Message); }
+            catch (Exception ex) { MessageBox.Show(ex.Message); }
         }
 
-        private void BtnXemSanPham_Click(object sender, EventArgs e) => LoadData(dgvSanPham, "sp_ThongKeSanPham", cboNam2, cboThang2);
-        private void BtnSanPhamBanChay_Click(object sender, EventArgs e) => LoadDataSimple(dgvSanPhamBanChay, "sp_SanPhamBanChay");
-        private void BtnThongKeKH_Click(object sender, EventArgs e) => LoadData(dgvKhachHang, "sp_ThongKeKhachHang", cboNam3, null);
-        private void BtnPhanTichKH_Click(object sender, EventArgs e) => LoadDataSimple(dgvPhanTich, "sp_PhanTichKhachHang");
-        private void BtnThongKeNV_Click(object sender, EventArgs e) => LoadData(dgvNhanVien, "sp_ThongKeHieuSuatNhanVien", cboNam4, cboThang4);
-        private void BtnXemDanhGia_Click(object sender, EventArgs e) => LoadData(dgvDanhGia, "sp_ThongKeDanhGia", cboNam5, cboThang5);
+        // --- CÁC TAB KHÁC (GIỮ LOGIC NHƯNG CẬP NHẬT UI ĐỒNG BỘ) ---
 
-        // Helper để load dữ liệu nhanh
-        private void LoadData(DataGridView dgv, string spName, ComboBox cbNam, ComboBox cbThang)
-        {
-            try
-            {
-                using (SqlConnection conn = Connection.GetConnection())
-                {
-                    conn.Open();
-                    using (SqlCommand cmd = new SqlCommand(spName, conn))
-                    {
-                        cmd.CommandType = CommandType.StoredProcedure;
-                        if (cbNam != null) cmd.Parameters.AddWithValue("@Nam", Convert.ToInt32(cbNam.SelectedItem));
-                        if (cbThang != null)
-                        {
-                            int? thang = cbThang.SelectedIndex == 0 ? (int?)null : Convert.ToInt32(cbThang.SelectedItem);
-                            cmd.Parameters.AddWithValue("@Thang", (object)thang ?? DBNull.Value);
-                        }
-                        DataTable dt = new DataTable();
-                        new SqlDataAdapter(cmd).Fill(dt);
-                        dgv.DataSource = dt;
-                    }
-                }
-            }
-            catch (Exception ex) { MessageBox.Show("Lỗi tải dữ liệu: " + ex.Message); }
+        private void TaoTabSanPham() {
+            tabSanPham = new TabPage("📦 Sản Phẩm"); tabSanPham.BackColor = Color.White;
+            Panel pnl = CreateFilterPanel(out cboNam2, out cboThang2, out btnXemSanPham, true);
+            btnXemSanPham.Click += (s, e) => LoadData(dgvSanPham, "sp_ThongKeSanPham", cboNam2, cboThang2);
+            dgvSanPham = TaoDataGridView(new Point(20, 100), new Size(1030, 200));
+            Label lbl2 = CreateSectionTitle("🔥 TOP SẢN PHẨM BÁN CHẠY", 20, 320);
+            btnSanPhamBanChay = CreateButton("Xem Top Bán Chạy", new Point(20, 355), Color.FromArgb(230, 126, 34));
+            btnSanPhamBanChay.Click += (s, e) => LoadDataSimple(dgvSanPhamBanChay, "sp_SanPhamBanChay");
+            dgvSanPhamBanChay = TaoDataGridView(new Point(20, 400), new Size(1030, 180));
+            tabSanPham.Controls.AddRange(new Control[] { pnl, dgvSanPham, lbl2, btnSanPhamBanChay, dgvSanPhamBanChay });
+            tabMain.TabPages.Add(tabSanPham);
         }
 
-        private void LoadDataSimple(DataGridView dgv, string spName)
-        {
-            try
-            {
-                using (SqlConnection conn = Connection.GetConnection())
-                {
-                    conn.Open();
-                    DataTable dt = new DataTable();
-                    new SqlDataAdapter(spName, conn).Fill(dt);
-                    dgv.DataSource = dt;
-                }
-            }
-            catch (Exception ex) { MessageBox.Show("Lỗi: " + ex.Message); }
+        private void TaoTabKhachHang() {
+            tabKhachHang = new TabPage("👥 Khách Hàng"); tabKhachHang.BackColor = Color.White; tabKhachHang.AutoScroll = true;
+            Panel pnl = CreateFilterPanel(out cboNam3, out _, out btnThongKeKH, false);
+            btnThongKeKH.Click += (s, e) => LoadData(dgvKhachHang, "sp_ThongKeKhachHang", cboNam3, null);
+            dgvKhachHang = TaoDataGridView(new Point(20, 100), new Size(1030, 150));
+            Label lbl2 = CreateSectionTitle("💎 PHÂN TÍCH TIỀM NĂNG", 20, 270);
+            btnPhanTichKH = CreateButton("Phân tích ngay", new Point(20, 305), Color.FromArgb(142, 68, 173));
+            btnPhanTichKH.Click += (s, e) => LoadDataSimple(dgvPhanTich, "sp_PhanTichKhachHang");
+            dgvPhanTich = TaoDataGridView(new Point(20, 350), new Size(1030, 200));
+            tabKhachHang.Controls.AddRange(new Control[] { pnl, dgvKhachHang, lbl2, btnPhanTichKH, dgvPhanTich });
+            tabMain.TabPages.Add(tabKhachHang);
         }
 
-        private void BtnThongKeCapBac_Click(object sender, EventArgs e)
-        {
-            // Logic SQL trần giữ nguyên như bạn muốn
-            try
-            {
-                using (SqlConnection conn = Connection.GetConnection())
-                {
-                    conn.Open();
-                    string query = @"SELECT TENCAPBAC AS [Cấp Bậc], COUNT(*) AS [Số Lượng KH], 
-                                     CAST(COUNT(*) * 100.0 / (SELECT COUNT(*) FROM KHACHHANG) AS DECIMAL(5,2)) AS [Tỷ Lệ %]
-                                     FROM KHACHHANG GROUP BY TENCAPBAC ORDER BY COUNT(*) DESC";
-                    DataTable dt = new DataTable();
-                    new SqlDataAdapter(query, conn).Fill(dt);
-                    dgvCapBac.DataSource = dt;
-                }
-            }
-            catch (Exception ex) { MessageBox.Show("Lỗi: " + ex.Message); }
+        private void TaoTabNhanVien() {
+            tabNhanVien = new TabPage("👨‍💼 Nhân Viên"); tabNhanVien.BackColor = Color.White;
+            Panel pnl = CreateFilterPanel(out cboNam4, out cboThang4, out btnThongKeNV, true);
+            btnThongKeNV.Click += (s, e) => LoadData(dgvNhanVien, "sp_ThongKeHieuSuatNhanVien", cboNam4, cboThang4);
+            dgvNhanVien = TaoDataGridView(new Point(20, 100), new Size(1030, 300));
+            btnTinhLuong = CreateButton("💰 Tính lương tháng này", new Point(20, 420), Color.FromArgb(46, 204, 113));
+            btnTinhLuong.Size = new Size(200, 40);
+            btnTinhLuong.Click += BtnTinhLuong_Click;
+            tabNhanVien.Controls.AddRange(new Control[] { pnl, dgvNhanVien, btnTinhLuong });
+            tabMain.TabPages.Add(tabNhanVien);
         }
 
-        private void BtnXemTonKho_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                using (SqlConnection conn = Connection.GetConnection())
-                {
-                    conn.Open();
-                    DataTable dt = new DataTable();
-                    new SqlDataAdapter("SELECT * FROM f_TonKhoThap()", conn).Fill(dt);
+        private void TaoTabDanhGia() {
+            tabDanhGia = new TabPage("⭐ Đánh Giá"); tabDanhGia.BackColor = Color.White;
+            Panel pnl = CreateFilterPanel(out cboNam5, out cboThang5, out btnXemDanhGia, true);
+            btnXemDanhGia.Click += (s, e) => LoadData(dgvDanhGia, "sp_ThongKeDanhGia", cboNam5, cboThang5);
+            dgvDanhGia = TaoDataGridView(new Point(20, 100), new Size(1030, 450));
+            tabDanhGia.Controls.AddRange(new Control[] { pnl, dgvDanhGia });
+            tabMain.TabPages.Add(tabDanhGia);
+        }
+
+        private void TaoTabTonKho() {
+            tabTonKho = new TabPage("📉 Tồn Kho"); tabTonKho.BackColor = Color.White;
+            btnXemTonKho = CreateButton("🔍 Quét kho hàng", new Point(20, 20), Color.FromArgb(231, 76, 60));
+            btnXemTonKho.Click += (s, e) => {
+                using (SqlConnection c = Connection.GetConnection()) {
+                    DataTable dt = new DataTable(); new SqlDataAdapter("SELECT * FROM f_TonKhoThap()", c).Fill(dt);
                     dgvTonKho.DataSource = dt;
-                    if (dt.Rows.Count > 0) MessageBox.Show($"Cảnh báo: Có {dt.Rows.Count} sản phẩm sắp hết hàng!", "Cảnh báo kho", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    else MessageBox.Show("Kho hàng ổn định.", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
-            }
-            catch (Exception ex) { MessageBox.Show("Lỗi: " + ex.Message); }
+            };
+            dgvTonKho = TaoDataGridView(new Point(20, 70), new Size(1030, 480));
+            tabTonKho.Controls.AddRange(new Control[] { btnXemTonKho, dgvTonKho });
+            tabMain.TabPages.Add(tabTonKho);
         }
 
         private void BtnTinhLuong_Click(object sender, EventArgs e)
         {
-            if (MessageBox.Show("Xác nhận tính lương cho toàn bộ nhân viên?", "Xác nhận", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes) return;
-            try
-            {
-                // Cải thiện logic để không bị treo
-                using (SqlConnection conn = Connection.GetConnection())
-                {
+            if (MessageBox.Show("Xác nhận tính lương cho nhân viên?", "Xác nhận", MessageBoxButtons.YesNo) != DialogResult.Yes) return;
+            try {
+                using (SqlConnection conn = Connection.GetConnection()) {
                     conn.Open();
-                    // Lấy danh sách NV
-                    DataTable dtNV = new DataTable();
-                    new SqlDataAdapter("SELECT MANV FROM NHANVIEN", conn).Fill(dtNV);
-
-                    int count = 0;
-                    foreach (DataRow row in dtNV.Rows)
-                    {
-                        using (SqlCommand cmd = new SqlCommand("sp_Sub_TinhLuong", conn))
-                        {
+                    DataTable dtNV = new DataTable(); new SqlDataAdapter("SELECT MANV FROM NHANVIEN", conn).Fill(dtNV);
+                    foreach (DataRow r in dtNV.Rows) {
+                        using (SqlCommand cmd = new SqlCommand("sp_Sub_TinhLuong", conn)) {
                             cmd.CommandType = CommandType.StoredProcedure;
-                            cmd.Parameters.AddWithValue("@MANV", row["MANV"]);
+                            cmd.Parameters.AddWithValue("@MANV", r["MANV"]);
                             cmd.Parameters.AddWithValue("@Nam", DateTime.Now.Year);
                             cmd.Parameters.AddWithValue("@Thang", DateTime.Now.Month);
                             cmd.ExecuteNonQuery();
-                            count++;
                         }
                     }
-                    MessageBox.Show($"Đã tính lương xong cho {count} nhân viên.", "Thành công");
+                    MessageBox.Show("Đã tính lương thành công!");
                 }
-            }
-            catch (Exception ex) { MessageBox.Show("Lỗi tính lương: " + ex.Message); }
+            } catch (Exception ex) { MessageBox.Show(ex.Message); }
+        }
+
+        private void LoadData(DataGridView dgv, string sp, ComboBox cbN, ComboBox cbT) {
+            try {
+                using (SqlConnection c = Connection.GetConnection()) {
+                    SqlCommand cmd = new SqlCommand(sp, c) { CommandType = CommandType.StoredProcedure };
+                    if (cbN != null) cmd.Parameters.AddWithValue("@Nam", Convert.ToInt32(cbN.SelectedItem));
+                    if (cbT != null) cmd.Parameters.AddWithValue("@Thang", cbT.SelectedIndex == 0 ? (object)DBNull.Value : Convert.ToInt32(cbT.SelectedItem));
+                    DataTable dt = new DataTable(); new SqlDataAdapter(cmd).Fill(dt); dgv.DataSource = dt;
+                }
+            } catch (Exception ex) { MessageBox.Show(ex.Message); }
+        }
+
+        private void LoadDataSimple(DataGridView dgv, string sp) {
+            try {
+                using (SqlConnection c = Connection.GetConnection()) {
+                    DataTable dt = new DataTable(); new SqlDataAdapter(sp, c).Fill(dt); dgv.DataSource = dt;
+                }
+            } catch (Exception ex) { MessageBox.Show(ex.Message); }
+        }
+
+        // --- COMMON HELPERS ---
+        private DataGridView TaoDataGridView(Point loc, Size sz) {
+            return new DataGridView() {
+                Location = loc, Size = sz, BackgroundColor = Color.White, BorderStyle = BorderStyle.None,
+                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill, RowHeadersVisible = false,
+                AllowUserToAddRows = false, ReadOnly = true, SelectionMode = DataGridViewSelectionMode.FullRowSelect,
+                EnableHeadersVisualStyles = false, RowTemplate = { Height = 35 },
+                ColumnHeadersHeight = 40, ColumnHeadersDefaultCellStyle = { BackColor = Color.FromArgb(245, 246, 247), Font = new Font("Segoe UI", 10, FontStyle.Bold) }
+            };
+        }
+
+        private Button CreateButton(string text, Point loc, Color bg) {
+            return new Button() { Text = text, Location = loc, Size = new Size(160, 32), BackColor = bg, ForeColor = Color.White, FlatStyle = FlatStyle.Flat, Font = new Font("Segoe UI", 9, FontStyle.Bold), Cursor = Cursors.Hand };
+        }
+
+        private Label CreateSectionTitle(string text, int x, int y) {
+            return new Label() { Text = text, Location = new Point(x, y), AutoSize = true, Font = new Font("Segoe UI", 11, FontStyle.Bold), ForeColor = Color.FromArgb(64, 64, 64) };
+        }
+
+        private void TaiDanhSachNam(ComboBox cbo) {
+            for (int i = DateTime.Now.Year; i >= DateTime.Now.Year - 4; i--) cbo.Items.Add(i);
+            if (cbo.Items.Count > 0) cbo.SelectedIndex = 0;
         }
     }
 
-    /// <summary>
-    /// Class hỗ trợ Panel bo tròn góc
-    /// </summary>
     public class RoundedPanel : Panel
     {
         public int Radius { get; set; } = 20;
-
-        public RoundedPanel()
-        {
-            this.DoubleBuffered = true; // Giảm giật hình
-            this.SetStyle(ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint | ControlStyles.OptimizedDoubleBuffer, true);
-        }
-
-        protected override void OnPaint(PaintEventArgs e)
-        {
-            base.OnPaint(e);
+        protected override void OnPaint(PaintEventArgs e) {
             e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
-
-            using (GraphicsPath path = new GraphicsPath())
-            {
-                Rectangle rect = new Rectangle(0, 0, this.Width - 1, this.Height - 1);
-                int r = Radius;
-
-                path.AddArc(rect.X, rect.Y, r, r, 180, 90);
-                path.AddArc(rect.Right - r, rect.Y, r, r, 270, 90);
-                path.AddArc(rect.Right - r, rect.Bottom - r, r, r, 0, 90);
-                path.AddArc(rect.X, rect.Bottom - r, r, r, 90, 90);
+            using (GraphicsPath path = new GraphicsPath()) {
+                Rectangle r = new Rectangle(0, 0, this.Width - 1, this.Height - 1);
+                path.AddArc(r.X, r.Y, Radius, Radius, 180, 90);
+                path.AddArc(r.Right - Radius, r.Y, Radius, Radius, 270, 90);
+                path.AddArc(r.Right - Radius, r.Bottom - Radius, Radius, Radius, 0, 90);
+                path.AddArc(r.X, r.Bottom - Radius, Radius, Radius, 90, 90);
                 path.CloseAllFigures();
-
                 this.Region = new Region(path);
-
-                // Vẽ viền mỏng nếu cần (tùy chọn)
-                using (Pen pen = new Pen(this.BackColor, 1))
-                {
-                    e.Graphics.DrawPath(pen, path);
-                }
+                using (Pen p = new Pen(this.BackColor, 1)) e.Graphics.DrawPath(p, path);
             }
         }
     }
