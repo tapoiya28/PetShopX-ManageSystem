@@ -235,7 +235,7 @@ GO
 
 -- thống kê đánh giá khách hàng 
 GO
-CREATE OR ALTER PROCEDURE sp_ThongKeDanhGia
+CREATE PROCEDURE sp_ThongKeDanhGia
     @Thang INTEGER = NULL, 
     @Nam INTEGER = NULL    
 AS 

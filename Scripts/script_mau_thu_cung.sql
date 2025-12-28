@@ -3,15 +3,6 @@ GO
 
 -- 1. XÁC ĐỊNH KHÁCH HÀNG CẦN BƠM DỮ LIỆU (ID = 1)
 DECLARE @MaKH_Test INT = 1;
--- Đảm bảo Khách hàng số 1 tồn tại (Nếu chưa có thì tạo lại)
-IF NOT EXISTS (SELECT 1 FROM KHACHHANG WHERE MAKH = @MaKH_Test)
-BEGIN
-    SET IDENTITY_INSERT KHACHHANG ON;
-    INSERT INTO KHACHHANG (MAKH, TENKH, SDT, DIACHI, TENCAPBAC, DIEMTICHLUY)
-    VALUES (@MaKH_Test, N'Nguyễn Văn A (Test)', '0912345678', N'123 Lê Lợi, TP.HCM', N'VIP', 100);
-    SET IDENTITY_INSERT KHACHHANG OFF;
-END
-
 -- 2. TẠO THÚ CƯNG CHO KHÁCH HÀNG NÀY
 -- Xóa thú cưng cũ để tránh trùng lặp
 DELETE FROM THUCUNG WHERE MAKH = @MaKH_Test;

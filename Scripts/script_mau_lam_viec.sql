@@ -11,9 +11,6 @@ GO
 -- Chi nhánh 1: Petcare cơ sở 9
 INSERT [dbo].[LAMVIEC] ([MACN], [MANV], [NGAYBATDAU], [NGAYKETTHUC], [VAITRO]) VALUES 
 (1, 21, '2023-01-01', NULL, 'BS'),
-(1, 3, '2023-01-01', NULL, 'QL'), -- Khớp với taikhoanquanli
-(1, 1, '2023-01-01', NULL, 'BS'), -- Khớp với taikhoanbacsi
-(1, 5, '2023-01-01', NULL, 'NV'), -- Khớp với taikhoannhanvien
 (1, 37, '2023-01-01', NULL, 'BS');
 
 -- Chi nhánh 2: Petcare cơ sở 5
